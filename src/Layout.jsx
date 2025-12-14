@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   LogOut,
-  Sparkles
+  Sparkles,
+  UserCircle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +26,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const navItems = [
   { name: 'Marketplace', page: 'Marketplace', icon: Store },
   { name: 'My Dashboard', page: 'MyListings', icon: LayoutDashboard },
+  { name: 'My Profile', page: 'Profile', icon: UserCircle },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -95,6 +97,12 @@ export default function Layout({ children, currentPageName }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to={createPageUrl('Profile')} className="cursor-pointer">
+                        <UserCircle className="w-4 h-4 mr-2" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl('MyListings')} className="cursor-pointer">
                         <LayoutDashboard className="w-4 h-4 mr-2" />

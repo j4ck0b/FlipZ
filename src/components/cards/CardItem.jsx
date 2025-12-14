@@ -111,9 +111,16 @@ export default function CardItem({ listing, onClick }) {
             ) : (
               <span className="text-lg font-bold text-slate-900">${listing.price}</span>
             )}
-            <span className="text-xs text-slate-400">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const { createPageUrl } = require('../utils');
+                window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
+              }}
+              className="text-xs text-slate-400 hover:text-slate-600 hover:underline transition-colors"
+            >
               by {listing.seller_name || 'Anonymous'}
-            </span>
+            </button>
           </div>
         </div>
       </Card>

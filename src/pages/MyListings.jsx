@@ -301,7 +301,15 @@ export default function MyListings() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-semibold text-slate-900">{request.buyer_name}</p>
+                          <button
+                            onClick={() => {
+                              const { createPageUrl } = require('../utils');
+                              window.location.href = createPageUrl('Profile') + '?userId=' + request.buyer_email;
+                            }}
+                            className="font-semibold text-slate-900 hover:text-slate-700 hover:underline transition-colors"
+                          >
+                            {request.buyer_name}
+                          </button>
                           <p className="text-sm text-slate-500">
                             wants to {request.request_type} <span className="font-medium">{request.listing_title}</span>
                           </p>

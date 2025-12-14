@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Loader2,
   Send,
-  X
+  X,
+  ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -171,10 +172,17 @@ export default function CardDetailSheet({ listing, open, onClose }) {
             </div>
             <div className="text-right">
               <p className="text-sm text-slate-500">Listed by</p>
-              <p className="font-medium text-slate-700 flex items-center gap-1">
+              <button
+                onClick={() => {
+                  const { createPageUrl } = require('../utils');
+                  window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
+                }}
+                className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group"
+              >
                 <User className="w-4 h-4" />
                 {listing.seller_name || 'Anonymous'}
-              </p>
+                <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
             </div>
           </div>
 
