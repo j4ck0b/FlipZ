@@ -9,46 +9,41 @@ const tradeCategories = [
   {
     id: 'card-exchange',
     title: '🃏 Card Exchange',
-    description: 'Trade collectible cards',
-    categories: ['pokemon', 'magic_the_gathering', 'yugioh', 'sports'],
+    description: 'Pokémon, MTG, Yu-Gi-Oh!, Sports Cards',
+    page: 'CardExchange',
     gradient: 'from-violet-600 to-indigo-600'
   },
   {
     id: 'brick-exchange',
     title: '🧱 Brick Exchange',
-    description: 'LEGO sets and minifigures',
-    categories: ['lego_minifigures'],
+    description: 'LEGO Minifigures & Sets',
+    page: 'BrickExchange',
     gradient: 'from-red-600 to-orange-600'
   },
   {
     id: 'figure-exchange',
     title: '🧸 Figure Exchange',
-    description: 'Funko, anime, designer toys',
-    categories: ['funko_pop', 'anime_figures', 'designer_toys'],
+    description: 'Funko Pop, Anime, Designer Toys',
+    page: 'FigureExchange',
     gradient: 'from-pink-600 to-purple-600'
   },
   {
     id: 'diecast-exchange',
     title: '🚗 Diecast Exchange',
-    description: 'Hot Wheels and collectible cars',
-    categories: ['hot_wheels'],
+    description: 'Hot Wheels & Matchbox',
+    page: 'DiecastExchange',
     gradient: 'from-blue-600 to-cyan-600'
   },
   {
     id: 'collectible-exchange',
     title: '🎮 Collectible Exchange',
-    description: 'Games, vinyl, sneakers',
-    categories: ['retro_games', 'vinyl_records', 'sneakers'],
+    description: 'Retro Games, Vinyl, Sneakers',
+    page: 'CollectibleExchange',
     gradient: 'from-green-600 to-emerald-600'
   }
 ];
 
 export default function Home() {
-  const handleCategoryClick = (categories) => {
-    const categoryParam = categories.join(',');
-    window.location.href = `${createPageUrl('Marketplace')}?categories=${categoryParam}`;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
@@ -72,7 +67,10 @@ export default function Home() {
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
               Trade What You Collect
             </h1>
-            <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto">
+              Safe exchanges. Real collectors. No selling.
+            </p>
+            <p className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto">
               Cards, figures, bricks, and more — safely exchanged with collectors worldwide
             </p>
           </motion.div>
@@ -87,7 +85,7 @@ export default function Home() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card
-                  onClick={() => handleCategoryClick(category.categories)}
+                  onClick={() => window.location.href = createPageUrl(category.page)}
                   className="group cursor-pointer bg-white/5 backdrop-blur-xl border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 overflow-hidden"
                 >
                   <CardContent className="p-6">
@@ -104,23 +102,6 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-
-          {/* Browse All */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-center mt-12"
-          >
-            <Button
-              onClick={() => window.location.href = createPageUrl('Marketplace')}
-              size="lg"
-              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
-            >
-              Browse All Collections
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </motion.div>
         </div>
       </div>
 
@@ -151,12 +132,12 @@ export default function Home() {
               {
                 step: '2',
                 title: 'Activate Exchange',
-                description: 'Both parties secure the trade with shipping labels'
+                description: 'Both parties secure the trade with shipping labels (24 zł)'
               },
               {
                 step: '3',
                 title: 'Ship & Complete',
-                description: 'Exchange items safely with tracking'
+                description: 'Exchange items safely with tracking and protection'
               }
             ].map((item, index) => (
               <motion.div

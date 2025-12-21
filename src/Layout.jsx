@@ -4,7 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { 
-  Store, 
+  Home as HomeIcon,
   LayoutDashboard, 
   Menu,
   LogOut,
@@ -22,7 +22,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
-  { name: 'Discover', page: 'Marketplace', icon: Store },
+  { name: 'Home', page: 'Home', icon: HomeIcon },
   { name: 'My Collection', page: 'MyListings', icon: LayoutDashboard },
   { name: 'Profile', page: 'Profile', icon: UserCircle },
 ];
@@ -52,7 +52,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link 
-              to={createPageUrl('Marketplace')} 
+              to={createPageUrl('Home')} 
               className="flex items-center gap-2 font-bold text-xl text-slate-900"
             >
               <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      onClick={() => base44.auth.logout(createPageUrl('Marketplace'))}
+                      onClick={() => base44.auth.logout(createPageUrl('Home'))}
                       className="text-red-600 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
@@ -165,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
                     <div className="pt-4 border-t mt-auto">
                       <Button 
                         variant="ghost" 
-                        onClick={() => base44.auth.logout(createPageUrl('Marketplace'))}
+                        onClick={() => base44.auth.logout(createPageUrl('Home'))}
                         className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
