@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Store, 
   LayoutDashboard, 
-  User,
   Menu,
-  X,
   LogOut,
   Sparkles,
   UserCircle
@@ -24,9 +22,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
-  { name: 'Marketplace', page: 'Marketplace', icon: Store },
-  { name: 'My Dashboard', page: 'MyListings', icon: LayoutDashboard },
-  { name: 'My Profile', page: 'Profile', icon: UserCircle },
+  { name: 'Discover', page: 'Marketplace', icon: Store },
+  { name: 'My Collection', page: 'MyListings', icon: LayoutDashboard },
+  { name: 'Profile', page: 'Profile', icon: UserCircle },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -40,11 +38,6 @@ export default function Layout({ children, currentPageName }) {
     };
     loadUser();
   }, []);
-
-  // Don't render layout for Landing page
-  if (currentPageName === 'Landing') {
-    return children;
-  }
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -65,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="hidden sm:inline">CardExchange</span>
+              <span className="hidden sm:inline">FlipCardZ</span>
             </Link>
 
             {/* Desktop Nav */}
@@ -111,12 +104,12 @@ export default function Layout({ children, currentPageName }) {
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl('MyListings')} className="cursor-pointer">
                         <LayoutDashboard className="w-4 h-4 mr-2" />
-                        My Dashboard
+                        My Collection
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      onClick={() => base44.auth.logout()}
+                      onClick={() => base44.auth.logout(createPageUrl('Marketplace'))}
                       className="text-red-600 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
@@ -172,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
                     <div className="pt-4 border-t mt-auto">
                       <Button 
                         variant="ghost" 
-                        onClick={() => base44.auth.logout()}
+                        onClick={() => base44.auth.logout(createPageUrl('Marketplace'))}
                         className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <LogOut className="w-4 h-4 mr-2" />

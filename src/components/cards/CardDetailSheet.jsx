@@ -2,25 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { base44 } from '@/api/base44Client';
 import { 
   ArrowRightLeft, 
-  DollarSign, 
   Sparkles, 
   Shield, 
   User,
-  MessageSquare,
-  Loader2,
-  Send,
   X,
   ExternalLink
 } from "lucide-react";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import TradeOfferModal from '../trade/TradeOfferModal';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -43,19 +35,21 @@ const categoryLabels = {
   pokemon: "Pokémon",
   magic_the_gathering: "Magic: The Gathering",
   yugioh: "Yu-Gi-Oh!",
-  sports: "Sports",
+  sports: "Sports Cards",
+  hot_wheels: "Hot Wheels",
+  funko_pop: "Funko Pop",
+  lego_minifigures: "LEGO Minifigures",
+  anime_figures: "Anime Figures",
+  retro_games: "Retro Games",
+  vinyl_records: "Vinyl Records",
+  sneakers: "Sneakers",
+  designer_toys: "Designer Toys",
   other: "Other"
 };
 
 export default function CardDetailSheet({ listing, open, onClose }) {
-  const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [requestType, setRequestType] = useState('purchase');
-  const [offerData, setOfferData] = useState({
-    offer_amount: '',
-    trade_offer: '',
-    message: ''
-  });
+  const [showTradeModal, setShowTradeModal] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -65,236 +59,169 @@ export default function CardDetailSheet({ listing, open, onClose }) {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    if (listing) {
-      setOfferData({
-        offer_amount: listing.price || '',
-        trade_offer: '',
-        message: ''
-      });
-      setRequestType(listing.trade_only ? 'trade' : 'purchase');
-    }
-  }, [listing]);
-
-  const handleSendRequest = async () => {
-    if (!listing || !currentUser) return;
-    
-    setSending(true);
-    
-    await base44.entities.TradeRequest.create({
-      listing_id: listing.id,
-      listing_title: listing.title,
-      seller_email: listing.created_by,
-      buyer_email: currentUser.email,
-      buyer_name: currentUser.full_name || currentUser.email?.split('@')[0],
-      request_type: requestType,
-      offer_amount: parseFloat(offerData.offer_amount) || 0,
-      trade_offer: offerData.trade_offer,
-      message: offerData.message,
-      status: 'pending'
-    });
-    
-    toast.success('Request sent successfully!');
-    setSending(false);
-    onClose();
-  };
-
   if (!listing) return null;
 
   const isOwnListing = currentUser?.email === listing.created_by;
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
-        {/* Card Image */}
-        <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50">
-          {listing.image_url ? (
-            <img 
-              src={listing.image_url} 
-              alt={listing.title}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-8xl opacity-50">
-              🃏
-            </div>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm"
-            onClick={onClose}
-          >
-            <X className="w-5 h-5" />
-          </Button>
-          
-          {/* Badges */}
-          <div className="absolute bottom-4 left-4 flex gap-2">
-            {listing.trade_only && (
-              <Badge className="bg-violet-600 text-white border-0">
-                <ArrowRightLeft className="w-3 h-3 mr-1" />
-                Trade Only
-              </Badge>
-            )}
-            {listing.rarity && (
-              <Badge className={`${rarityColors[listing.rarity]} border-0`}>
-                {listing.rarity === 'legendary' && <Sparkles className="w-3 h-3 mr-1" />}
-                {listing.rarity?.replace('_', ' ')}
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">{listing.title}</h2>
-            <div className="flex items-center gap-3 mt-3">
-              <Badge variant="outline" className={conditionColors[listing.condition]}>
-                <Shield className="w-3 h-3 mr-1" />
-                {listing.condition?.replace('_', ' ')}
-              </Badge>
-              <Badge variant="outline" className="bg-slate-50">
-                {categoryLabels[listing.category]}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-            <div>
-              <p className="text-sm text-slate-500">Asking Price</p>
-              {listing.trade_only ? (
-                <p className="text-xl font-bold text-violet-600">Trade Only</p>
-              ) : (
-                <p className="text-3xl font-bold text-slate-900">${listing.price}</p>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-500">Listed by</p>
-              <button
-                onClick={() => {
-                  const { createPageUrl } = require('../utils');
-                  window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
-                }}
-                className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group"
-              >
-                <User className="w-4 h-4" />
-                {listing.seller_name || 'Anonymous'}
-                <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            </div>
-          </div>
-
-          {/* Description */}
-          {listing.description && (
-            <div>
-              <h3 className="font-semibold text-slate-900 mb-2">Description</h3>
-              <p className="text-slate-600 leading-relaxed">{listing.description}</p>
-            </div>
-          )}
-
-          {/* Looking For */}
-          {listing.looking_for && (
-            <div className="p-4 bg-violet-50 rounded-2xl border border-violet-100">
-              <h3 className="font-semibold text-violet-900 mb-1 flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4" />
-                Looking For
-              </h3>
-              <p className="text-violet-700">{listing.looking_for}</p>
-            </div>
-          )}
-
-          {/* Contact / Offer Section */}
-          {!isOwnListing && listing.status === 'available' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="border-t pt-6 space-y-4"
-            >
-              <h3 className="font-semibold text-slate-900">Make an Offer</h3>
-              
-              {!listing.trade_only && (
-                <Tabs value={requestType} onValueChange={setRequestType}>
-                  <TabsList className="w-full">
-                    <TabsTrigger value="purchase" className="flex-1">
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      Purchase
-                    </TabsTrigger>
-                    <TabsTrigger value="trade" className="flex-1">
-                      <ArrowRightLeft className="w-4 h-4 mr-1" />
-                      Trade
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              )}
-
-              {requestType === 'purchase' && !listing.trade_only ? (
-                <div className="space-y-2">
-                  <Label>Your Offer (USD)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder={`Asking: $${listing.price}`}
-                    value={offerData.offer_amount}
-                    onChange={(e) => setOfferData(prev => ({ ...prev, offer_amount: e.target.value }))}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label>What cards are you offering?</Label>
-                  <Textarea
-                    placeholder="Describe the cards you want to trade..."
-                    value={offerData.trade_offer}
-                    onChange={(e) => setOfferData(prev => ({ ...prev, trade_offer: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" />
-                  Message to Seller
-                </Label>
-                <Textarea
-                  placeholder="Add a message..."
-                  value={offerData.message}
-                  onChange={(e) => setOfferData(prev => ({ ...prev, message: e.target.value }))}
-                  rows={2}
-                />
+    <>
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
+          {/* Card Image */}
+          <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50">
+            {listing.image_url ? (
+              <img 
+                src={listing.image_url} 
+                alt={listing.title}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-8xl opacity-50">
+                🃏
               </div>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm"
+              onClick={onClose}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+            
+            {/* Badges */}
+            <div className="absolute bottom-4 left-4 flex gap-2">
+              {listing.rarity && (
+                <Badge className={`${rarityColors[listing.rarity]} border-0`}>
+                  {listing.rarity === 'legendary' && <Sparkles className="w-3 h-3 mr-1" />}
+                  {listing.rarity?.replace('_', ' ')}
+                </Badge>
+              )}
+            </div>
+          </div>
 
-              <Button 
-                onClick={handleSendRequest}
-                disabled={sending}
-                className="w-full bg-slate-900 hover:bg-slate-800 h-12"
+          <div className="p-6 space-y-6">
+            {/* Header */}
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">{listing.title}</h2>
+              <div className="flex items-center gap-3 mt-3">
+                <Badge variant="outline" className={conditionColors[listing.condition]}>
+                  <Shield className="w-3 h-3 mr-1" />
+                  {listing.condition?.replace('_', ' ')}
+                </Badge>
+                <Badge variant="outline" className="bg-slate-50">
+                  {categoryLabels[listing.category]}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Estimated Value */}
+            {listing.estimated_value && (
+              <div className="p-4 bg-slate-50 rounded-2xl">
+                <p className="text-sm text-slate-500 mb-1">Estimated Value</p>
+                <p className="text-lg font-semibold text-slate-700">{listing.estimated_value}</p>
+                <p className="text-xs text-slate-500 mt-1">Informational only</p>
+              </div>
+            )}
+
+            {/* Collector Info */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+              <div>
+                <p className="text-sm text-slate-500">Collector</p>
+                <button
+                  onClick={() => {
+                    const { createPageUrl } = require('../utils');
+                    window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
+                  }}
+                  className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group mt-1"
+                >
+                  <User className="w-4 h-4" />
+                  {listing.collector_name || 'Anonymous'}
+                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </div>
+              {listing.trade_count > 0 && (
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">Trades</p>
+                  <p className="text-xl font-bold text-violet-600">{listing.trade_count}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {listing.description && (
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-2">Description</h3>
+                <p className="text-slate-600 leading-relaxed">{listing.description}</p>
+              </div>
+            )}
+
+            {/* Looking For */}
+            {listing.looking_for && (
+              <div className="p-4 bg-violet-50 rounded-2xl border border-violet-100">
+                <h3 className="font-semibold text-violet-900 mb-1 flex items-center gap-2">
+                  <ArrowRightLeft className="w-4 h-4" />
+                  Looking For
+                </h3>
+                <p className="text-violet-700">{listing.looking_for}</p>
+              </div>
+            )}
+
+            {/* Tags */}
+            {listing.tags && listing.tags.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-2">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {listing.tags.map((tag, idx) => (
+                    <Badge key={idx} variant="outline" className="bg-slate-50">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trade Button */}
+            {!isOwnListing && listing.status === 'available' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border-t pt-6"
               >
-                {sending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Request
-                  </>
-                )}
-              </Button>
-            </motion.div>
-          )}
+                <Button 
+                  onClick={() => setShowTradeModal(true)}
+                  className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-lg"
+                >
+                  <ArrowRightLeft className="w-5 h-5 mr-2" />
+                  Propose Trade
+                </Button>
+              </motion.div>
+            )}
 
-          {isOwnListing && (
-            <div className="p-4 bg-amber-50 rounded-xl text-center">
-              <p className="text-amber-800">This is your listing</p>
-            </div>
-          )}
+            {isOwnListing && (
+              <div className="p-4 bg-amber-50 rounded-xl text-center">
+                <p className="text-amber-800">This is your listing</p>
+              </div>
+            )}
 
-          {listing.status !== 'available' && (
-            <div className="p-4 bg-slate-100 rounded-xl text-center">
-              <p className="text-slate-600 capitalize">This card is {listing.status}</p>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+            {listing.status !== 'available' && (
+              <div className="p-4 bg-slate-100 rounded-xl text-center">
+                <p className="text-slate-600 capitalize">This item is {listing.status}</p>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <TradeOfferModal
+        open={showTradeModal}
+        onClose={() => setShowTradeModal(false)}
+        targetCard={listing}
+        onSuccess={() => {
+          setShowTradeModal(false);
+          onClose();
+        }}
+      />
+    </>
   );
 }
