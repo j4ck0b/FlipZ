@@ -81,7 +81,7 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     });
 
     // Create conversation
-    await base44.entities.TradeConversation.create({
+    const conversation = await base44.entities.TradeConversation.create({
       participant_1_email: currentUser.email,
       participant_1_name: currentUser.full_name,
       participant_2_email: targetCard.created_by,
@@ -94,7 +94,7 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
 
     // Create system message
     await base44.entities.Message.create({
-      conversation_id: offer.id,
+      conversation_id: conversation.id,
       sender_email: 'system',
       sender_name: 'System',
       message_type: 'system',

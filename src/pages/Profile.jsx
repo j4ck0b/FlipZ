@@ -14,7 +14,8 @@ import {
   Search,
   Loader2,
   Mail,
-  Heart
+  Heart,
+  ArrowRightLeft
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -78,12 +79,13 @@ export default function Profile() {
     enabled: !!viewingUser
   });
 
-  const { data: acceptedRequests = [] } = useQuery({
-    queryKey: ['acceptedRequests', viewingUser?.email],
-    queryFn: () => base44.entities.TradeRequest.filter({ 
-      seller_email: viewingUser.email,
-      status: 'accepted'
-    }),
+  const { data: tradeOffers = [] } = useQuery({
+    queryKey: ['userTrades', viewingUser?.email],
+    queryFn: async () => {
+      const sent = await base44.entities.TradeOffer.filter({ sender_email: viewingUser.email }, '-created_date');
+      const received = await base44.entities.TradeOffer.filter({ owner_email: viewingUser.email }, '-created_date');
+      return [...sent, ...received].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    },
     enabled: !!viewingUser
   });
 
@@ -217,6 +219,10 @@ export default function Profile() {
               <Package className="w-4 h-4" />
               Active Listings ({listings.length})
             </TabsTrigger>
+            <TabsTrigger value="trades" className="gap-2">
+              <ArrowRightLeft className="w-4 h-4" />
+              Trade Offers ({tradeOffers.length})
+            </TabsTrigger>
             <TabsTrigger value="sold">
               Past Transactions ({stats.completedSales + stats.tradesMade})
             </TabsTrigger>
@@ -238,6 +244,60 @@ export default function Profile() {
                     listings={listings} 
                     onCardClick={setSelectedCard}
                   />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Trade Offers */}
+          <TabsContent value="trades">
+            <Card>
+              <CardHeader>
+                <CardTitle>Trade Offers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tradeOffers.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No trade offers yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {tradeOffers.map((offer) => {
+                      const isSender = offer.sender_email === viewingUser.email;
+                      const otherParty = isSender ? offer.owner_name : offer.sender_name;
+
+                      return (
+                        <div 
+                          key={offer.id}
+                          className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-slate-900">
+                                {isSender ? 'Sent to' : 'Received from'} {otherParty}
+                              </h4>
+                              <Badge className={
+                                offer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                offer.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                                offer.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                offer.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                                'bg-slate-100 text-slate-700'
+                              }>
+                                {offer.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-600">
+                              {isSender ? 'Trading for' : 'They want'}: {offer.requested_card_title}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {offer.offered_card_ids?.length || 0} card(s) offered
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>

@@ -71,15 +71,15 @@ export default function MyListings() {
     enabled: !!currentUser
   });
 
-  const { data: myRequests = [], isLoading: loadingRequests } = useQuery({
-    queryKey: ['myRequests', currentUser?.email],
-    queryFn: () => base44.entities.TradeRequest.filter({ buyer_email: currentUser.email }, '-created_date'),
+  const { data: myOffers = [], isLoading: loadingOffers } = useQuery({
+    queryKey: ['myOffers', currentUser?.email],
+    queryFn: () => base44.entities.TradeOffer.filter({ sender_email: currentUser.email }, '-created_date'),
     enabled: !!currentUser
   });
 
-  const { data: incomingRequests = [], isLoading: loadingIncoming } = useQuery({
-    queryKey: ['incomingRequests', currentUser?.email],
-    queryFn: () => base44.entities.TradeRequest.filter({ seller_email: currentUser.email }, '-created_date'),
+  const { data: incomingOffers = [], isLoading: loadingIncoming } = useQuery({
+    queryKey: ['incomingOffers', currentUser?.email],
+    queryFn: () => base44.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_date'),
     enabled: !!currentUser
   });
 
@@ -96,25 +96,25 @@ export default function MyListings() {
     toast.success(`Card marked as ${newStatus}`);
   };
 
-  const handleRequestAction = async (request, action) => {
-    await base44.entities.TradeRequest.update(request.id, { status: action });
+  const handleOfferAction = async (offer, action) => {
+    await base44.entities.TradeOffer.update(offer.id, { status: action });
     
     if (action === 'accepted') {
-      await base44.entities.CardListing.update(request.listing_id, { 
-        status: request.request_type === 'trade' ? 'traded' : 'sold' 
+      await base44.entities.CardListing.update(offer.requested_card_id, { 
+        status: 'pending'
       });
     }
     
-    queryClient.invalidateQueries({ queryKey: ['incomingRequests'] });
+    queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success(`Request ${action}`);
+    toast.success(`Offer ${action}`);
   };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
   };
 
-  const pendingIncoming = incomingRequests.filter(r => r.status === 'pending').length;
+  const pendingIncoming = incomingOffers.filter(o => o.status === 'pending').length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -151,15 +151,15 @@ export default function MyListings() {
             </TabsTrigger>
             <TabsTrigger value="incoming" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              Incoming Requests
+              Incoming Offers
               {pendingIncoming > 0 && (
                 <Badge className="ml-1 bg-rose-500">{pendingIncoming}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="sent" className="gap-2">
-              <DollarSign className="w-4 h-4" />
+              <ArrowRightLeft className="w-4 h-4" />
               My Offers
-              <Badge variant="secondary" className="ml-1">{myRequests.length}</Badge>
+              <Badge variant="secondary" className="ml-1">{myOffers.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -280,67 +280,69 @@ export default function MyListings() {
             )}
           </TabsContent>
 
-          {/* Incoming Requests Tab */}
+          {/* Incoming Offers Tab */}
           <TabsContent value="incoming">
             {loadingIncoming ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
               </div>
-            ) : incomingRequests.length === 0 ? (
+            ) : incomingOffers.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">No requests yet</h3>
-                  <p className="text-slate-500">Requests from buyers will appear here</p>
+                  <h3 className="font-semibold text-slate-900 mb-2">No offers yet</h3>
+                  <p className="text-slate-500">Trade offers from collectors will appear here</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4">
-                {incomingRequests.map((request) => (
-                  <Card key={request.id}>
+                {incomingOffers.map((offer) => (
+                  <Card key={offer.id}>
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mb-3">
                         <div>
-                          <button
-                            onClick={() => {
-                              const { createPageUrl } = require('../utils');
-                              window.location.href = createPageUrl('Profile') + '?userId=' + request.buyer_email;
-                            }}
-                            className="font-semibold text-slate-900 hover:text-slate-700 hover:underline transition-colors"
-                          >
-                            {request.buyer_name}
-                          </button>
+                          <p className="font-semibold text-slate-900">{offer.sender_name}</p>
                           <p className="text-sm text-slate-500">
-                            wants to {request.request_type} <span className="font-medium">{request.listing_title}</span>
+                            wants to trade for <span className="font-medium">{offer.requested_card_title}</span>
                           </p>
-                          {request.request_type === 'purchase' && request.offer_amount && (
-                            <p className="text-lg font-bold text-slate-900 mt-2">
-                              Offer: ${request.offer_amount}
-                            </p>
-                          )}
-                          {request.request_type === 'trade' && request.trade_offer && (
-                            <p className="text-sm text-slate-600 mt-2 p-2 bg-slate-50 rounded">
-                              {request.trade_offer}
-                            </p>
-                          )}
-                          {request.message && (
-                            <p className="text-sm text-slate-600 mt-2 italic">"{request.message}"</p>
-                          )}
                         </div>
                         
                         <Badge className={
-                          request.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          request.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-red-100 text-red-700'
+                          offer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          offer.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
+                          offer.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-700'
                         }>
-                          {request.status}
+                          {offer.status}
                         </Badge>
                       </div>
 
-                      {request.status === 'pending' && (
+                      {/* Offered Cards */}
+                      <div className="mb-3">
+                        <p className="text-xs text-slate-500 mb-2">Offering:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {offer.offered_cards_info?.map((card) => (
+                            <div key={card.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                              {card.image_url && (
+                                <img src={card.image_url} alt={card.title} className="w-10 h-14 object-cover rounded" />
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">{card.title}</p>
+                                <Badge variant="outline" className="text-xs">{card.condition}</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {offer.message && (
+                        <p className="text-sm text-slate-600 p-2 bg-slate-50 rounded italic">"{offer.message}"</p>
+                      )}
+
+                      {offer.status === 'pending' && (
                         <div className="flex gap-2 mt-4 pt-4 border-t">
                           <Button 
-                            onClick={() => handleRequestAction(request, 'accepted')}
+                            onClick={() => handleOfferAction(offer, 'accepted')}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -348,7 +350,7 @@ export default function MyListings() {
                           </Button>
                           <Button 
                             variant="outline"
-                            onClick={() => handleRequestAction(request, 'declined')}
+                            onClick={() => handleOfferAction(offer, 'rejected')}
                             className="flex-1"
                           >
                             <XCircle className="w-4 h-4 mr-2" />
@@ -365,47 +367,56 @@ export default function MyListings() {
 
           {/* My Offers Tab */}
           <TabsContent value="sent">
-            {loadingRequests ? (
+            {loadingOffers ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
               </div>
-            ) : myRequests.length === 0 ? (
+            ) : myOffers.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
-                  <DollarSign className="w-12 h-12 mx-auto text-slate-300 mb-4" />
+                  <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
                   <h3 className="font-semibold text-slate-900 mb-2">No offers made</h3>
-                  <p className="text-slate-500">Your purchase/trade offers will appear here</p>
+                  <p className="text-slate-500">Your trade offers will appear here</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4">
-                {myRequests.map((request) => (
-                  <Card key={request.id}>
+                {myOffers.map((offer) => (
+                  <Card key={offer.id}>
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mb-3">
                         <div>
-                          <p className="font-semibold text-slate-900">{request.listing_title}</p>
+                          <p className="font-semibold text-slate-900">Sent to {offer.owner_name}</p>
                           <p className="text-sm text-slate-500">
-                            {request.request_type === 'purchase' ? 'Purchase request' : 'Trade request'}
+                            Trading for <span className="font-medium">{offer.requested_card_title}</span>
                           </p>
-                          {request.offer_amount && (
-                            <p className="text-sm text-slate-600 mt-1">
-                              Your offer: <span className="font-medium">${request.offer_amount}</span>
-                            </p>
-                          )}
-                          {request.trade_offer && (
-                            <p className="text-sm text-slate-600 mt-1">
-                              Offered: {request.trade_offer}
-                            </p>
-                          )}
                         </div>
                         <Badge className={
-                          request.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          request.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-red-100 text-red-700'
+                          offer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          offer.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
+                          offer.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-700'
                         }>
-                          {request.status}
+                          {offer.status}
                         </Badge>
+                      </div>
+                      
+                      {/* Offered Cards */}
+                      <div>
+                        <p className="text-xs text-slate-500 mb-2">Your offer:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {offer.offered_cards_info?.map((card) => (
+                            <div key={card.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                              {card.image_url && (
+                                <img src={card.image_url} alt={card.title} className="w-10 h-14 object-cover rounded" />
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">{card.title}</p>
+                                <Badge variant="outline" className="text-xs">{card.condition}</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
