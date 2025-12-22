@@ -116,13 +116,11 @@ export default function CardDetailSheet({ listing, open, onClose }) {
             </div>
 
             {/* Estimated Value */}
-            {listing.estimated_value && (
-              <div className="p-4 bg-slate-50 rounded-2xl">
-                <p className="text-sm text-slate-500 mb-1">Estimated Value</p>
-                <p className="text-lg font-semibold text-slate-700">{listing.estimated_value}</p>
-                <p className="text-xs text-slate-500 mt-1">Informational only</p>
-              </div>
-            )}
+            <div className="p-4 bg-slate-50 rounded-2xl">
+              <p className="text-sm text-slate-500 mb-1">Estimated Value</p>
+              <p className="text-lg font-semibold text-slate-700">{listing.estimated_value || 'Not specified'}</p>
+              <p className="text-xs text-slate-500 mt-1">For reference only - this item is for trade, not sale</p>
+            </div>
 
             {/* Collector Info */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">

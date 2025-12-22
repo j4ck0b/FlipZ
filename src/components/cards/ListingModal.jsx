@@ -19,8 +19,6 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     category: 'pokemon',
     condition: 'near_mint',
     rarity: 'common',
-    price: '',
-    trade_only: false,
     looking_for: '',
     image_url: ''
   });
@@ -33,8 +31,6 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         category: editListing.category || 'pokemon',
         condition: editListing.condition || 'near_mint',
         rarity: editListing.rarity || 'common',
-        price: editListing.price || '',
-        trade_only: editListing.trade_only || false,
         looking_for: editListing.looking_for || '',
         image_url: editListing.image_url || ''
       });
@@ -45,8 +41,6 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         category: defaultCategory || 'pokemon',
         condition: 'near_mint',
         rarity: 'common',
-        price: '',
-        trade_only: false,
         looking_for: '',
         image_url: ''
       });
@@ -70,7 +64,6 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     const user = await base44.auth.me();
     const data = {
       ...formData,
-      price: parseFloat(formData.price) || 0,
       collector_name: user.full_name || user.email?.split('@')[0],
       status: 'available'
     };
@@ -93,7 +86,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {editListing ? 'Edit Listing' : 'List a Card'}
+            {editListing ? 'Edit Listing' : 'List Item for Trade'}
           </DialogTitle>
         </DialogHeader>
 
@@ -142,7 +135,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Card Name *</Label>
+            <Label htmlFor="title">Item Name *</Label>
             <Input
               id="title"
               value={formData.title}
@@ -229,50 +222,35 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe the card, edition, any special details..."
+              placeholder="Describe the item, condition, any special details..."
               rows={3}
             />
           </div>
 
-          {/* Trade Only Toggle */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-            <div>
-              <Label className="font-medium">Trade Only</Label>
-              <p className="text-sm text-slate-500">Only accept trades, not purchases</p>
-            </div>
-            <Switch 
-              checked={formData.trade_only}
-              onCheckedChange={(v) => setFormData(prev => ({ ...prev, trade_only: v }))}
+          {/* Estimated Value */}
+          <div className="space-y-2">
+            <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
+            <Input
+              id="estimated_value"
+              value={formData.estimated_value || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, estimated_value: e.target.value }))}
+              placeholder="e.g., $50-100 or €45"
             />
+            <p className="text-xs text-slate-500">For reference only, not a selling price</p>
           </div>
 
-          {/* Price or Looking For */}
-          {formData.trade_only ? (
-            <div className="space-y-2">
-              <Label htmlFor="looking_for">What are you looking for?</Label>
-              <Textarea
-                id="looking_for"
-                value={formData.looking_for}
-                onChange={(e) => setFormData(prev => ({ ...prev, looking_for: e.target.value }))}
-                placeholder="Describe what cards you'd accept in trade..."
-                rows={2}
-              />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="price">Price (USD) *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                placeholder="0.00"
-                required={!formData.trade_only}
-              />
-            </div>
-          )}
+          {/* Looking For */}
+          <div className="space-y-2">
+            <Label htmlFor="looking_for">What are you looking for in trade? *</Label>
+            <Textarea
+              id="looking_for"
+              value={formData.looking_for}
+              onChange={(e) => setFormData(prev => ({ ...prev, looking_for: e.target.value }))}
+              placeholder="Describe what items you'd accept in trade..."
+              rows={3}
+              required
+            />
+          </div>
 
           {/* Submit */}
           <div className="flex gap-3 pt-4">
@@ -281,7 +259,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
             </Button>
             <Button type="submit" disabled={loading} className="flex-1 bg-slate-900 hover:bg-slate-800">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editListing ? 'Update Listing' : 'List Card'}
+              {editListing ? 'Update Listing' : 'List Item'}
             </Button>
           </div>
         </form>
