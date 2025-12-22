@@ -10,7 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ListingModal({ open, onClose, onSuccess, editListing = null }) {
+export default function ListingModal({ open, onClose, onSuccess, editListing = null, defaultCategory = null }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,7 +42,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       setFormData({
         title: '',
         description: '',
-        category: 'pokemon',
+        category: defaultCategory || 'pokemon',
         condition: 'near_mint',
         rarity: 'common',
         price: '',
@@ -51,7 +51,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         image_url: ''
       });
     }
-  }, [editListing, open]);
+  }, [editListing, open, defaultCategory]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -71,7 +71,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     const data = {
       ...formData,
       price: parseFloat(formData.price) || 0,
-      seller_name: user.full_name || user.email?.split('@')[0],
+      collector_name: user.full_name || user.email?.split('@')[0],
       status: 'available'
     };
 
@@ -167,7 +167,15 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   <SelectItem value="pokemon">Pokémon</SelectItem>
                   <SelectItem value="magic_the_gathering">Magic: The Gathering</SelectItem>
                   <SelectItem value="yugioh">Yu-Gi-Oh!</SelectItem>
-                  <SelectItem value="sports">Sports</SelectItem>
+                  <SelectItem value="sports">Sports Cards</SelectItem>
+                  <SelectItem value="lego_minifigures">LEGO</SelectItem>
+                  <SelectItem value="funko_pop">Funko Pop</SelectItem>
+                  <SelectItem value="anime_figures">Anime Figures</SelectItem>
+                  <SelectItem value="designer_toys">Designer Toys</SelectItem>
+                  <SelectItem value="hot_wheels">Hot Wheels</SelectItem>
+                  <SelectItem value="retro_games">Retro Games</SelectItem>
+                  <SelectItem value="vinyl_records">Vinyl Records</SelectItem>
+                  <SelectItem value="sneakers">Sneakers</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPageUrl } from '../utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import QuickPostModal from '../components/home/QuickPostModal';
 
 const tradeCategories = [
   {
@@ -44,6 +45,8 @@ const tradeCategories = [
 ];
 
 export default function Home() {
+  const [showQuickPost, setShowQuickPost] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
@@ -160,6 +163,30 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Floating Quick Post Button */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+        className="fixed bottom-8 right-8 z-50"
+      >
+        <Button
+          onClick={() => setShowQuickPost(true)}
+          size="lg"
+          className="h-16 px-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-2xl rounded-full"
+        >
+          <Plus className="w-6 h-6 mr-2" />
+          List Item
+        </Button>
+      </motion.div>
+
+      {/* Quick Post Modal */}
+      <QuickPostModal
+        open={showQuickPost}
+        onClose={() => setShowQuickPost(false)}
+        onSuccess={() => setShowQuickPost(false)}
+      />
     </div>
   );
 }
