@@ -42,11 +42,7 @@ import { toast } from "sonner";
 import ListingModal from '../components/cards/ListingModal';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
 import FloatingChat from '../components/chat/FloatingChat';
-import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
-import FloatingChat from '../components/chat/FloatingChat';
 import TradeFinalizationModal from '../components/trade/TradeFinalizationModal';
-import FloatingChat from '../components/chat/FloatingChat';
-import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -63,11 +59,6 @@ export default function MyListings() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState('listings');
-  const [chatOpen, setChatOpen] = useState(null);
-  const [finalizeOffer, setFinalizeOffer] = useState(null);
-  const [activeChatConversation, setActiveChatConversation] = useState(null);
-  const [activeChatTrade, setActiveChatTrade] = useState(null);
-  const [finalizingTrade, setFinalizingTrade] = useState(null);
   const [activeChatConversation, setActiveChatConversation] = useState(null);
   const [activeChatOffer, setActiveChatOffer] = useState(null);
   const [finalizingOffer, setFinalizingOffer] = useState(null);
@@ -529,7 +520,7 @@ export default function MyListings() {
       )}
 
       {/* Finalize Trade Modal */}
-      <FinalizeTradeModal
+      <TradeFinalizationModal
         open={!!finalizingOffer}
         onClose={() => setFinalizingOffer(null)}
         tradeOffer={finalizingOffer}
