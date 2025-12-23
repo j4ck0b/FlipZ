@@ -17,7 +17,8 @@ import {
   ArrowRightLeft,
   DollarSign,
   Eye,
-  MoreVertical
+  MoreVertical,
+  MessageCircle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ import { toast } from "sonner";
 
 import ListingModal from '../components/cards/ListingModal';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
+import FloatingChat from '../components/chat/FloatingChat';
+import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -56,6 +59,9 @@ export default function MyListings() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState('listings');
+  const [activeChatConversation, setActiveChatConversation] = useState(null);
+  const [activeChatOffer, setActiveChatOffer] = useState(null);
+  const [finalizingOffer, setFinalizingOffer] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -97,17 +103,33 @@ export default function MyListings() {
   };
 
   const handleOfferAction = async (offer, action) => {
-    await base44.entities.TradeOffer.update(offer.id, { status: action });
-    
     if (action === 'accepted') {
-      await base44.entities.CardListing.update(offer.requested_card_id, { 
-        status: 'pending'
-      });
+      setFinalizingOffer(offer);
+    } else {
+      await base44.entities.TradeOffer.update(offer.id, { status: action });
+      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      toast.success(`Offer ${action}`);
     }
+  };
+
+  const handleOpenChat = async (offer) => {
+    const conversations = await base44.entities.TradeConversation.filter({
+      trade_offer_id: offer.id
+    });
     
+    if (conversations.length > 0) {
+      setActiveChatConversation(conversations[0].id);
+      setActiveChatOffer(offer);
+    } else {
+      toast.error('No conversation found for this trade');
+    }
+  };
+
+  const handleFinalizeSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success(`Offer ${action}`);
+    setFinalizingOffer(null);
   };
 
   const handleRefresh = () => {
@@ -336,28 +358,38 @@ export default function MyListings() {
                       </div>
 
                       {offer.message && (
-                        <p className="text-sm text-slate-600 p-2 bg-slate-50 rounded italic">"{offer.message}"</p>
+                        <p className="text-sm text-slate-600 p-2 bg-slate-50 rounded italic mb-3">"{offer.message}"</p>
                       )}
 
-                      {offer.status === 'pending' && (
-                        <div className="flex gap-2 mt-4 pt-4 border-t">
-                          <Button 
-                            onClick={() => handleOfferAction(offer, 'accepted')}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Accept
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            onClick={() => handleOfferAction(offer, 'rejected')}
-                            className="flex-1"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Decline
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2 mt-4 pt-4 border-t">
+                        {offer.status === 'pending' && (
+                          <>
+                            <Button 
+                              onClick={() => handleOfferAction(offer, 'accepted')}
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Accept
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => handleOfferAction(offer, 'rejected')}
+                              className="flex-1"
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Decline
+                            </Button>
+                          </>
+                        )}
+                        <Button 
+                          variant="outline"
+                          onClick={() => handleOpenChat(offer)}
+                          className="flex-1"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Chat
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -402,7 +434,7 @@ export default function MyListings() {
                       </div>
                       
                       {/* Offered Cards */}
-                      <div>
+                      <div className="mb-3">
                         <p className="text-xs text-slate-500 mb-2">Your offer:</p>
                         <div className="flex flex-wrap gap-2">
                           {offer.offered_cards_info?.map((card) => (
@@ -417,6 +449,17 @@ export default function MyListings() {
                             </div>
                           ))}
                         </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t">
+                        <Button 
+                          variant="outline"
+                          onClick={() => handleOpenChat(offer)}
+                          className="w-full"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Open Chat
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -463,6 +506,26 @@ export default function MyListings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Chat */}
+      {activeChatConversation && (
+        <FloatingChat
+          conversationId={activeChatConversation}
+          tradeOffer={activeChatOffer}
+          onClose={() => {
+            setActiveChatConversation(null);
+            setActiveChatOffer(null);
+          }}
+        />
+      )}
+
+      {/* Finalize Trade Modal */}
+      <FinalizeTradeModal
+        open={!!finalizingOffer}
+        onClose={() => setFinalizingOffer(null)}
+        tradeOffer={finalizingOffer}
+        onSuccess={handleFinalizeSuccess}
+      />
     </div>
   );
 }

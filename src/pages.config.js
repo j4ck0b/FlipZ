@@ -8,6 +8,7 @@ import Landing from './pages/Landing';
 import Marketplace from './pages/Marketplace';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
+import Messages from './pages/Messages';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Marketplace": Marketplace,
     "MyListings": MyListings,
     "Profile": Profile,
+    "Messages": Messages,
 }
 
 export const pagesConfig = {

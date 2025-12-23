@@ -9,7 +9,8 @@ import {
   Menu,
   LogOut,
   Sparkles,
-  UserCircle
+  UserCircle,
+  MessageCircle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const navItems = [
   { name: 'Home', page: 'Home', icon: HomeIcon },
   { name: 'My Collection', page: 'MyListings', icon: LayoutDashboard },
+  { name: 'Messages', page: 'Messages', icon: MessageCircle },
   { name: 'Profile', page: 'Profile', icon: UserCircle },
 ];
 
