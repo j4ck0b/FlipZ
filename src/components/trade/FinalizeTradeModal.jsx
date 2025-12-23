@@ -3,56 +3,69 @@ import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Package, Truck, MapPin, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { CheckCircle2, ArrowRightLeft, Package, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import confetti from 'canvas-confetti';
 
 export default function FinalizeTradeModal({ open, onClose, tradeOffer, onSuccess }) {
-  const [processing, setProcessing] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
 
   const handleFinalize = async () => {
-    setProcessing(true);
+    setFinalizing(true);
 
     try {
-      // Update trade offer status
+      // Update trade offer to completed
       await base44.entities.TradeOffer.update(tradeOffer.id, {
-        status: 'active'
+        status: 'completed'
       });
 
-      // Update all involved card listings
+      // Update all involved cards to traded status
       await base44.entities.CardListing.update(tradeOffer.requested_card_id, {
-        status: 'pending'
+        status: 'traded',
+        trade_count: (tradeOffer.trade_count || 0) + 1
       });
 
       for (const cardId of tradeOffer.offered_card_ids) {
         await base44.entities.CardListing.update(cardId, {
-          status: 'pending'
+          status: 'traded'
         });
       }
 
-      // Send system message to conversation
-      const conversations = await base44.entities.TradeConversation.filter({
+      // Update conversation status
+      const convs = await base44.entities.TradeConversation.filter({
         trade_offer_id: tradeOffer.id
       });
+      if (convs[0]) {
+        await base44.entities.TradeConversation.update(convs[0].id, {
+          status: 'completed'
+        });
 
-      if (conversations.length > 0) {
+        // Add completion message
         await base44.entities.Message.create({
-          conversation_id: conversations[0].id,
+          conversation_id: convs[0].id,
           sender_email: 'system',
           sender_name: 'System',
           message_type: 'system',
-          content: 'Trade accepted! Exchange your shipping details to complete the trade.',
+          content: '✨ Trade completed successfully!',
           read: false
         });
       }
 
-      toast.success('Trade activated! Coordinate shipping in the chat.');
+      // Celebration!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      toast.success('Trade completed! 🎉');
       onSuccess?.();
       onClose();
     } catch (error) {
       toast.error('Failed to finalize trade');
     } finally {
-      setProcessing(false);
+      setFinalizing(false);
     }
   };
 
@@ -61,113 +74,89 @@ export default function FinalizeTradeModal({ open, onClose, tradeOffer, onSucces
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <CheckCircle2 className="w-6 h-6 text-green-600" />
             Finalize Trade
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Trade Summary */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <h3 className="font-semibold text-slate-900 mb-3">Trade Summary</h3>
-            
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-slate-500">You're getting:</p>
-                <p className="font-medium text-slate-900">{tradeOffer?.requested_card_title}</p>
-              </div>
-              
-              <div>
-                <p className="text-xs text-slate-500">You're giving:</p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {tradeOffer?.offered_cards_info?.map((card) => (
-                    <Badge key={card.id} variant="outline" className="text-xs">
-                      {card.title}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+        <div className="space-y-4 py-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ArrowRightLeft className="w-8 h-8 text-green-600" />
             </div>
-          </div>
-
-          {/* Next Steps */}
-          <div>
-            <h3 className="font-semibold text-slate-900 mb-3">Next Steps</h3>
-            <div className="space-y-3">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-start gap-3"
-              >
-                <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-violet-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-slate-900">Exchange Addresses</p>
-                  <p className="text-xs text-slate-600">Share shipping addresses in the chat</p>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-start gap-3"
-              >
-                <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Package className="w-4 h-4 text-violet-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-slate-900">Package Items</p>
-                  <p className="text-xs text-slate-600">Securely pack your collectibles</p>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-start gap-3"
-              >
-                <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Truck className="w-4 h-4 text-violet-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-slate-900">Ship & Track</p>
-                  <p className="text-xs text-slate-600">Send items and share tracking numbers</p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Warning */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <p className="text-xs text-amber-800">
-              <strong>Important:</strong> Both parties are responsible for shipping their items. 
-              Use the chat to coordinate and share tracking information.
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              Ready to Complete?
+            </h3>
+            <p className="text-sm text-slate-600">
+              This will mark the trade as completed and update all card statuses.
             </p>
+          </div>
+
+          <Separator />
+
+          {/* Trade Summary */}
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-slate-900 mb-2">
+                Trading for:
+              </p>
+              <Badge variant="outline" className="text-sm">
+                {tradeOffer?.requested_card_title}
+              </Badge>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-slate-900 mb-2">
+                Offering:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {tradeOffer?.offered_cards_info?.map((card) => (
+                  <Badge key={card.id} variant="outline" className="text-sm">
+                    {card.title}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex gap-2">
+              <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-900">
+                <p className="font-medium mb-1">Next Steps:</p>
+                <ul className="space-y-1 text-blue-800">
+                  <li>• Exchange shipping information</li>
+                  <li>• Package items securely</li>
+                  <li>• Send with tracking</li>
+                  <li>• Confirm receipt</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+            disabled={finalizing}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleFinalize}
-            disabled={processing}
+            disabled={finalizing}
             className="flex-1 bg-green-600 hover:bg-green-700"
           >
-            {processing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+            {finalizing ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : (
-              <>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Activate Trade
-              </>
+              <CheckCircle2 className="w-4 h-4 mr-2" />
             )}
+            Complete Trade
           </Button>
         </div>
       </DialogContent>
