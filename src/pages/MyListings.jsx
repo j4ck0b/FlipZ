@@ -43,10 +43,6 @@ import ListingModal from '../components/cards/ListingModal';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
 import FloatingChat from '../components/chat/FloatingChat';
 import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
-import FloatingChat from '../components/chat/FloatingChat';
-import TradeFinalizationModal from '../components/trade/TradeFinalizationModal';
-import FloatingChat from '../components/chat/FloatingChat';
-import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -65,14 +61,6 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState('listings');
   const [chatOpen, setChatOpen] = useState(null);
   const [finalizeOffer, setFinalizeOffer] = useState(null);
-  const [chatOpen, setChatOpen] = useState(null);
-  const [finalizeOffer, setFinalizeOffer] = useState(null);
-  const [activeChatConversation, setActiveChatConversation] = useState(null);
-  const [activeChatTrade, setActiveChatTrade] = useState(null);
-  const [finalizingTrade, setFinalizingTrade] = useState(null);
-  const [activeChatConversation, setActiveChatConversation] = useState(null);
-  const [activeChatOffer, setActiveChatOffer] = useState(null);
-  const [finalizingOffer, setFinalizingOffer] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -114,33 +102,17 @@ export default function MyListings() {
   };
 
   const handleOfferAction = async (offer, action) => {
-    if (action === 'accepted') {
-      setFinalizingOffer(offer);
-    } else {
-      await base44.entities.TradeOffer.update(offer.id, { status: action });
-      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-      queryClient.invalidateQueries({ queryKey: ['myListings'] });
-      toast.success(`Offer ${action}`);
-    }
-  };
-
-  const handleOpenChat = async (offer) => {
-    const conversations = await base44.entities.TradeConversation.filter({
-      trade_offer_id: offer.id
-    });
+    await base44.entities.TradeOffer.update(offer.id, { status: action });
     
-    if (conversations.length > 0) {
-      setActiveChatConversation(conversations[0].id);
-      setActiveChatOffer(offer);
-    } else {
-      toast.error('No conversation found for this trade');
+    if (action === 'accepted') {
+      await base44.entities.CardListing.update(offer.requested_card_id, { 
+        status: 'pending'
+      });
     }
-  };
-
-  const handleFinalizeSuccess = () => {
+    
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    setFinalizingOffer(null);
+    toast.success(`Offer ${action}`);
   };
 
   const handleRefresh = () => {
@@ -373,33 +345,46 @@ export default function MyListings() {
                       )}
 
                       <div className="flex gap-2 mt-4 pt-4 border-t">
-                        {offer.status === 'pending' && (
-                          <>
-                            <Button 
-                              onClick={() => handleOfferAction(offer, 'accepted')}
-                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                            >
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Accept
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              onClick={() => handleOfferAction(offer, 'rejected')}
-                              className="flex-1"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Decline
-                            </Button>
-                          </>
-                        )}
-                        <Button 
-                          variant="outline"
-                          onClick={() => handleOpenChat(offer)}
-                          className="flex-1"
-                        >
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Chat
-                        </Button>
+                       <Button 
+                         variant="outline"
+                         onClick={() => setChatOpen({
+                           tradeOfferId: offer.id,
+                           otherUserEmail: offer.sender_email,
+                           otherUserName: offer.sender_name
+                         })}
+                         className="flex-1"
+                       >
+                         <MessageCircle className="w-4 h-4 mr-2" />
+                         Chat
+                       </Button>
+                       {offer.status === 'pending' && (
+                         <>
+                           <Button 
+                             onClick={() => handleOfferAction(offer, 'accepted')}
+                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                           >
+                             <CheckCircle2 className="w-4 h-4 mr-2" />
+                             Accept
+                           </Button>
+                           <Button 
+                             variant="outline"
+                             onClick={() => handleOfferAction(offer, 'rejected')}
+                             className="flex-1"
+                           >
+                             <XCircle className="w-4 h-4 mr-2" />
+                             Decline
+                           </Button>
+                         </>
+                       )}
+                       {offer.status === 'accepted' && (
+                         <Button
+                           onClick={() => setFinalizeOffer(offer)}
+                           className="flex-1 bg-blue-600 hover:bg-blue-700"
+                         >
+                           <CheckCircle2 className="w-4 h-4 mr-2" />
+                           Complete
+                         </Button>
+                       )}
                       </div>
                     </CardContent>
                   </Card>
@@ -462,15 +447,28 @@ export default function MyListings() {
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t">
+                      <div className="flex gap-2 mt-4 pt-4 border-t">
                         <Button 
                           variant="outline"
-                          onClick={() => handleOpenChat(offer)}
-                          className="w-full"
+                          onClick={() => setChatOpen({
+                            tradeOfferId: offer.id,
+                            otherUserEmail: offer.owner_email,
+                            otherUserName: offer.owner_name
+                          })}
+                          className="flex-1"
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />
-                          Open Chat
+                          Chat
                         </Button>
+                        {offer.status === 'accepted' && (
+                          <Button
+                            onClick={() => setFinalizeOffer(offer)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Complete
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -540,26 +538,6 @@ export default function MyListings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Floating Chat */}
-      {activeChatConversation && (
-        <FloatingChat
-          conversationId={activeChatConversation}
-          tradeOffer={activeChatOffer}
-          onClose={() => {
-            setActiveChatConversation(null);
-            setActiveChatOffer(null);
-          }}
-        />
-      )}
-
-      {/* Finalize Trade Modal */}
-      <FinalizeTradeModal
-        open={!!finalizingOffer}
-        onClose={() => setFinalizingOffer(null)}
-        tradeOffer={finalizingOffer}
-        onSuccess={handleFinalizeSuccess}
-      />
     </div>
   );
 }
