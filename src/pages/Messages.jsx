@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, MessageCircle, ArrowRightLeft } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, Search, Loader2, ArrowRightLeft } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -12,8 +14,9 @@ import ChatPanel from '../components/chat/ChatPanel';
 
 export default function Messages() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [selectedTradeOffer, setSelectedTradeOffer] = useState(null);
+  const [selectedTrade, setSelectedTrade] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -24,7 +27,7 @@ export default function Messages() {
   }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ['conversations', currentUser?.email],
+    queryKey: ['allConversations', currentUser?.email],
     queryFn: async () => {
       const convs = await base44.entities.TradeConversation.filter({
         $or: [
@@ -32,45 +35,42 @@ export default function Messages() {
           { participant_2_email: currentUser.email }
         ]
       }, '-last_message_at');
-      return convs;
-    },
-    enabled: !!currentUser,
-    refetchInterval: 5000
-  });
-
-  const { data: tradeOffers = [] } = useQuery({
-    queryKey: ['allTradeOffers', currentUser?.email],
-    queryFn: async () => {
-      const offers = await base44.entities.TradeOffer.list('-created_date');
-      return offers;
+      
+      // Get associated trade offers
+      const tradeIds = convs.map(c => c.trade_offer_id);
+      const trades = await base44.entities.TradeOffer.filter({
+        id: { $in: tradeIds }
+      });
+      
+      const tradesMap = {};
+      trades.forEach(t => tradesMap[t.id] = t);
+      
+      return convs.map(c => ({
+        ...c,
+        tradeOffer: tradesMap[c.trade_offer_id]
+      }));
     },
     enabled: !!currentUser
   });
 
-  const handleSelectConversation = async (conv) => {
-    setSelectedConversation(conv);
-    
-    // Find associated trade offer
-    const offer = tradeOffers.find(o => o.id === conv.trade_offer_id);
-    setSelectedTradeOffer(offer);
+  const filteredConversations = conversations.filter(conv => {
+    if (!searchQuery) return true;
+    const otherParty = conv.participant_1_email === currentUser?.email 
+      ? conv.participant_2_name 
+      : conv.participant_1_name;
+    return otherParty?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           conv.tradeOffer?.requested_card_title?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const getOtherParty = (conv) => {
-    if (conv.participant_1_email === currentUser?.email) {
-      return {
-        name: conv.participant_2_name,
-        email: conv.participant_2_email
-      };
-    }
-    return {
-      name: conv.participant_1_name,
-      email: conv.participant_1_email
-    };
-  };
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return conv.participant_1_email === currentUser?.email
+      ? { name: conv.participant_2_name, email: conv.participant_2_email }
+      : { name: conv.participant_1_name, email: conv.participant_1_email };
   };
 
   return (
@@ -78,15 +78,11 @@ export default function Messages() {
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Messages</h1>
-              <p className="text-slate-500 text-sm">Chat with traders about your offers</p>
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <MessageCircle className="w-7 h-7 text-violet-600" />
+            Messages
+          </h1>
+          <p className="text-slate-500 mt-1">Your trade conversations</p>
         </div>
       </div>
 
@@ -94,92 +90,132 @@ export default function Messages() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Conversations List */}
           <div className="lg:col-span-1">
-            <Card className="p-4">
-              <h2 className="font-semibold mb-4 text-slate-900">Conversations</h2>
-              
-              {isLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            <Card>
+              <CardContent className="p-0">
+                {/* Search */}
+                <div className="p-4 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      placeholder="Search conversations..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
-              ) : conversations.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p className="text-sm">No conversations yet</p>
-                  <p className="text-xs mt-1">Start trading to chat!</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {conversations.map((conv) => {
-                    const otherParty = getOtherParty(conv);
-                    const tradeOffer = tradeOffers.find(o => o.id === conv.trade_offer_id);
-                    const isSelected = selectedConversation?.id === conv.id;
-                    
-                    return (
-                      <motion.div
-                        key={conv.id}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => handleSelectConversation(conv)}
-                        className={`p-3 rounded-xl cursor-pointer transition-colors ${
-                          isSelected 
-                            ? 'bg-violet-50 border-2 border-violet-200' 
-                            : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-500 text-white text-sm">
-                              {getInitials(otherParty.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="font-semibold text-sm truncate">{otherParty.name}</p>
-                              {conv.last_message_at && (
-                                <span className="text-xs text-slate-500">
-                                  {format(new Date(conv.last_message_at), 'MMM d')}
-                                </span>
-                              )}
-                            </div>
-                            
-                            {tradeOffer && (
-                              <div className="flex items-center gap-1 mb-1">
-                                <ArrowRightLeft className="w-3 h-3 text-slate-400" />
-                                <p className="text-xs text-slate-600 truncate">{tradeOffer.requested_card_title}</p>
+
+                {/* List */}
+                <ScrollArea className="h-[calc(100vh-280px)]">
+                  {isLoading ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                    </div>
+                  ) : filteredConversations.length === 0 ? (
+                    <div className="text-center py-12 px-4">
+                      <MessageCircle className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                      <p className="text-slate-500">No conversations yet</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {filteredConversations.map((conv) => {
+                        const otherParty = getOtherParty(conv);
+                        const isSelected = selectedConversation?.id === conv.id;
+
+                        return (
+                          <motion.button
+                            key={conv.id}
+                            whileHover={{ backgroundColor: 'rgb(248 250 252)' }}
+                            onClick={() => {
+                              setSelectedConversation(conv);
+                              setSelectedTrade(conv.tradeOffer);
+                            }}
+                            className={`w-full p-4 text-left transition-colors ${
+                              isSelected ? 'bg-violet-50' : ''
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar className="flex-shrink-0">
+                                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-500 text-white text-sm">
+                                  {getInitials(otherParty.name)}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <h4 className="font-semibold text-slate-900 truncate">
+                                    {otherParty.name}
+                                  </h4>
+                                  {conv.last_message_at && (
+                                    <span className="text-xs text-slate-500 flex-shrink-0 ml-2">
+                                      {format(new Date(conv.last_message_at), 'MMM d')}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {conv.tradeOffer && (
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <ArrowRightLeft className="w-3 h-3 text-slate-400" />
+                                    <p className="text-xs text-slate-500 truncate">
+                                      {conv.tradeOffer.requested_card_title}
+                                    </p>
+                                  </div>
+                                )}
+
+                                <p className="text-sm text-slate-600 truncate">
+                                  {conv.last_message_preview || 'No messages yet'}
+                                </p>
+
+                                {conv.tradeOffer && (
+                                  <Badge 
+                                    className={`mt-2 text-xs ${
+                                      conv.tradeOffer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                      conv.tradeOffer.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                                      conv.tradeOffer.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                                      'bg-slate-100 text-slate-700'
+                                    }`}
+                                  >
+                                    {conv.tradeOffer.status}
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-                            
-                            <p className="text-xs text-slate-500 truncate">
-                              {conv.last_message_preview || 'No messages yet'}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
             </Card>
           </div>
 
           {/* Chat Area */}
           <div className="lg:col-span-2">
             {selectedConversation ? (
-              <Card className="h-[600px]">
-                <ChatPanel
-                  conversationId={selectedConversation.id}
-                  tradeOffer={selectedTradeOffer}
-                  open={true}
-                  onClose={() => {}}
-                />
+              <Card className="h-[calc(100vh-180px)]">
+                <CardContent className="p-0 h-full">
+                  <ChatPanel
+                    open={true}
+                    onClose={() => {}}
+                    conversationId={selectedConversation.id}
+                    tradeOffer={selectedTrade}
+                  />
+                </CardContent>
               </Card>
             ) : (
-              <Card className="h-[600px] flex items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                  <p className="text-lg font-semibold text-slate-900 mb-2">No conversation selected</p>
-                  <p className="text-sm">Choose a conversation to start chatting</p>
-                </div>
+              <Card className="h-[calc(100vh-180px)]">
+                <CardContent className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <MessageCircle className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                      Select a conversation
+                    </h3>
+                    <p className="text-slate-500">
+                      Choose a conversation to start chatting
+                    </p>
+                  </div>
+                </CardContent>
               </Card>
             )}
           </div>
