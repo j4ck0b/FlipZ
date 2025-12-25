@@ -6,9 +6,9 @@ import FigureExchange from './pages/FigureExchange';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Marketplace from './pages/Marketplace';
+import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
-import Messages from './pages/Messages';
 import __Layout from './Layout.jsx';
 
 
@@ -21,9 +21,9 @@ export const PAGES = {
     "Home": Home,
     "Landing": Landing,
     "Marketplace": Marketplace,
+    "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
-    "Messages": Messages,
 }
 
 export const pagesConfig = {

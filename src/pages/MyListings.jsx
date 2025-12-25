@@ -43,6 +43,10 @@ import ListingModal from '../components/cards/ListingModal';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
 import FloatingChat from '../components/chat/FloatingChat';
 import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
+import EscrowModeSelector from '../components/trade/EscrowModeSelector';
+import TradeProgressTracker from '../components/trade/TradeProgressTracker';
+import PackagePhotoUpload from '../components/trade/PackagePhotoUpload';
+import InspectionReviewModal from '../components/trade/InspectionReviewModal';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -61,6 +65,9 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState('listings');
   const [chatOpen, setChatOpen] = useState(null);
   const [finalizeOffer, setFinalizeOffer] = useState(null);
+  const [escrowModalOffer, setEscrowModalOffer] = useState(null);
+  const [photoUploadOffer, setPhotoUploadOffer] = useState(null);
+  const [inspectionReviewOffer, setInspectionReviewOffer] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -102,17 +109,35 @@ export default function MyListings() {
   };
 
   const handleOfferAction = async (offer, action) => {
-    await base44.entities.TradeOffer.update(offer.id, { status: action });
-    
     if (action === 'accepted') {
-      await base44.entities.CardListing.update(offer.requested_card_id, { 
-        status: 'pending'
-      });
+      setEscrowModalOffer(offer);
+      return;
     }
     
+    await base44.entities.TradeOffer.update(offer.id, { status: action });
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
     toast.success(`Offer ${action}`);
+  };
+
+  const handleEscrowSelect = async (escrowMode) => {
+    try {
+      await base44.entities.TradeOffer.update(escrowModalOffer.id, { 
+        status: 'accepted',
+        escrow_mode: escrowMode,
+        progress_step: 'payment'
+      });
+      await base44.entities.CardListing.update(escrowModalOffer.requested_card_id, { 
+        status: 'pending'
+      });
+      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      toast.success('Trade accepted! Proceed to payment.');
+      setEscrowModalOffer(null);
+    } catch (error) {
+      toast.error('Failed to accept trade');
+    }
   };
 
   const handleRefresh = () => {
@@ -344,6 +369,12 @@ export default function MyListings() {
                         <p className="text-sm text-slate-600 p-2 bg-slate-50 rounded italic mb-3">"{offer.message}"</p>
                       )}
 
+                      {offer.progress_step && offer.progress_step !== 'offer_sent' && (
+                       <div className="mt-4">
+                         <TradeProgressTracker tradeOffer={offer} />
+                       </div>
+                      )}
+
                       <div className="flex gap-2 mt-4 pt-4 border-t">
                        <Button 
                          variant="outline"
@@ -376,13 +407,23 @@ export default function MyListings() {
                            </Button>
                          </>
                        )}
-                       {offer.status === 'accepted' && (
+                       {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.owner_package_photos && (
                          <Button
-                           onClick={() => setFinalizeOffer(offer)}
+                           onClick={() => setPhotoUploadOffer({ offer, role: 'owner' })}
                            className="flex-1 bg-blue-600 hover:bg-blue-700"
                          >
-                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                           Complete
+                           Upload Package Photos
+                         </Button>
+                       )}
+                       {offer.progress_step === 'hub_verification' && 
+                        offer.hub_verification_owner === 'passed' && 
+                        offer.hub_verification_sender === 'passed' &&
+                        !offer.owner_inspection_accepted && (
+                         <Button
+                           onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
+                           className="flex-1 bg-violet-600 hover:bg-violet-700"
+                         >
+                           Review Inspection
                          </Button>
                        )}
                       </div>
@@ -447,6 +488,12 @@ export default function MyListings() {
                         </div>
                       </div>
 
+                      {offer.progress_step && offer.progress_step !== 'offer_sent' && (
+                        <div className="mt-4">
+                          <TradeProgressTracker tradeOffer={offer} />
+                        </div>
+                      )}
+
                       <div className="flex gap-2 mt-4 pt-4 border-t">
                         <Button 
                           variant="outline"
@@ -460,13 +507,23 @@ export default function MyListings() {
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Chat
                         </Button>
-                        {offer.status === 'accepted' && (
+                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.sender_package_photos && (
                           <Button
-                            onClick={() => setFinalizeOffer(offer)}
+                            onClick={() => setPhotoUploadOffer({ offer, role: 'sender' })}
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
                           >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Complete
+                            Upload Package Photos
+                          </Button>
+                        )}
+                        {offer.progress_step === 'hub_verification' && 
+                         offer.hub_verification_owner === 'passed' && 
+                         offer.hub_verification_sender === 'passed' &&
+                         !offer.sender_inspection_accepted && (
+                          <Button
+                            onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
+                            className="flex-1 bg-violet-600 hover:bg-violet-700"
+                          >
+                            Review Inspection
                           </Button>
                         )}
                       </div>
@@ -538,6 +595,44 @@ export default function MyListings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Escrow Mode Selector */}
+      <EscrowModeSelector
+        open={!!escrowModalOffer}
+        onClose={() => setEscrowModalOffer(null)}
+        tradeOffer={escrowModalOffer}
+        onSelect={handleEscrowSelect}
+      />
+
+      {/* Package Photo Upload */}
+      {photoUploadOffer && (
+        <PackagePhotoUpload
+          open={!!photoUploadOffer}
+          onClose={() => setPhotoUploadOffer(null)}
+          tradeOffer={photoUploadOffer.offer}
+          userRole={photoUploadOffer.role}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+            queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+            setPhotoUploadOffer(null);
+          }}
+        />
+      )}
+
+      {/* Inspection Review */}
+      {inspectionReviewOffer && (
+        <InspectionReviewModal
+          open={!!inspectionReviewOffer}
+          onClose={() => setInspectionReviewOffer(null)}
+          tradeOffer={inspectionReviewOffer.offer}
+          userRole={inspectionReviewOffer.role}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+            queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+            setInspectionReviewOffer(null);
+          }}
+        />
+      )}
     </div>
   );
 }
