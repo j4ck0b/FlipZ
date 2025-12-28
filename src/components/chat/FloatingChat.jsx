@@ -41,7 +41,8 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
     queryKey: ['chatMessages', conversation?.id],
     queryFn: () => base44.entities.Message.filter({ conversation_id: conversation.id }, 'created_date'),
     enabled: !!conversation?.id && open,
-    refetchInterval: 3000
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true
   });
 
   useEffect(() => {

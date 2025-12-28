@@ -55,7 +55,8 @@ export default function Messages() {
       }));
     },
     enabled: !!currentUser,
-    refetchInterval: 5000
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true
   });
 
   useEffect(() => {

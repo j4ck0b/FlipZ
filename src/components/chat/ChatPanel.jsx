@@ -29,7 +29,8 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
     queryKey: ['messages', conversationId],
     queryFn: () => base44.entities.Message.filter({ conversation_id: conversationId }, 'created_date'),
     enabled: !!conversationId,
-    refetchInterval: 3000 // Poll every 3 seconds for new messages
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true
   });
 
   const { data: conversation } = useQuery({
