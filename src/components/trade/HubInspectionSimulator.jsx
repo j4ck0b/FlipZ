@@ -21,6 +21,19 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
     loadUser();
   }, []);
 
+  React.useEffect(() => {
+    if (open && photos.length === 0) {
+      // Auto-populate with random placeholder images
+      const randomPhotos = [
+        'https://images.unsplash.com/photo-1611082800515-000da5b5a7ba?w=400',
+        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
+        'https://images.unsplash.com/photo-1621155346337-1d19476ba7d6?w=400',
+        'https://images.unsplash.com/photo-1542838309-af0e443e222b?w=400'
+      ];
+      setPhotos(randomPhotos);
+    }
+  }, [open]);
+
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
