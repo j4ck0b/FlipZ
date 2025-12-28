@@ -138,7 +138,14 @@ export default function Profile() {
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">{viewingUser.full_name}</h1>
+                  <h1 className="text-3xl font-bold mb-2">
+                    {viewingUser.full_name || viewingUser.email?.split('@')[0] || 'User'}
+                  </h1>
+                  {!viewingUser.full_name && isOwnProfile && (
+                    <p className="text-amber-300 text-sm mb-2">
+                      ⚠️ Please set your display name to start trading
+                    </p>
+                  )}
                   <p className="text-slate-300 flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     {viewingUser.email}

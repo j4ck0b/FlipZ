@@ -62,9 +62,17 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     setLoading(true);
     
     const user = await base44.auth.me();
+    
+    // Check if user has a display name set
+    if (!user.full_name) {
+      toast.error('Please set your display name in your profile first');
+      setLoading(false);
+      return;
+    }
+    
     const data = {
       ...formData,
-      collector_name: user.full_name || user.email?.split('@')[0],
+      collector_name: user.full_name,
       status: 'available'
     };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,7 @@ export default function EditProfileModal({ open, onClose, user, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
+    full_name: '',
     profile_picture: '',
     bio: '',
     location: '',
@@ -32,6 +33,7 @@ export default function EditProfileModal({ open, onClose, user, onSuccess }) {
   useEffect(() => {
     if (user) {
       setFormData({
+        full_name: user.full_name || '',
         profile_picture: user.profile_picture || '',
         bio: user.bio || '',
         location: user.location || '',
@@ -86,9 +88,22 @@ export default function EditProfileModal({ open, onClose, user, onSuccess }) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Edit Profile</DialogTitle>
+          <DialogDescription>Update your public profile information</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          {/* Display Name */}
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Display Name *</Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              placeholder="Your name as it appears to others"
+              required
+            />
+          </div>
+
           {/* Profile Picture */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
