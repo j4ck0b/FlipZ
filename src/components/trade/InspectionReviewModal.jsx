@@ -84,7 +84,7 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
               )}
 
               {myPhotos.length > 0 ? (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {myPhotos.map((photo, idx) => (
                     <motion.img
                       key={idx}
@@ -126,7 +126,7 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
               )}
 
               {theirPhotos.length > 0 ? (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {theirPhotos.map((photo, idx) => (
                     <motion.img
                       key={idx}
