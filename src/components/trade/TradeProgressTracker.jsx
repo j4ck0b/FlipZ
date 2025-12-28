@@ -76,14 +76,14 @@ export default function TradeProgressTracker({ tradeOffer }) {
                     animate={{ scale: 1 }}
                     transition={{ delay: index * 0.1 }}
                     className={`
-                      w-10 h-10 rounded-full flex items-center justify-center mb-2 z-10
-                      ${isComplete ? 'bg-gradient-to-br from-violet-600 to-indigo-600 text-white' : ''}
-                      ${isCurrent && !isFailed ? 'bg-white border-4 border-violet-600 text-violet-600' : ''}
-                      ${isCurrent && isFailed ? 'bg-white border-4 border-red-600 text-red-600' : ''}
-                      ${isUpcoming ? 'bg-slate-200 text-slate-400' : ''}
+                      rounded-full flex items-center justify-center mb-2 z-10
+                      ${isComplete ? 'w-7 h-7 bg-gradient-to-br from-violet-600 to-indigo-600 text-white' : ''}
+                      ${isCurrent && !isFailed ? 'w-10 h-10 bg-white border-4 border-violet-600 text-violet-600' : ''}
+                      ${isCurrent && isFailed ? 'w-10 h-10 bg-white border-4 border-red-600 text-red-600' : ''}
+                      ${isUpcoming ? 'w-10 h-10 bg-slate-200 text-slate-400' : ''}
                     `}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className={`${isComplete ? 'w-4 h-4' : 'w-5 h-5'}`} />
                   </motion.div>
                   <p className={`
                     text-xs font-medium text-center
