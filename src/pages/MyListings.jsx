@@ -196,9 +196,9 @@ export default function MyListings() {
     
     const updates = { [field]: true };
     
-    // If both packages sent, move to hub shipping
+    // If both packages sent, skip directly to hub verification
     if (offer[otherField]) {
-      updates.progress_step = 'shipping_to_hub';
+      updates.progress_step = 'hub_verification';
     }
     
     await base44.entities.TradeOffer.update(offer.id, updates);
@@ -540,7 +540,7 @@ export default function MyListings() {
                            )}
                          </>
                        )}
-                       {offer.status === 'accepted' && (offer.progress_step === 'shipping_to_hub' || offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
+                       {offer.status === 'accepted' && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
                          <Button
                            onClick={() => setHubInspectionOffer(offer)}
                            className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -695,7 +695,7 @@ export default function MyListings() {
                             )}
                           </>
                         )}
-                        {offer.status === 'accepted' && (offer.progress_step === 'shipping_to_hub' || offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
+                        {offer.status === 'accepted' && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
                           <Button
                             onClick={() => setHubInspectionOffer(offer)}
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
