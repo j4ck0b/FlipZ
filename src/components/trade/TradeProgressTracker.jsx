@@ -48,16 +48,16 @@ export default function TradeProgressTracker({ tradeOffer }) {
         </div>
 
         {/* Desktop Progress Line */}
-        <div className="hidden md:block relative pb-4">
+        <div className="hidden md:block relative py-6 px-4">
           {/* Line */}
-          <div className="absolute top-8 left-12 right-12 h-2 bg-white rounded-full">
+          <div className="absolute top-12 left-16 right-16 h-0.5 bg-slate-300">
             <motion.div
               initial={{ width: 0 }}
               animate={{ 
                 width: isFailed ? '0%' : `${(currentStepIndex / (steps.length - 1)) * 100}%` 
               }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="h-full bg-gradient-to-r from-violet-600 via-violet-500 to-indigo-600 rounded-full shadow-lg"
+              className="h-full bg-gradient-to-r from-violet-600 to-indigo-600"
             />
           </div>
 
@@ -70,44 +70,46 @@ export default function TradeProgressTracker({ tradeOffer }) {
               const isUpcoming = index > currentStepIndex;
 
               return (
-                <div key={step.id} className="flex flex-col items-center gap-4 flex-1">
+                <div key={step.id} className="flex flex-col items-center gap-3 flex-1">
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ 
-                      scale: isComplete ? 0.8 : 1, 
-                      opacity: isComplete ? 0.35 : 1 
+                      scale: 1, 
+                      opacity: 1 
                     }}
                     transition={{ delay: index * 0.08, duration: 0.3 }}
                     className={`
                       rounded-full flex items-center justify-center z-10 transition-all
-                      ${isComplete ? 'w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md' : ''}
-                      ${isCurrent && !isFailed ? 'w-16 h-16 bg-white border-[5px] border-violet-600 text-violet-600 shadow-2xl ring-4 ring-violet-100' : ''}
-                      ${isCurrent && isFailed ? 'w-16 h-16 bg-white border-[5px] border-red-600 text-red-600 shadow-2xl ring-4 ring-red-100' : ''}
-                      ${isUpcoming ? 'w-12 h-12 bg-white border-3 border-slate-300 text-slate-400 shadow-sm' : ''}
+                      ${isComplete ? 'w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md' : ''}
+                      ${isCurrent && !isFailed ? 'w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-xl' : ''}
+                      ${isCurrent && isFailed ? 'w-14 h-14 bg-gradient-to-br from-red-600 to-rose-600 text-white shadow-xl' : ''}
+                      ${isUpcoming ? 'w-11 h-11 bg-slate-200 text-slate-500' : ''}
                     `}
                   >
                     {isComplete ? (
-                      <CheckCircle2 className="w-5 h-5" />
+                      <CheckCircle2 className="w-6 h-6" />
                     ) : (
                       <Icon className={`${isCurrent ? 'w-7 h-7' : 'w-5 h-5'}`} />
                     )}
                   </motion.div>
-                  <div className="text-center">
+                  <div className="text-center max-w-[100px]">
                     <p className={`
-                      font-bold text-sm whitespace-nowrap transition-all
-                      ${isComplete ? 'text-slate-400 line-through' : ''}
-                      ${isCurrent ? 'text-violet-700 text-base' : ''}
+                      font-semibold text-xs leading-tight
+                      ${isComplete ? 'text-emerald-700' : ''}
+                      ${isCurrent ? 'text-violet-700 text-sm font-bold' : ''}
                       ${isUpcoming ? 'text-slate-500' : ''}
                     `}>
                       {step.label}
                     </p>
                     {isCurrent && (
-                      <Badge className="mt-2 bg-violet-600 text-white text-xs shadow-md">
+                      <Badge className="mt-2 bg-violet-600 text-white text-xs font-semibold">
                         In Progress
                       </Badge>
                     )}
                     {isComplete && (
-                      <p className="text-xs text-slate-400 mt-1">✓ Done</p>
+                      <Badge className="mt-2 bg-emerald-50 text-emerald-700 text-xs border-0">
+                        ✓ Done
+                      </Badge>
                     )}
                   </div>
                 </div>
