@@ -49,6 +49,8 @@ import TradeProgressTracker from '../components/trade/TradeProgressTracker';
 import PackagePhotoUpload from '../components/trade/PackagePhotoUpload';
 import InspectionReviewModal from '../components/trade/InspectionReviewModal';
 import MockPaymentModal from '../components/trade/MockPaymentModal';
+import MockShippingLabel from '../components/trade/MockShippingLabel';
+import FinalAcceptanceModal from '../components/trade/FinalAcceptanceModal';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
 
 const statusConfig = {
@@ -72,6 +74,8 @@ export default function MyListings() {
   const [photoUploadOffer, setPhotoUploadOffer] = useState(null);
   const [inspectionReviewOffer, setInspectionReviewOffer] = useState(null);
   const [paymentOffer, setPaymentOffer] = useState(null);
+  const [shippingLabelOffer, setShippingLabelOffer] = useState(null);
+  const [finalAcceptOffer, setFinalAcceptOffer] = useState(null);
   const playNotification = useNotificationSound();
   const prevOffersCount = useRef(0);
 
@@ -165,12 +169,37 @@ export default function MyListings() {
 
   const handlePaymentSuccess = async () => {
     await base44.entities.TradeOffer.update(paymentOffer.id, { 
-      progress_step: 'preparing_shipment'
+      progress_step: 'shipping_to_users'
     });
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success('Payment successful! Prepare your package.');
+    toast.success('Payment successful! View shipping label.');
     setPaymentOffer(null);
+  };
+
+  const handleFinalAccept = async () => {
+    await base44.entities.TradeOffer.update(finalAcceptOffer.id, { 
+      status: 'completed',
+      progress_step: 'completed'
+    });
+    
+    // Update card statuses
+    await base44.entities.CardListing.update(finalAcceptOffer.requested_card_id, { 
+      status: 'traded',
+      trade_count: (finalAcceptOffer.requested_card_trade_count || 0) + 1
+    });
+    
+    for (const cardId of finalAcceptOffer.offered_card_ids || []) {
+      await base44.entities.CardListing.update(cardId, { 
+        status: 'traded'
+      });
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+    queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+    queryClient.invalidateQueries({ queryKey: ['myListings'] });
+    toast.success('Trade completed! 🎉');
+    setFinalAcceptOffer(null);
   };
 
   const handleRefresh = () => {
@@ -449,24 +478,23 @@ export default function MyListings() {
                            Complete Payment
                          </Button>
                        )}
-                       {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.owner_package_photos && (
-                         <Button
-                           onClick={() => setPhotoUploadOffer({ offer, role: 'owner' })}
-                           className="flex-1 bg-blue-600 hover:bg-blue-700"
-                         >
-                           Upload Package Photos
-                         </Button>
-                       )}
-                       {offer.progress_step === 'hub_verification' && 
-                        offer.hub_verification_owner === 'passed' && 
-                        offer.hub_verification_sender === 'passed' &&
-                        !offer.owner_inspection_accepted && (
-                         <Button
-                           onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
-                           className="flex-1 bg-violet-600 hover:bg-violet-700"
-                         >
-                           Review Inspection
-                         </Button>
+                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                         <>
+                           <Button
+                             onClick={() => setShippingLabelOffer({ offer, role: 'owner' })}
+                             variant="outline"
+                             className="flex-1"
+                           >
+                             View Shipping Label
+                           </Button>
+                           <Button
+                             onClick={() => setFinalAcceptOffer(offer)}
+                             className="flex-1 bg-violet-600 hover:bg-violet-700"
+                           >
+                             <CheckCircle2 className="w-4 h-4 mr-2" />
+                             Complete Trade
+                           </Button>
+                         </>
                        )}
                       </div>
                     </CardContent>
@@ -558,24 +586,23 @@ export default function MyListings() {
                             Complete Payment
                           </Button>
                         )}
-                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.sender_package_photos && (
-                          <Button
-                            onClick={() => setPhotoUploadOffer({ offer, role: 'sender' })}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700"
-                          >
-                            Upload Package Photos
-                          </Button>
-                        )}
-                        {offer.progress_step === 'hub_verification' && 
-                         offer.hub_verification_owner === 'passed' && 
-                         offer.hub_verification_sender === 'passed' &&
-                         !offer.sender_inspection_accepted && (
-                          <Button
-                            onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
-                            className="flex-1 bg-violet-600 hover:bg-violet-700"
-                          >
-                            Review Inspection
-                          </Button>
+                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                          <>
+                            <Button
+                              onClick={() => setShippingLabelOffer({ offer, role: 'sender' })}
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              View Shipping Label
+                            </Button>
+                            <Button
+                              onClick={() => setFinalAcceptOffer(offer)}
+                              className="flex-1 bg-violet-600 hover:bg-violet-700"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Complete Trade
+                            </Button>
+                          </>
                         )}
                       </div>
                     </CardContent>
@@ -691,6 +718,24 @@ export default function MyListings() {
         onClose={() => setPaymentOffer(null)}
         tradeOffer={paymentOffer}
         onSuccess={handlePaymentSuccess}
+      />
+
+      {/* Mock Shipping Label */}
+      {shippingLabelOffer && (
+        <MockShippingLabel
+          open={!!shippingLabelOffer}
+          onClose={() => setShippingLabelOffer(null)}
+          tradeOffer={shippingLabelOffer.offer}
+          userRole={shippingLabelOffer.role}
+        />
+      )}
+
+      {/* Final Acceptance Modal */}
+      <FinalAcceptanceModal
+        open={!!finalAcceptOffer}
+        onClose={() => setFinalAcceptOffer(null)}
+        tradeOffer={finalAcceptOffer}
+        onAccept={handleFinalAccept}
       />
     </div>
   );
