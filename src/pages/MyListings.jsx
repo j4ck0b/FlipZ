@@ -19,7 +19,8 @@ import {
   Eye,
   MoreVertical,
   MessageCircle,
-  CreditCard
+  CreditCard,
+  Camera
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,6 +52,7 @@ import InspectionReviewModal from '../components/trade/InspectionReviewModal';
 import MockPaymentModal from '../components/trade/MockPaymentModal';
 import MockShippingLabel from '../components/trade/MockShippingLabel';
 import FinalAcceptanceModal from '../components/trade/FinalAcceptanceModal';
+import HubInspectionSimulator from '../components/trade/HubInspectionSimulator';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
 
 const statusConfig = {
@@ -75,6 +77,7 @@ export default function MyListings() {
   const [inspectionReviewOffer, setInspectionReviewOffer] = useState(null);
   const [paymentOffer, setPaymentOffer] = useState(null);
   const [shippingLabelOffer, setShippingLabelOffer] = useState(null);
+  const [hubInspectionOffer, setHubInspectionOffer] = useState(null);
   const [finalAcceptOffer, setFinalAcceptOffer] = useState(null);
   const playNotification = useNotificationSound();
   const prevOffersCount = useRef(0);
@@ -169,11 +172,11 @@ export default function MyListings() {
 
   const handlePaymentSuccess = async () => {
     await base44.entities.TradeOffer.update(paymentOffer.id, { 
-      progress_step: 'shipping_to_users'
+      progress_step: 'hub_verification'
     });
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success('Payment successful! View shipping label.');
+    toast.success('Payment successful! Awaiting hub inspection.');
     setPaymentOffer(null);
   };
 
@@ -478,6 +481,15 @@ export default function MyListings() {
                            Complete Payment
                          </Button>
                        )}
+                       {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && !offer.hub_photos_owner_package && (
+                         <Button
+                           onClick={() => setHubInspectionOffer(offer)}
+                           className="flex-1 bg-blue-600 hover:bg-blue-700"
+                         >
+                           <Camera className="w-4 h-4 mr-2" />
+                           Simulate Hub Inspection
+                         </Button>
+                       )}
                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
                          <>
                            <Button
@@ -488,11 +500,10 @@ export default function MyListings() {
                              View Shipping Label
                            </Button>
                            <Button
-                             onClick={() => setFinalAcceptOffer(offer)}
+                             onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
                              className="flex-1 bg-violet-600 hover:bg-violet-700"
                            >
-                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                             Complete Trade
+                             Review & Complete
                            </Button>
                          </>
                        )}
@@ -586,6 +597,15 @@ export default function MyListings() {
                             Complete Payment
                           </Button>
                         )}
+                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && !offer.hub_photos_sender_package && (
+                          <Button
+                            onClick={() => setHubInspectionOffer(offer)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Simulate Hub Inspection
+                          </Button>
+                        )}
                         {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
                           <>
                             <Button
@@ -596,11 +616,10 @@ export default function MyListings() {
                               View Shipping Label
                             </Button>
                             <Button
-                              onClick={() => setFinalAcceptOffer(offer)}
+                              onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
                               className="flex-1 bg-violet-600 hover:bg-violet-700"
                             >
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Complete Trade
+                              Review & Complete
                             </Button>
                           </>
                         )}
@@ -697,6 +716,18 @@ export default function MyListings() {
         />
       )}
 
+      {/* Hub Inspection Simulator */}
+      <HubInspectionSimulator
+        open={!!hubInspectionOffer}
+        onClose={() => setHubInspectionOffer(null)}
+        tradeOffer={hubInspectionOffer}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+          queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+          setHubInspectionOffer(null);
+        }}
+      />
+
       {/* Inspection Review */}
       {inspectionReviewOffer && (
         <InspectionReviewModal
@@ -705,9 +736,8 @@ export default function MyListings() {
           tradeOffer={inspectionReviewOffer.offer}
           userRole={inspectionReviewOffer.role}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-            queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
             setInspectionReviewOffer(null);
+            setFinalAcceptOffer(inspectionReviewOffer.offer);
           }}
         />
       )}
