@@ -500,15 +500,15 @@ export default function MyListings() {
                          </>
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'payment' && (
-                         !offer.sender_paid ? (
+                         !offer.owner_paid ? (
                            <Button
-                             onClick={() => setPaymentOffer({ ...offer, userRole: 'sender' })}
+                             onClick={() => setPaymentOffer({ ...offer, userRole: 'owner' })}
                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                            >
                              <CreditCard className="w-4 h-4 mr-2" />
                              Complete Payment
                            </Button>
-                         ) : offer.owner_paid ? (
+                         ) : offer.sender_paid ? (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                              <CheckCircle2 className="w-4 h-4 mr-2" />
                              Both Paid - Ready!
@@ -516,7 +516,7 @@ export default function MyListings() {
                          ) : (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
                              <Clock className="w-4 h-4 mr-2" />
-                             Waiting for {offer.owner_name}
+                             Waiting for {offer.sender_name}
                            </Badge>
                          )
                        )}
@@ -660,15 +660,15 @@ export default function MyListings() {
                           Chat
                         </Button>
                         {offer.status === 'accepted' && offer.progress_step === 'payment' && (
-                          !offer.owner_paid ? (
+                          !offer.sender_paid ? (
                             <Button
-                              onClick={() => setPaymentOffer({ ...offer, userRole: 'owner' })}
+                              onClick={() => setPaymentOffer({ ...offer, userRole: 'sender' })}
                               className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                             >
                               <CreditCard className="w-4 h-4 mr-2" />
                               Complete Payment
                             </Button>
-                          ) : offer.sender_paid ? (
+                          ) : offer.owner_paid ? (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
                               Both Paid - Ready!
@@ -676,7 +676,7 @@ export default function MyListings() {
                           ) : (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
                               <Clock className="w-4 h-4 mr-2" />
-                              Waiting for {offer.sender_name}
+                              Waiting for {offer.owner_name}
                             </Badge>
                           )
                         )}
