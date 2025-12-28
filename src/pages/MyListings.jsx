@@ -549,6 +549,15 @@ export default function MyListings() {
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Chat
                         </Button>
+                        {offer.status === 'accepted' && offer.progress_step === 'payment' && (
+                          <Button
+                            onClick={() => setPaymentOffer(offer)}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Complete Payment
+                          </Button>
+                        )}
                         {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.sender_package_photos && (
                           <Button
                             onClick={() => setPhotoUploadOffer({ offer, role: 'sender' })}
