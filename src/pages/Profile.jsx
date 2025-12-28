@@ -136,7 +136,7 @@ export default function Profile() {
 
             {/* Info */}
             <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     {viewingUser.full_name || viewingUser.email?.split('@')[0] || 'User'}
@@ -155,7 +155,7 @@ export default function Profile() {
                   <Button 
                     onClick={() => setShowEditModal(true)}
                     variant="outline"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
                     Edit Profile
@@ -221,17 +221,20 @@ export default function Profile() {
 
         {/* Tabs */}
         <Tabs defaultValue="listings" className="space-y-6">
-          <TabsList className="bg-white border border-slate-200">
+          <TabsList className="bg-white border border-slate-200 grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
             <TabsTrigger value="listings" className="gap-2">
               <Package className="w-4 h-4" />
-              Active Listings ({listings.length})
+              <span className="hidden sm:inline">Active Listings ({listings.length})</span>
+              <span className="sm:hidden">Listings ({listings.length})</span>
             </TabsTrigger>
             <TabsTrigger value="trades" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              Trade Offers ({tradeOffers.length})
+              <span className="hidden sm:inline">Trade Offers ({tradeOffers.length})</span>
+              <span className="sm:hidden">Trades ({tradeOffers.length})</span>
             </TabsTrigger>
             <TabsTrigger value="sold">
-              Past Transactions ({stats.completedSales + stats.tradesMade})
+              <span className="hidden sm:inline">Past Transactions ({stats.completedSales + stats.tradesMade})</span>
+              <span className="sm:hidden">Past ({stats.completedSales + stats.tradesMade})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -277,7 +280,7 @@ export default function Profile() {
                       return (
                         <div 
                           key={offer.id}
-                          className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -328,7 +331,7 @@ export default function Profile() {
                       .map((listing) => (
                         <div 
                           key={listing.id}
-                          className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg"
+                          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-slate-50 rounded-lg"
                         >
                           <div className="w-16 h-20 rounded-lg bg-white overflow-hidden flex-shrink-0">
                             {listing.image_url ? (

@@ -243,7 +243,7 @@ export default function MyListings() {
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">My Dashboard</h1>
               <p className="text-slate-500 mt-1">Manage your listings and trade requests</p>
@@ -253,7 +253,7 @@ export default function MyListings() {
                 setEditingListing(null);
                 setShowListingModal(true);
               }}
-              className="bg-slate-900 hover:bg-slate-800"
+              className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Listing
@@ -265,22 +265,25 @@ export default function MyListings() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border border-slate-200 mb-6">
+          <TabsList className="bg-white border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
             <TabsTrigger value="listings" className="gap-2">
               <Package className="w-4 h-4" />
-              My Listings
+              <span className="hidden sm:inline">My Listings</span>
+              <span className="sm:hidden">Listings</span>
               <Badge variant="secondary" className="ml-1">{myListings.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="incoming" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              Incoming Offers
+              <span className="hidden sm:inline">Incoming Offers</span>
+              <span className="sm:hidden">Incoming</span>
               {pendingIncoming > 0 && (
                 <Badge className="ml-1 bg-rose-500">{pendingIncoming}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="sent" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              My Offers
+              <span className="hidden sm:inline">My Offers</span>
+              <span className="sm:hidden">Sent</span>
               <Badge variant="secondary" className="ml-1">{myOffers.length}</Badge>
             </TabsTrigger>
           </TabsList>
@@ -319,7 +322,7 @@ export default function MyListings() {
                       >
                         <Card className="overflow-hidden hover:shadow-md transition-shadow">
                           <CardContent className="p-0">
-                            <div className="flex items-center gap-4 p-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4">
                               {/* Image */}
                               <div 
                                 className="w-20 h-28 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 cursor-pointer"
@@ -358,7 +361,7 @@ export default function MyListings() {
                               {/* Actions */}
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
+                                  <Button variant="ghost" size="icon" className="sm:ml-auto">
                                     <MoreVertical className="w-5 h-5" />
                                   </Button>
                                 </DropdownMenuTrigger>
