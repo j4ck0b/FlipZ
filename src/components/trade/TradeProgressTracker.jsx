@@ -28,13 +28,13 @@ export default function TradeProgressTracker({ tradeOffer }) {
   const isFailed = tradeOffer.status === 'failed';
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-6">
+    <Card className="bg-gradient-to-br from-violet-50 to-indigo-50 border-violet-100">
+      <CardContent className="p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Trade Progress</h3>
+            <h3 className="text-base md:text-lg font-bold text-slate-900">Trade Progress</h3>
             {tradeOffer.escrow_mode && (
-              <Badge variant="outline" className="mt-1">
+              <Badge variant="outline" className="mt-1 bg-white/50">
                 Escrow {tradeOffer.escrow_mode.charAt(0).toUpperCase() + tradeOffer.escrow_mode.slice(1)}
               </Badge>
             )}
@@ -47,22 +47,22 @@ export default function TradeProgressTracker({ tradeOffer }) {
           )}
         </div>
 
-        {/* Progress Line */}
-        <div className="relative">
+        {/* Desktop Progress Line */}
+        <div className="hidden md:block relative pb-8">
           {/* Line */}
-          <div className="absolute top-5 left-0 right-0 h-1 bg-slate-200">
+          <div className="absolute top-6 left-8 right-8 h-1 bg-white/60 rounded-full">
             <motion.div
               initial={{ width: 0 }}
               animate={{ 
                 width: isFailed ? '0%' : `${(currentStepIndex / (steps.length - 1)) * 100}%` 
               }}
-              transition={{ duration: 0.5 }}
-              className="h-full bg-gradient-to-r from-violet-600 to-indigo-600"
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full shadow-lg"
             />
           </div>
 
           {/* Steps */}
-          <div className="relative flex justify-between">
+          <div className="relative flex justify-between px-2">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isComplete = index < currentStepIndex;
@@ -70,25 +70,32 @@ export default function TradeProgressTracker({ tradeOffer }) {
               const isUpcoming = index > currentStepIndex;
 
               return (
-                <div key={step.id} className="flex flex-col items-center">
+                <div key={step.id} className="flex flex-col items-center gap-3">
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: isComplete ? 0.3 : 1 }}
-                    transition={{ delay: index * 0.1 }}
+                    animate={{ 
+                      scale: isComplete ? 0.85 : 1, 
+                      opacity: isComplete ? 0.4 : 1 
+                    }}
+                    transition={{ delay: index * 0.08, duration: 0.3 }}
                     className={`
-                      rounded-full flex items-center justify-center mb-2 z-10
-                      ${isComplete ? 'w-7 h-7 bg-gradient-to-br from-violet-600 to-indigo-600 text-white' : ''}
-                      ${isCurrent && !isFailed ? 'w-10 h-10 bg-white border-4 border-violet-600 text-violet-600' : ''}
-                      ${isCurrent && isFailed ? 'w-10 h-10 bg-white border-4 border-red-600 text-red-600' : ''}
-                      ${isUpcoming ? 'w-10 h-10 bg-slate-200 text-slate-400' : ''}
+                      rounded-full flex items-center justify-center z-10 shadow-lg
+                      ${isComplete ? 'w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 text-white' : ''}
+                      ${isCurrent && !isFailed ? 'w-12 h-12 bg-white border-4 border-violet-600 text-violet-600 shadow-xl' : ''}
+                      ${isCurrent && isFailed ? 'w-12 h-12 bg-white border-4 border-red-600 text-red-600 shadow-xl' : ''}
+                      ${isUpcoming ? 'w-10 h-10 bg-white border-2 border-slate-300 text-slate-400' : ''}
                     `}
                   >
-                    <Icon className={`${isComplete ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                    {isComplete ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : (
+                      <Icon className="w-5 h-5" />
+                    )}
                   </motion.div>
                   <p className={`
-                    text-xs font-medium text-center
-                    ${isComplete ? 'text-slate-400 opacity-50' : ''}
-                    ${isCurrent ? 'text-slate-900' : ''}
+                    text-xs font-semibold text-center whitespace-nowrap
+                    ${isComplete ? 'text-slate-500 opacity-60' : ''}
+                    ${isCurrent ? 'text-violet-700' : ''}
                     ${isUpcoming ? 'text-slate-400' : ''}
                   `}>
                     {step.label}
@@ -99,25 +106,82 @@ export default function TradeProgressTracker({ tradeOffer }) {
           </div>
         </div>
 
+        {/* Mobile Vertical Layout */}
+        <div className="md:hidden space-y-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isComplete = index < currentStepIndex;
+            const isCurrent = index === currentStepIndex;
+            const isUpcoming = index > currentStepIndex;
+
+            return (
+              <motion.div
+                key={step.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: isComplete ? 0.5 : 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`
+                  flex items-center gap-4 p-3 rounded-xl transition-all
+                  ${isCurrent ? 'bg-white shadow-lg border-2 border-violet-600' : ''}
+                  ${isComplete ? 'bg-white/40' : ''}
+                  ${isUpcoming ? 'bg-white/60' : ''}
+                `}
+              >
+                <div className={`
+                  rounded-full flex items-center justify-center flex-shrink-0
+                  ${isComplete ? 'w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md' : ''}
+                  ${isCurrent && !isFailed ? 'w-12 h-12 bg-white border-4 border-violet-600 text-violet-600 shadow-lg' : ''}
+                  ${isCurrent && isFailed ? 'w-12 h-12 bg-white border-4 border-red-600 text-red-600 shadow-lg' : ''}
+                  ${isUpcoming ? 'w-10 h-10 bg-slate-200 text-slate-400' : ''}
+                `}>
+                  {isComplete ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <Icon className="w-5 h-5" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className={`
+                    text-sm font-semibold
+                    ${isComplete ? 'text-slate-500' : ''}
+                    ${isCurrent ? 'text-violet-700' : ''}
+                    ${isUpcoming ? 'text-slate-500' : ''}
+                  `}>
+                    {step.label}
+                  </p>
+                </div>
+                {isCurrent && (
+                  <Badge className="bg-violet-600 text-white text-xs">
+                    Current
+                  </Badge>
+                )}
+                {isComplete && (
+                  <CheckCircle2 className="w-4 h-4 text-violet-600" />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
         {/* Hub Verification Status */}
         {tradeOffer.progress_step === 'hub_verification' && (
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <p className="text-xs text-slate-500 mb-1">Sender's Package</p>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="p-3 md:p-4 bg-white rounded-xl border-2 border-slate-100 shadow-sm">
+              <p className="text-xs text-slate-500 mb-2 font-medium">Sender's Package</p>
               <Badge className={
-                tradeOffer.hub_verification_sender === 'passed' ? 'bg-green-100 text-green-700' :
-                tradeOffer.hub_verification_sender === 'failed' ? 'bg-red-100 text-red-700' :
-                'bg-amber-100 text-amber-700'
+                tradeOffer.hub_verification_sender === 'passed' ? 'bg-green-100 text-green-700 border-green-200' :
+                tradeOffer.hub_verification_sender === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
+                'bg-amber-100 text-amber-700 border-amber-200'
               }>
                 {tradeOffer.hub_verification_sender || 'pending'}
               </Badge>
             </div>
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <p className="text-xs text-slate-500 mb-1">Owner's Package</p>
+            <div className="p-3 md:p-4 bg-white rounded-xl border-2 border-slate-100 shadow-sm">
+              <p className="text-xs text-slate-500 mb-2 font-medium">Owner's Package</p>
               <Badge className={
-                tradeOffer.hub_verification_owner === 'passed' ? 'bg-green-100 text-green-700' :
-                tradeOffer.hub_verification_owner === 'failed' ? 'bg-red-100 text-red-700' :
-                'bg-amber-100 text-amber-700'
+                tradeOffer.hub_verification_owner === 'passed' ? 'bg-green-100 text-green-700 border-green-200' :
+                tradeOffer.hub_verification_owner === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
+                'bg-amber-100 text-amber-700 border-amber-200'
               }>
                 {tradeOffer.hub_verification_owner || 'pending'}
               </Badge>
