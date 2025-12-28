@@ -484,7 +484,7 @@ export default function MyListings() {
                          </div>
                         )}
 
-                      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
                        <Button 
                          variant="outline"
                          onClick={() => setChatOpen({
@@ -614,11 +614,12 @@ export default function MyListings() {
                          >
                            <CheckCircle2 className="w-4 h-4 mr-2" />
                            Complete Trade
-                         </Button>
-                       )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                           </Button>
+                           )}
+                           </div>
+                           </div>
+                           </CardContent>
+                           </Card>
                 ))}
               </div>
             )}
@@ -808,13 +809,14 @@ export default function MyListings() {
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
                             Complete Trade
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                            </Button>
+                            )}
+                            </div>
+                            </div>
+                            </CardContent>
+                            </Card>
+                            ))}
+                            </div>
             )}
           </TabsContent>
         </Tabs>
