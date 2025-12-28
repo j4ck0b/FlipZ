@@ -408,7 +408,7 @@ export default function MyListings() {
                        {offer.status === 'pending' && (
                          <>
                            <Button 
-                             onClick={() => handleOfferAction(offer, 'accepted')}
+                             onClick={() => setEscrowModalOffer(offer)}
                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                            >
                              <CheckCircle2 className="w-4 h-4 mr-2" />
