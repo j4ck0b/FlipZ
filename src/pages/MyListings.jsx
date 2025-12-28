@@ -47,6 +47,7 @@ import EscrowModeSelector from '../components/trade/EscrowModeSelector';
 import TradeProgressTracker from '../components/trade/TradeProgressTracker';
 import PackagePhotoUpload from '../components/trade/PackagePhotoUpload';
 import InspectionReviewModal from '../components/trade/InspectionReviewModal';
+import { useNotificationSound } from '../components/notifications/NotificationSound';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -68,6 +69,8 @@ export default function MyListings() {
   const [escrowModalOffer, setEscrowModalOffer] = useState(null);
   const [photoUploadOffer, setPhotoUploadOffer] = useState(null);
   const [inspectionReviewOffer, setInspectionReviewOffer] = useState(null);
+  const playNotification = useNotificationSound();
+  const prevOffersCount = useRef(0);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -92,8 +95,19 @@ export default function MyListings() {
   const { data: incomingOffers = [], isLoading: loadingIncoming } = useQuery({
     queryKey: ['incomingOffers', currentUser?.email],
     queryFn: () => base44.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_date'),
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    refetchInterval: 5000
   });
+
+  useEffect(() => {
+    if (incomingOffers.length > prevOffersCount.current && prevOffersCount.current > 0) {
+      playNotification();
+      toast.success('New trade offer received!', {
+        duration: 5000,
+      });
+    }
+    prevOffersCount.current = incomingOffers.length;
+  }, [incomingOffers.length]);
 
   const handleDelete = async (listing) => {
     await base44.entities.CardListing.delete(listing.id);
