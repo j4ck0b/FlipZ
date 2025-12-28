@@ -11,6 +11,15 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+    };
+    loadUser();
+  }, []);
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -34,15 +43,25 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
 
     setSubmitting(true);
     
-    await base44.entities.TradeOffer.update(tradeOffer.id, {
-      hub_photos_sender_package: photos,
-      hub_photos_owner_package: photos,
-      hub_verification_sender: 'passed',
-      hub_verification_owner: 'passed',
-      hub_notes_sender: 'Package verified and in good condition',
-      hub_notes_owner: 'Package verified and in good condition',
-      progress_step: 'hub_verification'
-    });
+    // Determine which package photos to update based on current user
+    const isSender = currentUser?.email === tradeOffer.sender_email;
+    const photoField = isSender ? 'hub_photos_sender_package' : 'hub_photos_owner_package';
+    const verificationField = isSender ? 'hub_verification_sender' : 'hub_verification_owner';
+    const notesField = isSender ? 'hub_notes_sender' : 'hub_notes_owner';
+    
+    const updates = {
+      [photoField]: photos,
+      [verificationField]: 'passed',
+      [notesField]: 'Package verified and in good condition'
+    };
+    
+    // Check if both packages have been inspected
+    const otherPhotoField = isSender ? 'hub_photos_owner_package' : 'hub_photos_sender_package';
+    if (tradeOffer[otherPhotoField] && tradeOffer[otherPhotoField].length > 0) {
+      updates.progress_step = 'hub_verification';
+    }
+    
+    await base44.entities.TradeOffer.update(tradeOffer.id, updates);
     
     setSubmitting(false);
     toast.success('Hub inspection completed!');
