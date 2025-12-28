@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,6 +88,9 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
           <DialogTitle className="text-xl font-semibold">
             {editListing ? 'Edit Listing' : 'List Item for Trade'}
           </DialogTitle>
+          <DialogDescription>
+            {editListing ? 'Update your listing details' : 'Fill in the details to list your item for trading'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 pt-4">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -129,6 +129,9 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
             <ArrowRightLeft className="w-5 h-5 text-violet-600" />
             Propose Trade for {targetCard?.title}
           </DialogTitle>
+          <DialogDescription>
+            Select cards from your collection to offer in exchange
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-auto space-y-6 py-4">

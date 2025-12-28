@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -114,7 +114,7 @@ export default function QuickPostModal({ open, onClose, onSuccess }) {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">What are you trading?</DialogTitle>
-            <p className="text-slate-600 mt-2">Select a category to list your item</p>
+            <DialogDescription>Select a category to list your item</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4">
