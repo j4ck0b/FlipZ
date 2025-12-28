@@ -125,13 +125,6 @@ export default function EscrowModeSelector({ open, onClose, tradeOffer, onSelect
           })}
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
-          <p className="text-sm text-amber-800">
-            <strong>Important:</strong> Both traders split the escrow fee equally. 
-            Once selected, the escrow mode cannot be changed.
-          </p>
-        </div>
-
         <div className="flex gap-3 mt-6">
           <Button variant="outline" onClick={onClose} className="flex-1">
             Cancel
