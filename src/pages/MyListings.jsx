@@ -171,13 +171,22 @@ export default function MyListings() {
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    await base44.entities.TradeOffer.update(paymentOffer.id, { 
-      progress_step: 'preparing_shipment'
-    });
+  const handlePaymentSuccess = async (role) => {
+    const field = role === 'owner' ? 'owner_paid' : 'sender_paid';
+    const otherField = role === 'owner' ? 'sender_paid' : 'owner_paid';
+    
+    const updates = { [field]: true };
+    
+    // If both paid, move to preparing shipment
+    if (paymentOffer[otherField]) {
+      updates.progress_step = 'preparing_shipment';
+      updates.both_paid = true;
+    }
+    
+    await base44.entities.TradeOffer.update(paymentOffer.id, updates);
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success('Payment successful! Prepare your shipment.');
+    toast.success(updates.progress_step ? 'Payment successful! Both parties paid.' : 'Payment successful! Waiting for other party.');
     setPaymentOffer(null);
   };
 
@@ -491,13 +500,20 @@ export default function MyListings() {
                          </>
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'payment' && (
-                         <Button
-                           onClick={() => setPaymentOffer(offer)}
-                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                         >
-                           <CreditCard className="w-4 h-4 mr-2" />
-                           Complete Payment
-                         </Button>
+                         !offer.sender_paid ? (
+                           <Button
+                             onClick={() => setPaymentOffer({ ...offer, userRole: 'sender' })}
+                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                           >
+                             <CreditCard className="w-4 h-4 mr-2" />
+                             Complete Payment
+                           </Button>
+                         ) : (
+                           <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                             <CheckCircle2 className="w-4 h-4 mr-2" />
+                             Payment Complete
+                           </Badge>
+                         )
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
                          <>
@@ -632,13 +648,20 @@ export default function MyListings() {
                           Chat
                         </Button>
                         {offer.status === 'accepted' && offer.progress_step === 'payment' && (
-                          <Button
-                            onClick={() => setPaymentOffer(offer)}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                          >
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            Complete Payment
-                          </Button>
+                          !offer.owner_paid ? (
+                            <Button
+                              onClick={() => setPaymentOffer({ ...offer, userRole: 'owner' })}
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              <CreditCard className="w-4 h-4 mr-2" />
+                              Complete Payment
+                            </Button>
+                          ) : (
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Payment Complete
+                            </Badge>
+                          )
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
                           <>
@@ -815,7 +838,7 @@ export default function MyListings() {
         open={!!paymentOffer}
         onClose={() => setPaymentOffer(null)}
         tradeOffer={paymentOffer}
-        onSuccess={handlePaymentSuccess}
+        onSuccess={() => handlePaymentSuccess(paymentOffer?.userRole)}
       />
 
       {/* Mock Shipping Label */}
