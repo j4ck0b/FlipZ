@@ -550,14 +550,21 @@ export default function MyListings() {
                          </Button>
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
-                         <Button
-                           onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
-                           className="flex-1 bg-violet-600 hover:bg-violet-700"
-                         >
-                           Review Inspection
-                         </Button>
+                         !offer.owner_inspection_accepted ? (
+                           <Button
+                             onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
+                             className="flex-1 bg-violet-600 hover:bg-violet-700"
+                           >
+                             Review Inspection
+                           </Button>
+                         ) : (
+                           <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                             <CheckCircle2 className="w-4 h-4 mr-2" />
+                             Inspection Accepted
+                           </Badge>
+                         )
                        )}
-                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
                          <Button
                            onClick={() => setFinalAcceptOffer(offer)}
                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
@@ -698,14 +705,21 @@ export default function MyListings() {
                           </Button>
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
-                          <Button
-                            onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
-                            className="flex-1 bg-violet-600 hover:bg-violet-700"
-                          >
-                            Review Inspection
-                          </Button>
+                          !offer.sender_inspection_accepted ? (
+                            <Button
+                              onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
+                              className="flex-1 bg-violet-600 hover:bg-violet-700"
+                            >
+                              Review Inspection
+                            </Button>
+                          ) : (
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Inspection Accepted
+                            </Badge>
+                          )
                         )}
-                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
                           <Button
                             onClick={() => setFinalAcceptOffer(offer)}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
