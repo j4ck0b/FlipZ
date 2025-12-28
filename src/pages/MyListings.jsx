@@ -20,7 +20,8 @@ import {
   MoreVertical,
   MessageCircle,
   CreditCard,
-  Camera
+  Camera,
+  Truck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -172,12 +173,21 @@ export default function MyListings() {
 
   const handlePaymentSuccess = async () => {
     await base44.entities.TradeOffer.update(paymentOffer.id, { 
-      progress_step: 'hub_verification'
+      progress_step: 'preparing_shipment'
     });
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success('Payment successful! Awaiting hub inspection.');
+    toast.success('Payment successful! Prepare your shipment.');
     setPaymentOffer(null);
+  };
+
+  const handlePackageSent = async (offer) => {
+    await base44.entities.TradeOffer.update(offer.id, {
+      progress_step: 'shipping_to_hub'
+    });
+    queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+    queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+    toast.success('Package marked as sent!');
   };
 
   const handleFinalAccept = async () => {
@@ -481,16 +491,7 @@ export default function MyListings() {
                            Complete Payment
                          </Button>
                        )}
-                       {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && !offer.hub_photos_owner_package && (
-                         <Button
-                           onClick={() => setHubInspectionOffer(offer)}
-                           className="flex-1 bg-blue-600 hover:bg-blue-700"
-                         >
-                           <Camera className="w-4 h-4 mr-2" />
-                           Simulate Hub Inspection
-                         </Button>
-                       )}
-                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                       {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
                          <>
                            <Button
                              onClick={() => setShippingLabelOffer({ offer, role: 'owner' })}
@@ -500,12 +501,39 @@ export default function MyListings() {
                              View Shipping Label
                            </Button>
                            <Button
-                             onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
-                             className="flex-1 bg-violet-600 hover:bg-violet-700"
+                             onClick={() => handlePackageSent(offer)}
+                             className="flex-1 bg-blue-600 hover:bg-blue-700"
                            >
-                             Review & Complete
+                             <Truck className="w-4 h-4 mr-2" />
+                             I Have Sent Package
                            </Button>
                          </>
+                       )}
+                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_hub' && !offer.hub_photos_owner_package && (
+                         <Button
+                           onClick={() => setHubInspectionOffer(offer)}
+                           className="flex-1 bg-blue-600 hover:bg-blue-700"
+                         >
+                           <Camera className="w-4 h-4 mr-2" />
+                           Simulate Hub Inspection
+                         </Button>
+                       )}
+                       {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
+                         <Button
+                           onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
+                           className="flex-1 bg-violet-600 hover:bg-violet-700"
+                         >
+                           Review Inspection
+                         </Button>
+                       )}
+                       {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                         <Button
+                           onClick={() => setFinalAcceptOffer(offer)}
+                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                         >
+                           <CheckCircle2 className="w-4 h-4 mr-2" />
+                           Complete Trade
+                         </Button>
                        )}
                       </div>
                     </CardContent>
@@ -597,16 +625,7 @@ export default function MyListings() {
                             Complete Payment
                           </Button>
                         )}
-                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && !offer.hub_photos_sender_package && (
-                          <Button
-                            onClick={() => setHubInspectionOffer(offer)}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Camera className="w-4 h-4 mr-2" />
-                            Simulate Hub Inspection
-                          </Button>
-                        )}
-                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
                           <>
                             <Button
                               onClick={() => setShippingLabelOffer({ offer, role: 'sender' })}
@@ -616,12 +635,39 @@ export default function MyListings() {
                               View Shipping Label
                             </Button>
                             <Button
-                              onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
-                              className="flex-1 bg-violet-600 hover:bg-violet-700"
+                              onClick={() => handlePackageSent(offer)}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700"
                             >
-                              Review & Complete
+                              <Truck className="w-4 h-4 mr-2" />
+                              I Have Sent Package
                             </Button>
                           </>
+                        )}
+                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_hub' && !offer.hub_photos_sender_package && (
+                          <Button
+                            onClick={() => setHubInspectionOffer(offer)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Simulate Hub Inspection
+                          </Button>
+                        )}
+                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
+                          <Button
+                            onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
+                            className="flex-1 bg-violet-600 hover:bg-violet-700"
+                          >
+                            Review Inspection
+                          </Button>
+                        )}
+                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && (
+                          <Button
+                            onClick={() => setFinalAcceptOffer(offer)}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Complete Trade
+                          </Button>
                         )}
                       </div>
                     </CardContent>

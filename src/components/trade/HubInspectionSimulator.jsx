@@ -41,7 +41,7 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
       hub_verification_owner: 'passed',
       hub_notes_sender: 'Package verified and in good condition',
       hub_notes_owner: 'Package verified and in good condition',
-      progress_step: 'shipping_to_users'
+      progress_step: 'hub_verification'
     });
     
     setSubmitting(false);
