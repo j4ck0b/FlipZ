@@ -420,55 +420,69 @@ export default function MyListings() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 {incomingOffers.map((offer) => (
-                  <Card key={offer.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-semibold text-slate-900">{offer.sender_name}</p>
-                          <p className="text-sm text-slate-500">
-                            wants to trade for <span className="font-medium">{offer.requested_card_title}</span>
-                          </p>
-                        </div>
-                        
-                        <Badge className={
-                          offer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          offer.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                          offer.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-700'
-                        }>
-                          {offer.status}
-                        </Badge>
-                      </div>
-
-                      {/* Offered Cards */}
-                      <div className="mb-3">
-                        <p className="text-xs text-slate-500 mb-2">Offering:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {offer.offered_cards_info?.map((card) => (
-                            <div key={card.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
-                              {card.image_url && (
-                                <img src={card.image_url} alt={card.title} className="w-10 h-14 object-cover rounded" />
-                              )}
-                              <div>
-                                <p className="text-sm font-medium">{card.title}</p>
-                                <Badge variant="outline" className="text-xs">{card.condition}</Badge>
-                              </div>
+                  <Card key={offer.id} className="overflow-hidden border-l-4 border-l-violet-500">
+                    <CardContent className="p-0">
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-violet-50 to-white p-4 border-b">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                              {offer.sender_name?.charAt(0).toUpperCase()}
                             </div>
-                          ))}
+                            <div>
+                              <p className="font-bold text-slate-900 text-lg">{offer.sender_name}</p>
+                              <p className="text-sm text-slate-600">
+                                Wants: <span className="font-semibold text-violet-700">{offer.requested_card_title}</span>
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <Badge className={`text-xs font-semibold ${
+                            offer.status === 'pending' ? 'bg-amber-500 text-white' :
+                            offer.status === 'accepted' ? 'bg-emerald-500 text-white' :
+                            offer.status === 'rejected' ? 'bg-red-500 text-white' :
+                            'bg-slate-500 text-white'
+                          }`}>
+                            {offer.status}
+                          </Badge>
                         </div>
                       </div>
 
-                      {offer.message && (
-                        <p className="text-sm text-slate-600 p-2 bg-slate-50 rounded italic mb-3">"{offer.message}"</p>
-                      )}
+                      <div className="p-4 space-y-4">
+                        {/* Offered Cards */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1 h-4 bg-violet-500 rounded-full"></div>
+                            <p className="text-sm font-semibold text-slate-700">Their Offer</p>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {offer.offered_cards_info?.map((card) => (
+                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
+                                {card.image_url && (
+                                  <img src={card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
+                                  <Badge variant="outline" className="text-xs mt-1">{card.condition}</Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
-                      {offer.progress_step && offer.progress_step !== 'offer_sent' && (
-                       <div className="mt-4">
-                         <TradeProgressTracker tradeOffer={offer} />
-                       </div>
-                      )}
+                        {offer.message && (
+                          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r-lg">
+                            <p className="text-sm text-blue-900 italic">💬 "{offer.message}"</p>
+                          </div>
+                        )}
+
+                        {offer.progress_step && offer.progress_step !== 'offer_sent' && (
+                         <div>
+                           <TradeProgressTracker tradeOffer={offer} />
+                         </div>
+                        )}
 
                       <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
                        <Button 
@@ -625,50 +639,63 @@ export default function MyListings() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 {myOffers.map((offer) => (
-                  <Card key={offer.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-semibold text-slate-900">Sent to {offer.owner_name}</p>
-                          <p className="text-sm text-slate-500">
-                            Trading for <span className="font-medium">{offer.requested_card_title}</span>
-                          </p>
-                        </div>
-                        <Badge className={
-                          offer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          offer.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                          offer.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-700'
-                        }>
-                          {offer.status}
-                        </Badge>
-                      </div>
-                      
-                      {/* Offered Cards */}
-                      <div className="mb-3">
-                        <p className="text-xs text-slate-500 mb-2">Your offer:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {offer.offered_cards_info?.map((card) => (
-                            <div key={card.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
-                              {card.image_url && (
-                                <img src={card.image_url} alt={card.title} className="w-10 h-14 object-cover rounded" />
-                              )}
-                              <div>
-                                <p className="text-sm font-medium">{card.title}</p>
-                                <Badge variant="outline" className="text-xs">{card.condition}</Badge>
-                              </div>
+                  <Card key={offer.id} className="overflow-hidden border-l-4 border-l-indigo-500">
+                    <CardContent className="p-0">
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-indigo-50 to-white p-4 border-b">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                              {offer.owner_name?.charAt(0).toUpperCase()}
                             </div>
-                          ))}
+                            <div>
+                              <p className="font-bold text-slate-900 text-lg">To: {offer.owner_name}</p>
+                              <p className="text-sm text-slate-600">
+                                For: <span className="font-semibold text-indigo-700">{offer.requested_card_title}</span>
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <Badge className={`text-xs font-semibold ${
+                            offer.status === 'pending' ? 'bg-amber-500 text-white' :
+                            offer.status === 'accepted' ? 'bg-emerald-500 text-white' :
+                            offer.status === 'rejected' ? 'bg-red-500 text-white' :
+                            'bg-slate-500 text-white'
+                          }`}>
+                            {offer.status}
+                          </Badge>
                         </div>
                       </div>
 
-                      {offer.progress_step && offer.progress_step !== 'offer_sent' && (
-                        <div className="mt-4">
-                          <TradeProgressTracker tradeOffer={offer} />
+                      <div className="p-4 space-y-4">
+                        {/* Offered Cards */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
+                            <p className="text-sm font-semibold text-slate-700">Your Offer</p>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {offer.offered_cards_info?.map((card) => (
+                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
+                                {card.image_url && (
+                                  <img src={card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
+                                  <Badge variant="outline" className="text-xs mt-1">{card.condition}</Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      )}
+
+                        {offer.progress_step && offer.progress_step !== 'offer_sent' && (
+                          <div>
+                            <TradeProgressTracker tradeOffer={offer} />
+                          </div>
+                        )}
 
                       <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
                         <Button 
