@@ -556,12 +556,33 @@ export default function MyListings() {
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
                          !offer.owner_inspection_accepted ? (
-                           <Button
-                             onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
-                             className="flex-1 bg-violet-600 hover:bg-violet-700"
-                           >
-                             Review Inspection
-                           </Button>
+                           <>
+                             <Button
+                               onClick={async () => {
+                                 const field = 'owner_inspection_accepted';
+                                 const otherField = 'sender_inspection_accepted';
+                                 const updates = { [field]: true };
+                                 if (offer[otherField]) {
+                                   updates.progress_step = 'shipping_to_users';
+                                 }
+                                 await base44.entities.TradeOffer.update(offer.id, updates);
+                                 queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                                 queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                                 toast.success('Inspection accepted!');
+                               }}
+                               className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                             >
+                               <CheckCircle2 className="w-4 h-4 mr-2" />
+                               Everything OK
+                             </Button>
+                             <Button
+                               variant="outline"
+                               onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
+                               className="flex-1"
+                             >
+                               View Details
+                             </Button>
+                           </>
                          ) : (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                              <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -716,12 +737,33 @@ export default function MyListings() {
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
                           !offer.sender_inspection_accepted ? (
-                            <Button
-                              onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
-                              className="flex-1 bg-violet-600 hover:bg-violet-700"
-                            >
-                              Review Inspection
-                            </Button>
+                            <>
+                              <Button
+                                onClick={async () => {
+                                  const field = 'sender_inspection_accepted';
+                                  const otherField = 'owner_inspection_accepted';
+                                  const updates = { [field]: true };
+                                  if (offer[otherField]) {
+                                    updates.progress_step = 'shipping_to_users';
+                                  }
+                                  await base44.entities.TradeOffer.update(offer.id, updates);
+                                  queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                                  queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                                  toast.success('Inspection accepted!');
+                                }}
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                              >
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Everything OK
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
+                                className="flex-1"
+                              >
+                                View Details
+                              </Button>
+                            </>
                           ) : (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
