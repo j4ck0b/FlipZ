@@ -5,7 +5,6 @@ import DiecastExchange from './pages/DiecastExchange';
 import FigureExchange from './pages/FigureExchange';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
-import Marketplace from './pages/Marketplace';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
@@ -20,14 +19,13 @@ export const PAGES = {
     "FigureExchange": FigureExchange,
     "Home": Home,
     "Landing": Landing,
-    "Marketplace": Marketplace,
     "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
 }
 
 export const pagesConfig = {
-    mainPage: "Marketplace",
+    mainPage: "BrickExchange",
     Pages: PAGES,
     Layout: __Layout,
 };
