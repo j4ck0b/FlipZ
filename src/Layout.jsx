@@ -57,9 +57,11 @@ export default function Layout({ children, currentPageName }) {
               to={createPageUrl('Home')} 
               className="flex items-center gap-2 font-bold text-xl text-slate-900"
             >
-              <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693ecc5599cec84236ae4d99/147165ce2_FLIPCARDZ2.png" 
+                alt="FlipCardZ" 
+                className="w-9 h-9 rounded-xl"
+              />
               <span className="hidden sm:inline">FlipCardZ</span>
             </Link>
 
