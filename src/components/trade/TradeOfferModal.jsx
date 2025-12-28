@@ -60,53 +60,59 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
 
     setSending(true);
 
-    const offer = await base44.entities.TradeOffer.create({
-      requested_card_id: targetCard.id,
-      requested_card_title: targetCard.title,
-      owner_email: targetCard.created_by,
-      owner_name: targetCard.collector_name,
-      sender_email: currentUser.email,
-      sender_name: currentUser.full_name || currentUser.email.split('@')[0],
-      offered_card_ids: selectedCards.map(c => c.id),
-      offered_cards_info: selectedCards.map(c => ({
-        id: c.id,
-        title: c.title,
-        image_url: c.image_url,
-        category: c.category,
-        condition: c.condition
-      })),
-      value_note: valueNote,
-      message: message,
-      status: 'pending'
-    });
+    try {
+      const offer = await base44.entities.TradeOffer.create({
+        requested_card_id: targetCard.id,
+        requested_card_title: targetCard.title,
+        owner_email: targetCard.created_by,
+        owner_name: targetCard.collector_name,
+        sender_email: currentUser.email,
+        sender_name: currentUser.full_name || currentUser.email.split('@')[0],
+        offered_card_ids: selectedCards.map(c => c.id),
+        offered_cards_info: selectedCards.map(c => ({
+          id: c.id,
+          title: c.title,
+          image_url: c.image_url,
+          category: c.category,
+          condition: c.condition
+        })),
+        value_note: valueNote,
+        message: message,
+        status: 'pending'
+      });
 
-    // Create conversation
-    const conversation = await base44.entities.TradeConversation.create({
-      participant_1_email: currentUser.email,
-      participant_1_name: currentUser.full_name,
-      participant_2_email: targetCard.created_by,
-      participant_2_name: targetCard.collector_name,
-      trade_offer_id: offer.id,
-      status: 'active',
-      last_message_at: new Date().toISOString(),
-      last_message_preview: 'Trade offer sent'
-    });
+      // Create conversation
+      const conversation = await base44.entities.TradeConversation.create({
+        participant_1_email: currentUser.email,
+        participant_1_name: currentUser.full_name,
+        participant_2_email: targetCard.created_by,
+        participant_2_name: targetCard.collector_name,
+        trade_offer_id: offer.id,
+        status: 'active',
+        last_message_at: new Date().toISOString(),
+        last_message_preview: 'Trade offer sent'
+      });
 
-    // Create system message
-    await base44.entities.Message.create({
-      conversation_id: conversation.id,
-      sender_email: 'system',
-      sender_name: 'System',
-      message_type: 'system',
-      content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
-      read: false
-    });
+      // Create system message
+      await base44.entities.Message.create({
+        conversation_id: conversation.id,
+        sender_email: 'system',
+        sender_name: 'System',
+        message_type: 'system',
+        content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
+        read: false
+      });
 
-    setSending(false);
-    toast.success('Trade offer sent!');
-    onSuccess?.();
-    onClose();
-    resetForm();
+      setSending(false);
+      toast.success('Trade offer sent!');
+      onSuccess?.();
+      onClose();
+      resetForm();
+    } catch (error) {
+      console.error('Trade offer error:', error);
+      setSending(false);
+      toast.error(error.message || 'Failed to send trade offer. Please try again.');
+    }
   };
 
   const resetForm = () => {
