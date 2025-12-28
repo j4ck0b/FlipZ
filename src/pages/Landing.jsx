@@ -65,16 +65,16 @@ export default function Landing() {
       setIsAuthenticated(authenticated);
       setLoading(false);
       
-      // Redirect to marketplace if already logged in
+      // Redirect to home if already logged in
       if (authenticated) {
-        window.location.href = createPageUrl('Marketplace');
+        window.location.href = createPageUrl('Home');
       }
     };
     checkAuth();
   }, []);
 
   const handleGetStarted = () => {
-    base44.auth.redirectToLogin(createPageUrl('Marketplace'));
+    base44.auth.redirectToLogin(createPageUrl('Home'));
   };
 
   if (loading) {
