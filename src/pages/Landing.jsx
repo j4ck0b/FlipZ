@@ -61,13 +61,19 @@ export default function Landing() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authenticated = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      setLoading(false);
-      
-      // Redirect to home if already logged in
-      if (authenticated) {
-        window.location.href = createPageUrl('Home');
+      try {
+        const authenticated = await base44.auth.isAuthenticated();
+        setIsAuthenticated(authenticated);
+        
+        // Redirect authenticated users to Home
+        if (authenticated) {
+          window.location.replace(createPageUrl('Home'));
+          return;
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
     };
     checkAuth();
