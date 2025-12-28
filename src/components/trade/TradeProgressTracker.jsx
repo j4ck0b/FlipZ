@@ -72,8 +72,8 @@ export default function TradeProgressTracker({ tradeOffer }) {
               return (
                 <div key={step.id} className="flex flex-col items-center">
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: isComplete ? 0.3 : 1 }}
                     transition={{ delay: index * 0.1 }}
                     className={`
                       rounded-full flex items-center justify-center mb-2 z-10
@@ -87,7 +87,9 @@ export default function TradeProgressTracker({ tradeOffer }) {
                   </motion.div>
                   <p className={`
                     text-xs font-medium text-center
-                    ${isComplete || isCurrent ? 'text-slate-900' : 'text-slate-400'}
+                    ${isComplete ? 'text-slate-400 opacity-50' : ''}
+                    ${isCurrent ? 'text-slate-900' : ''}
+                    ${isUpcoming ? 'text-slate-400' : ''}
                   `}>
                     {step.label}
                   </p>
