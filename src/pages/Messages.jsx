@@ -103,9 +103,9 @@ export default function Messages() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Conversations List */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 w-full">
             <Card>
               <CardContent className="p-0">
                 {/* Search */}
@@ -207,7 +207,7 @@ export default function Messages() {
           </div>
 
           {/* Chat Area */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 hidden lg:block">
             {selectedConversation ? (
               <Card className="h-[calc(100vh-180px)]">
                 <CardContent className="p-0 h-full">
