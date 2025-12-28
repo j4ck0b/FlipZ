@@ -470,7 +470,7 @@ export default function MyListings() {
                        </div>
                       )}
 
-                      <div className="flex gap-2 mt-4 pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
                        <Button 
                          variant="outline"
                          onClick={() => setChatOpen({
@@ -670,7 +670,7 @@ export default function MyListings() {
                         </div>
                       )}
 
-                      <div className="flex gap-2 mt-4 pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
                         <Button 
                           variant="outline"
                           onClick={() => setChatOpen({
