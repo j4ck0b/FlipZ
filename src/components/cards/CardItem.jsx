@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowRightLeft, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { createPageUrl } from '../../utils';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -114,12 +115,11 @@ export default function CardItem({ listing, onClick }) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                const { createPageUrl } = require('../utils');
-                window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
+                window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by_id;
               }}
               className="text-xs text-slate-400 hover:text-slate-600 hover:underline transition-colors"
             >
-              by {listing.seller_name || 'Anonymous'}
+              by {listing.collector_name || 'Anonymous'}
             </button>
           </div>
         </div>

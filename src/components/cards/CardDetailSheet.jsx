@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import TradeOfferModal from '../trade/TradeOfferModal';
+import { createPageUrl } from '../../utils';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -128,8 +129,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                 <p className="text-sm text-slate-500">Collector</p>
                 <button
                   onClick={() => {
-                    const { createPageUrl } = require('../utils');
-                    window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by;
+                    window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by_id;
                   }}
                   className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group mt-1"
                 >
