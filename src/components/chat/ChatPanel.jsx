@@ -123,7 +123,7 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
                       animate={{ opacity: 1, scale: 1 }}
                       className="flex justify-center"
                     >
-                      <Badge variant="outline" className="bg-slate-50">
+                      <Badge variant="outline" className="bg-slate-50 text-xs">
                         <ArrowRightLeft className="w-3 h-3 mr-1" />
                         {msg.content}
                       </Badge>
@@ -138,13 +138,13 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
                     animate={{ opacity: 1, x: 0 }}
                     className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                      <div className={`rounded-2xl px-4 py-2 ${
+                    <div className={`max-w-[85%] md:max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                      <div className={`rounded-2xl px-3 md:px-4 py-2 ${
                         isMe 
                           ? 'bg-violet-600 text-white' 
                           : 'bg-slate-100 text-slate-900'
                       }`}>
-                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                        <p className="text-sm md:text-base leading-relaxed break-words">{msg.content}</p>
                       </div>
                       <span className="text-xs text-slate-500 px-2">
                         {format(new Date(msg.created_date), 'h:mm a')}
@@ -158,10 +158,10 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t bg-white">
+        <div className="p-3 md:p-4 border-t bg-white">
           {isReadOnly ? (
-            <div className="text-center py-4">
-              <p className="text-sm text-slate-500">This conversation is {conversation?.status}</p>
+            <div className="text-center py-3 md:py-4">
+              <p className="text-xs md:text-sm text-slate-500">This conversation is {conversation?.status}</p>
             </div>
           ) : (
             <div className="flex gap-2">
@@ -289,12 +289,13 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
                   }
                 }}
                 disabled={sending}
+                className="text-sm md:text-base"
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={sending || !newMessage.trim()}
                 size="icon"
-                className="bg-violet-600 hover:bg-violet-700"
+                className="bg-violet-600 hover:bg-violet-700 flex-shrink-0"
               >
                 {sending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
