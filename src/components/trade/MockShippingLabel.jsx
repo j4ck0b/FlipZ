@@ -11,7 +11,7 @@ export default function MockShippingLabel({ open, onClose, tradeOffer, userRole 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-xl">Shipping Label</DialogTitle>
         </DialogHeader>

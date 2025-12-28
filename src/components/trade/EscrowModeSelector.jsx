@@ -63,7 +63,7 @@ export default function EscrowModeSelector({ open, onClose, tradeOffer, onSelect
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-2xl">Select Escrow Protection Level</DialogTitle>
           <p className="text-slate-600 mt-2">
@@ -71,7 +71,7 @@ export default function EscrowModeSelector({ open, onClose, tradeOffer, onSelect
           </p>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           {escrowModes.map((mode) => {
             const Icon = mode.icon;
             const isSelected = selected === mode.id;

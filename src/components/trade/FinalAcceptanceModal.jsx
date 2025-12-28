@@ -35,7 +35,7 @@ export default function FinalAcceptanceModal({ open, onClose, tradeOffer, onAcce
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-2xl">Complete Trade</DialogTitle>
         </DialogHeader>

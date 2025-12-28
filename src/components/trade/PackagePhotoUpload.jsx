@@ -55,7 +55,7 @@ export default function PackagePhotoUpload({ open, onClose, tradeOffer, userRole
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5" />
@@ -95,7 +95,7 @@ export default function PackagePhotoUpload({ open, onClose, tradeOffer, userRole
 
           {/* Photo Grid */}
           {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <AnimatePresence>
                 {photos.map((photo, index) => (
                   <motion.div

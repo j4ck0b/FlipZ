@@ -84,7 +84,7 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-xl">Hub Inspection</DialogTitle>
           <p className="text-sm text-slate-600">Simulate hub verification process</p>
@@ -126,7 +126,7 @@ export default function HubInspectionSimulator({ open, onClose, tradeOffer, onSu
 
             {/* Uploaded Photos */}
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {photos.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100">
                     <img src={url} alt={`Inspection ${idx + 1}`} className="w-full h-full object-cover" />

@@ -50,7 +50,7 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="w-5 h-5" />

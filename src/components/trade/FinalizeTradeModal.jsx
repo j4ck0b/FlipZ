@@ -71,7 +71,7 @@ export default function FinalizeTradeModal({ open, onClose, tradeOffer, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-green-600" />
