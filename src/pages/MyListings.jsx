@@ -181,10 +181,18 @@ export default function MyListings() {
     setPaymentOffer(null);
   };
 
-  const handlePackageSent = async (offer) => {
-    await base44.entities.TradeOffer.update(offer.id, {
-      progress_step: 'shipping_to_hub'
-    });
+  const handlePackageSent = async (offer, role) => {
+    const field = role === 'owner' ? 'owner_package_sent' : 'sender_package_sent';
+    const otherField = role === 'owner' ? 'sender_package_sent' : 'owner_package_sent';
+    
+    const updates = { [field]: true };
+    
+    // If both packages sent, move to hub shipping
+    if (offer[otherField]) {
+      updates.progress_step = 'shipping_to_hub';
+    }
+    
+    await base44.entities.TradeOffer.update(offer.id, updates);
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
     toast.success('Package marked as sent!');
@@ -500,13 +508,20 @@ export default function MyListings() {
                            >
                              View Shipping Label
                            </Button>
-                           <Button
-                             onClick={() => handlePackageSent(offer)}
-                             className="flex-1 bg-blue-600 hover:bg-blue-700"
-                           >
-                             <Truck className="w-4 h-4 mr-2" />
-                             I Have Sent Package
-                           </Button>
+                           {!offer.owner_package_sent ? (
+                             <Button
+                               onClick={() => handlePackageSent(offer, 'owner')}
+                               className="flex-1 bg-blue-600 hover:bg-blue-700"
+                             >
+                               <Truck className="w-4 h-4 mr-2" />
+                               I Have Sent Package
+                             </Button>
+                           ) : (
+                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                               <CheckCircle2 className="w-4 h-4 mr-2" />
+                               Package Sent
+                             </Badge>
+                           )}
                          </>
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_hub' && !offer.hub_photos_owner_package && (
@@ -634,13 +649,20 @@ export default function MyListings() {
                             >
                               View Shipping Label
                             </Button>
-                            <Button
-                              onClick={() => handlePackageSent(offer)}
-                              className="flex-1 bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Truck className="w-4 h-4 mr-2" />
-                              I Have Sent Package
-                            </Button>
+                            {!offer.sender_package_sent ? (
+                              <Button
+                                onClick={() => handlePackageSent(offer, 'sender')}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                              >
+                                <Truck className="w-4 h-4 mr-2" />
+                                I Have Sent Package
+                              </Button>
+                            ) : (
+                              <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Package Sent
+                              </Badge>
+                            )}
                           </>
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'shipping_to_hub' && !offer.hub_photos_sender_package && (

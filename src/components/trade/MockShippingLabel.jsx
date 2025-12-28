@@ -6,8 +6,8 @@ import { Package, Truck, Download } from "lucide-react";
 
 export default function MockShippingLabel({ open, onClose, tradeOffer, userRole }) {
   const isOwner = userRole === 'owner';
-  const recipientName = isOwner ? tradeOffer?.sender_name : tradeOffer?.owner_name;
-  const senderName = isOwner ? tradeOffer?.owner_name : tradeOffer?.sender_name;
+  const myName = isOwner ? tradeOffer?.owner_name : tradeOffer?.sender_name;
+  const otherName = isOwner ? tradeOffer?.sender_name : tradeOffer?.owner_name;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -31,14 +31,12 @@ export default function MockShippingLabel({ open, onClose, tradeOffer, userRole 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-slate-500 mb-1">FROM</p>
-                  <p className="font-semibold">{senderName}</p>
-                  <p className="text-sm text-slate-600">FlipCardZ Hub</p>
-                  <p className="text-sm text-slate-600">Warsaw, Poland</p>
+                  <p className="font-semibold">{myName}</p>
+                  <p className="text-sm text-slate-600">Your Address</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 mb-1">TO</p>
-                  <p className="font-semibold">{recipientName}</p>
-                  <p className="text-sm text-slate-600">FlipCardZ Hub</p>
+                  <p className="font-semibold">FlipCardZ Hub</p>
                   <p className="text-sm text-slate-600">Warsaw, Poland</p>
                 </div>
               </div>
@@ -54,7 +52,13 @@ export default function MockShippingLabel({ open, onClose, tradeOffer, userRole 
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              📦 This is a simulated shipping label. In production, this would generate a real printable label with barcode.
+              📦 This is your shipping label to send your package to the FlipCardZ hub for verification.
+            </p>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-amber-800">
+              💰 Both parties pay for their own shipping to the hub. After verification, packages will be cross-shipped to final destinations.
             </p>
           </div>
 
