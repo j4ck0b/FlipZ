@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Send, X, Minus, MessageCircle, ArrowRightLeft, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
+import { useNotificationSound } from '../notifications/NotificationSound';
 
 export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserName, open, onClose }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -16,6 +17,8 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
   const [sending, setSending] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const scrollRef = useRef(null);
+  const playNotification = useNotificationSound();
+  const prevMessageCount = useRef(0);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -40,6 +43,16 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
     enabled: !!conversation?.id && open,
     refetchInterval: 3000
   });
+
+  useEffect(() => {
+    if (messages.length > prevMessageCount.current && prevMessageCount.current > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.sender_email !== currentUser?.email) {
+        playNotification();
+      }
+    }
+    prevMessageCount.current = messages.length;
+  }, [messages.length, currentUser?.email]);
 
   const { data: tradeOffer } = useQuery({
     queryKey: ['tradeOffer', tradeOfferId],

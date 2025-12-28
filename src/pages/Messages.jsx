@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,14 +9,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Search, Loader2, ArrowRightLeft } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 import ChatPanel from '../components/chat/ChatPanel';
+import { useNotificationSound } from '../components/notifications/NotificationSound';
 
 export default function Messages() {
   const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
+  const playNotification = useNotificationSound();
+  const prevConversationsCount = useRef(0);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -50,8 +54,19 @@ export default function Messages() {
         tradeOffer: tradesMap[c.trade_offer_id]
       }));
     },
-    enabled: !!currentUser
+    enabled: !!currentUser,
+    refetchInterval: 5000
   });
+
+  useEffect(() => {
+    if (conversations.length > prevConversationsCount.current && prevConversationsCount.current > 0) {
+      playNotification();
+      toast.success('New message received!', {
+        duration: 4000,
+      });
+    }
+    prevConversationsCount.current = conversations.length;
+  }, [conversations.length]);
 
   const filteredConversations = conversations.filter(conv => {
     if (!searchQuery) return true;
