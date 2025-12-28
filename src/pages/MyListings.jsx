@@ -508,10 +508,15 @@ export default function MyListings() {
                              <CreditCard className="w-4 h-4 mr-2" />
                              Complete Payment
                            </Button>
-                         ) : (
+                         ) : offer.owner_paid ? (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                             Payment Complete
+                             Both Paid - Ready!
+                           </Badge>
+                         ) : (
+                           <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
+                             <Clock className="w-4 h-4 mr-2" />
+                             Waiting for {offer.owner_name}
                            </Badge>
                          )
                        )}
@@ -663,10 +668,15 @@ export default function MyListings() {
                               <CreditCard className="w-4 h-4 mr-2" />
                               Complete Payment
                             </Button>
-                          ) : (
+                          ) : offer.sender_paid ? (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Payment Complete
+                              Both Paid - Ready!
+                            </Badge>
+                          ) : (
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
+                              <Clock className="w-4 h-4 mr-2" />
+                              Waiting for {offer.sender_name}
                             </Badge>
                           )
                         )}
