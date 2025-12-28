@@ -18,7 +18,8 @@ import {
   DollarSign,
   Eye,
   MoreVertical,
-  MessageCircle
+  MessageCircle,
+  CreditCard
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -47,6 +48,7 @@ import EscrowModeSelector from '../components/trade/EscrowModeSelector';
 import TradeProgressTracker from '../components/trade/TradeProgressTracker';
 import PackagePhotoUpload from '../components/trade/PackagePhotoUpload';
 import InspectionReviewModal from '../components/trade/InspectionReviewModal';
+import MockPaymentModal from '../components/trade/MockPaymentModal';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
 
 const statusConfig = {
@@ -69,6 +71,7 @@ export default function MyListings() {
   const [escrowModalOffer, setEscrowModalOffer] = useState(null);
   const [photoUploadOffer, setPhotoUploadOffer] = useState(null);
   const [inspectionReviewOffer, setInspectionReviewOffer] = useState(null);
+  const [paymentOffer, setPaymentOffer] = useState(null);
   const playNotification = useNotificationSound();
   const prevOffersCount = useRef(0);
 
@@ -150,11 +153,24 @@ export default function MyListings() {
       queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
       queryClient.invalidateQueries({ queryKey: ['myOffers'] });
       queryClient.invalidateQueries({ queryKey: ['myListings'] });
-      toast.success('Trade accepted! Proceed to payment.');
       setEscrowModalOffer(null);
+      
+      // Open payment modal with updated offer
+      const updatedOffer = { ...escrowModalOffer, escrow_mode: escrowMode };
+      setPaymentOffer(updatedOffer);
     } catch (error) {
       toast.error('Failed to accept trade');
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    await base44.entities.TradeOffer.update(paymentOffer.id, { 
+      progress_step: 'preparing_shipment'
+    });
+    queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+    queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+    toast.success('Payment successful! Prepare your package.');
+    setPaymentOffer(null);
   };
 
   const handleRefresh = () => {
@@ -424,6 +440,15 @@ export default function MyListings() {
                            </Button>
                          </>
                        )}
+                       {offer.status === 'accepted' && offer.progress_step === 'payment' && (
+                         <Button
+                           onClick={() => setPaymentOffer(offer)}
+                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                         >
+                           <CreditCard className="w-4 h-4 mr-2" />
+                           Complete Payment
+                         </Button>
+                       )}
                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && !offer.owner_package_photos && (
                          <Button
                            onClick={() => setPhotoUploadOffer({ offer, role: 'owner' })}
@@ -650,6 +675,14 @@ export default function MyListings() {
           }}
         />
       )}
+
+      {/* Mock Payment Modal */}
+      <MockPaymentModal
+        open={!!paymentOffer}
+        onClose={() => setPaymentOffer(null)}
+        tradeOffer={paymentOffer}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 }
