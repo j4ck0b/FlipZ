@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, ArrowRightLeft } from "lucide-react";
+import { Send, Loader2, ArrowRightLeft, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function ChatPanel({ conversationId, tradeOffer, embedded = false }) {
+export default function ChatPanel({ conversationId, tradeOffer, embedded = false, onBack }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -78,9 +78,19 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
   if (embedded) {
     return (
       <div className="flex flex-col h-full">
-        <div className="px-6 py-4 border-b bg-white">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold">Trade Chat</span>
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b bg-white">
+          <div className="flex items-center justify-between gap-2">
+            {onBack && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                className="lg:hidden flex-shrink-0"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            )}
+            <span className="font-semibold text-sm md:text-base">Trade Chat</span>
             {tradeOffer && (
               <Badge className={
                 tradeOffer.status === 'accepted' ? 'bg-green-100 text-green-700' :
@@ -92,13 +102,13 @@ export default function ChatPanel({ conversationId, tradeOffer, embedded = false
             )}
           </div>
           {tradeOffer && (
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-xs md:text-sm text-slate-600 mt-1 truncate">
               Trading for {tradeOffer.requested_card_title}
             </p>
           )}
         </div>
 
-        <ScrollArea className="flex-1 px-6 py-4">
+        <ScrollArea className="flex-1 px-3 md:px-6 py-3 md:py-4">
           <div className="space-y-4">
             <AnimatePresence>
               {messages.map((msg) => {

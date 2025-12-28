@@ -105,17 +105,17 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
           height: minimized ? 'auto' : '500px'
         }}
         exit={{ opacity: 0, y: 50, scale: 0.9 }}
-        className="fixed bottom-6 right-6 w-96 shadow-2xl rounded-2xl bg-white border border-slate-200 z-50 flex flex-col overflow-hidden"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-[calc(100vw-2rem)] sm:w-96 max-w-md shadow-2xl rounded-2xl bg-white border border-slate-200 z-50 flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
+        <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <MessageCircle className="w-5 h-5 flex-shrink-0" />
+            <MessageCircle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="font-semibold truncate">{otherUserName}</p>
+              <p className="font-semibold text-sm md:text-base truncate">{otherUserName}</p>
               {tradeOffer && (
                 <p className="text-xs text-white/80 truncate">
-                  Trade: {tradeOffer.requested_card_title}
+                  {tradeOffer.requested_card_title}
                 </p>
               )}
             </div>
@@ -161,8 +161,8 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
             )}
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4 h-[320px]">
-              <div className="space-y-3">
+            <ScrollArea className="flex-1 p-3 md:p-4 h-[280px] md:h-[320px]">
+              <div className="space-y-2 md:space-y-3">
                 {messages.map((msg) => {
                   const isMe = msg.sender_email === currentUser?.email;
                   const isSystem = msg.message_type === 'system';
@@ -179,13 +179,13 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
 
                   return (
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                      <div className={`max-w-[80%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                         <div className={`rounded-2xl px-3 py-2 ${
                           isMe 
                             ? 'bg-violet-600 text-white' 
                             : 'bg-slate-100 text-slate-900'
                         }`}>
-                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                          <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                         </div>
                         <span className="text-xs text-slate-500">
                           {format(new Date(msg.created_date), 'h:mm a')}
