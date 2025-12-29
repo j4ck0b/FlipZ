@@ -8,6 +8,7 @@ import Landing from './pages/Landing';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
+import Favorites from './pages/Favorites';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
+    "Favorites": Favorites,
 }
 
 export const pagesConfig = {

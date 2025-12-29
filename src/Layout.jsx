@@ -10,7 +10,8 @@ import {
   LogOut,
   Sparkles,
   UserCircle,
-  MessageCircle
+  MessageCircle,
+  Heart
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,6 +28,7 @@ import NotificationPanel from './components/notifications/NotificationPanel';
 const navItems = [
   { name: 'Home', page: 'Home', icon: HomeIcon },
   { name: 'My Collection', page: 'MyListings', icon: LayoutDashboard },
+  { name: 'Favorites', page: 'Favorites', icon: Heart },
   { name: 'Messages', page: 'Messages', icon: MessageCircle },
   { name: 'Profile', page: 'Profile', icon: UserCircle },
 ];
