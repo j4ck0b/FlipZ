@@ -89,7 +89,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
         await base44.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
         toast.success('Removed from favorites');
-        queryClient.invalidateQueries({ queryKey: ['likedListings'] });
+        queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
       }
     } else {
       await base44.entities.LikedListing.create({ 
@@ -98,7 +98,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       });
       setIsLiked(true);
       toast.success('Added to favorites!');
-      queryClient.invalidateQueries({ queryKey: ['likedListings'] });
+      queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
     }
   };
 

@@ -67,16 +67,16 @@ export default function CardItem({ listing, onClick }) {
         await base44.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
         toast.success('Removed from favorites');
-        queryClient.invalidateQueries({ queryKey: ['likedListings'] });
-      }
-    } else {
-      await base44.entities.LikedListing.create({ 
+        queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
+        }
+        } else {
+        await base44.entities.LikedListing.create({ 
         user_email: currentUser.email, 
         listing_id: listing.id 
-      });
-      setIsLiked(true);
-      toast.success('Added to favorites!');
-      queryClient.invalidateQueries({ queryKey: ['likedListings'] });
+        });
+        setIsLiked(true);
+        toast.success('Added to favorites!');
+        queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
     }
   };
 
