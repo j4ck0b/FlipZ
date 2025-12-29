@@ -9,11 +9,13 @@ import {
   Shield, 
   User,
   X,
-  ExternalLink
+  ExternalLink,
+  Heart
 } from "lucide-react";
 import { motion } from "framer-motion";
 import TradeOfferModal from '../trade/TradeOfferModal';
 import { createPageUrl } from '../../utils';
+import { toast } from 'sonner';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -51,6 +53,7 @@ const categoryLabels = {
 export default function CardDetailSheet({ listing, open, onClose }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showTradeModal, setShowTradeModal] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -59,6 +62,41 @@ export default function CardDetailSheet({ listing, open, onClose }) {
     };
     loadUser();
   }, []);
+
+  useEffect(() => {
+    const checkLiked = async () => {
+      if (!currentUser || !listing) return;
+      const likes = await base44.entities.LikedListing.filter({ 
+        user_email: currentUser.email, 
+        listing_id: listing.id 
+      });
+      setIsLiked(likes.length > 0);
+    };
+    checkLiked();
+  }, [currentUser, listing]);
+
+  const handleLike = async () => {
+    if (!currentUser || !listing) return;
+    
+    if (isLiked) {
+      const likes = await base44.entities.LikedListing.filter({ 
+        user_email: currentUser.email, 
+        listing_id: listing.id 
+      });
+      if (likes.length > 0) {
+        await base44.entities.LikedListing.delete(likes[0].id);
+        setIsLiked(false);
+        toast.success('Removed from favorites');
+      }
+    } else {
+      await base44.entities.LikedListing.create({ 
+        user_email: currentUser.email, 
+        listing_id: listing.id 
+      });
+      setIsLiked(true);
+      toast.success('Added to favorites!');
+    }
+  };
 
   if (!listing) return null;
 
@@ -81,14 +119,26 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                 🃏
               </div>
             )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm"
-              onClick={onClose}
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="absolute top-4 right-4 flex gap-2">
+              {!isOwnListing && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="bg-white/80 backdrop-blur-sm hover:bg-white"
+                  onClick={handleLike}
+                >
+                  <Heart className={`w-5 h-5 transition-all ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-rose-500'}`} />
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="bg-white/80 backdrop-blur-sm"
+                onClick={onClose}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
             
             {/* Badges */}
             <div className="absolute bottom-4 left-4 flex gap-2">

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowRightLeft, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { createPageUrl } from '../../utils';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -32,6 +34,48 @@ const categoryIcons = {
 };
 
 export default function CardItem({ listing, onClick }) {
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+      
+      const likes = await base44.entities.LikedListing.filter({ 
+        user_email: user.email, 
+        listing_id: listing.id 
+      });
+      setIsLiked(likes.length > 0);
+    };
+    loadUser();
+  }, [listing.id]);
+
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    
+    if (!currentUser) return;
+    
+    if (isLiked) {
+      const likes = await base44.entities.LikedListing.filter({ 
+        user_email: currentUser.email, 
+        listing_id: listing.id 
+      });
+      if (likes.length > 0) {
+        await base44.entities.LikedListing.delete(likes[0].id);
+        setIsLiked(false);
+        toast.success('Removed from favorites');
+      }
+    } else {
+      await base44.entities.LikedListing.create({ 
+        user_email: currentUser.email, 
+        listing_id: listing.id 
+      });
+      setIsLiked(true);
+      toast.success('Added to favorites!');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -79,14 +123,14 @@ export default function CardItem({ listing, onClick }) {
             </div>
           )}
           
-          {/* Quick action */}
+          {/* Like button */}
           <Button
             size="icon"
             variant="ghost"
-            className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white shadow-lg"
-            onClick={(e) => e.stopPropagation()}
+            className={`absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white shadow-lg ${isLiked ? 'opacity-100' : ''}`}
+            onClick={handleLike}
           >
-            <Heart className="w-4 h-4 text-rose-500" />
+            <Heart className={`w-4 h-4 transition-all ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-rose-500'}`} />
           </Button>
         </div>
         
