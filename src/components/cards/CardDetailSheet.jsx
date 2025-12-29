@@ -124,16 +124,6 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               </div>
             )}
             <div className="absolute top-4 right-4 flex gap-2">
-              {!isOwnListing && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="bg-white/80 backdrop-blur-sm hover:bg-white"
-                  onClick={handleLike}
-                >
-                  <Heart className={`w-5 h-5 transition-all ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-rose-500'}`} />
-                </Button>
-              )}
               <Button 
                 variant="ghost" 
                 size="icon" 

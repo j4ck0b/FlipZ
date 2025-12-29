@@ -127,15 +127,7 @@ export default function CardItem({ listing, onClick }) {
             </div>
           )}
           
-          {/* Like button */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className={`absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white shadow-lg ${isLiked ? 'opacity-100' : ''}`}
-            onClick={handleLike}
-          >
-            <Heart className={`w-4 h-4 transition-all ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-rose-500'}`} />
-          </Button>
+
         </div>
         
         <div className="p-4 space-y-3">
