@@ -23,16 +23,17 @@ export default function Favorites() {
     queryKey: ['likedListings', currentUser?.email],
     queryFn: async () => {
       const likes = await base44.entities.LikedListing.filter({ user_email: currentUser.email });
-      const listingIds = likes.map(l => l.listing_id);
       
-      if (listingIds.length === 0) return [];
+      if (likes.length === 0) return [];
       
-      const listings = await base44.entities.CardListing.filter({ 
-        id: { $in: listingIds },
-        status: 'available'
-      }, '-created_date');
+      // Fetch all listings and filter by liked IDs
+      const allListings = await base44.entities.CardListing.list('-created_date');
+      const likedListingIds = new Set(likes.map(l => l.listing_id));
+      const filteredListings = allListings.filter(listing => 
+        likedListingIds.has(listing.id) && listing.status === 'available'
+      );
       
-      return listings;
+      return filteredListings;
     },
     enabled: !!currentUser,
   });

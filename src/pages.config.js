@@ -2,13 +2,13 @@ import BrickExchange from './pages/BrickExchange';
 import CardExchange from './pages/CardExchange';
 import CollectibleExchange from './pages/CollectibleExchange';
 import DiecastExchange from './pages/DiecastExchange';
+import Favorites from './pages/Favorites';
 import FigureExchange from './pages/FigureExchange';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
-import Favorites from './pages/Favorites';
 import __Layout from './Layout.jsx';
 
 
@@ -17,13 +17,13 @@ export const PAGES = {
     "CardExchange": CardExchange,
     "CollectibleExchange": CollectibleExchange,
     "DiecastExchange": DiecastExchange,
+    "Favorites": Favorites,
     "FigureExchange": FigureExchange,
     "Home": Home,
     "Landing": Landing,
     "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
-    "Favorites": Favorites,
 }
 
 export const pagesConfig = {
