@@ -19,7 +19,7 @@ export default function Favorites() {
     loadUser();
   }, []);
 
-  const { data: likedListings = [], isLoading } = useQuery({
+  const { data: likedListings = [], isLoading, refetch } = useQuery({
     queryKey: ['likedListings', currentUser?.email],
     queryFn: async () => {
       const likes = await base44.entities.LikedListing.filter({ user_email: currentUser.email });
@@ -36,6 +36,7 @@ export default function Favorites() {
       return filteredListings;
     },
     enabled: !!currentUser,
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
   });
 
   return (
