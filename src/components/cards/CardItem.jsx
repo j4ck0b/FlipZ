@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { createPageUrl } from '../../utils';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -36,6 +37,7 @@ const categoryIcons = {
 export default function CardItem({ listing, onClick }) {
   const [isLiked, setIsLiked] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -65,6 +67,7 @@ export default function CardItem({ listing, onClick }) {
         await base44.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
         toast.success('Removed from favorites');
+        queryClient.invalidateQueries({ queryKey: ['likedListings'] });
       }
     } else {
       await base44.entities.LikedListing.create({ 
@@ -73,6 +76,7 @@ export default function CardItem({ listing, onClick }) {
       });
       setIsLiked(true);
       toast.success('Added to favorites!');
+      queryClient.invalidateQueries({ queryKey: ['likedListings'] });
     }
   };
 

@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import TradeOfferModal from '../trade/TradeOfferModal';
 import { createPageUrl } from '../../utils';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -54,6 +55,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -87,6 +89,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
         await base44.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
         toast.success('Removed from favorites');
+        queryClient.invalidateQueries({ queryKey: ['likedListings'] });
       }
     } else {
       await base44.entities.LikedListing.create({ 
@@ -95,6 +98,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       });
       setIsLiked(true);
       toast.success('Added to favorites!');
+      queryClient.invalidateQueries({ queryKey: ['likedListings'] });
     }
   };
 
