@@ -151,7 +151,7 @@ export default function Landing() {
             />
             <span>FlipCardZ</span>
           </div>
-          <Button onClick={handleGetStarted} variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-slate-900 transition-all">
+          <Button onClick={handleGetStarted} className="bg-white text-black hover:bg-slate-200 transition-all">
             Sign In
           </Button>
         </div>
@@ -197,9 +197,8 @@ export default function Landing() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
-                variant="outline" 
                 size="lg"
-                className="h-14 px-8 text-lg border-2 border-white text-white hover:bg-white hover:text-slate-900 transition-all"
+                className="h-14 px-8 text-lg bg-white text-black hover:bg-slate-200 transition-all"
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
               >
                 See How It Works
@@ -436,8 +435,7 @@ export default function Landing() {
                   <Button 
                     onClick={handleGetStarted}
                     size="lg"
-                    variant="outline"
-                    className="h-14 px-8 text-lg border-2 border-white text-white hover:bg-white hover:text-violet-600 transition-all font-semibold"
+                    className="h-14 px-8 text-lg bg-white text-black hover:bg-slate-200 transition-all font-semibold"
                   >
                     Explore the Marketplace
                   </Button>
