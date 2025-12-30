@@ -428,7 +428,7 @@ export default function Landing() {
                   <Button 
                     onClick={handleGetStarted}
                     size="lg"
-                    className="bg-white text-violet-600 hover:bg-violet-50 px-8 h-14 text-lg font-semibold shadow-xl"
+                    className="bg-white text-black hover:bg-slate-100 px-8 h-14 text-lg font-semibold shadow-xl transition-all"
                   >
                     Create Free Account
                     <ArrowRight className="w-5 h-5 ml-2" />
