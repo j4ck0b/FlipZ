@@ -5,54 +5,98 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Sparkles, 
-  ArrowRight, 
   ShieldCheck, 
-  Users, 
-  TrendingUp,
-  Zap,
+  ArrowRight, 
   Package,
   ArrowRightLeft,
   CheckCircle,
-  Star
+  Users,
+  Eye,
+  Truck,
+  Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const features = [
+const categories = [
+  { name: "Collectible Cards", emoji: "🎴", items: "Pokémon, MTG, Yu-Gi-Oh!, Sports" },
+  { name: "LEGO Sets", emoji: "🧱", items: "Minifigures & Sets" },
+  { name: "Funko Figures", emoji: "🎭", items: "Pop! & Collectibles" },
+  { name: "Hot Wheels & Matchbox", emoji: "🏎️", items: "Diecast Cars" },
+  { name: "Sneakers", emoji: "👟", items: "Limited Editions" },
+  { name: "Vinyl Records", emoji: "💿", items: "Classic & Modern" },
+  { name: "Retro Games", emoji: "🎮", items: "Consoles & Cartridges" }
+];
+
+const howItWorks = [
   {
-    icon: Package,
-    title: "Easy Listings",
-    description: "List your cards in seconds with our simple upload process"
+    step: "1",
+    title: "Create Agreement",
+    description: "Create a trade or sale agreement with another collector",
+    icon: ArrowRightLeft
   },
   {
-    icon: ArrowRightLeft,
-    title: "Trade or Sell",
-    description: "Choose to sell for cash or trade with other collectors"
+    step: "2",
+    title: "Send to Escrow",
+    description: "Both parties send items to FlipCardZ secure escrow",
+    icon: Package
   },
   {
-    icon: ShieldCheck,
-    title: "Secure Trading",
-    description: "Safe and transparent transactions with verified users"
+    step: "3",
+    title: "Verification",
+    description: "Items are verified for condition and authenticity",
+    icon: Eye
   },
   {
-    icon: Users,
-    title: "Active Community",
-    description: "Connect with collectors worldwide who share your passion"
+    step: "4",
+    title: "Safe Delivery",
+    description: "Items are safely delivered to their new owners",
+    icon: Truck
   }
 ];
 
-const stats = [
-  { label: "Active Cards", value: "10,000+", icon: Package },
-  { label: "Happy Traders", value: "5,000+", icon: Users },
-  { label: "Successful Trades", value: "25,000+", icon: CheckCircle },
-  { label: "Average Rating", value: "4.9★", icon: Star }
+const features = [
+  {
+    icon: ShieldCheck,
+    title: "Escrow Protection",
+    description: "Items are secured before exchange, ensuring both parties are protected"
+  },
+  {
+    icon: Eye,
+    title: "Verification Process",
+    description: "Designed to reduce fraud and disputes with professional verification"
+  },
+  {
+    icon: Sparkles,
+    title: "Built for Collectors",
+    description: "Tools created specifically for high-value collectibles trading"
+  },
+  {
+    icon: Users,
+    title: "Growing Community",
+    description: "Connect with passionate collectors worldwide"
+  }
 ];
 
-const cardCategories = [
-  { name: "Pokémon", emoji: "🎴", color: "from-yellow-400 to-red-500" },
-  { name: "Magic: The Gathering", emoji: "🧙", color: "from-purple-500 to-pink-500" },
-  { name: "Yu-Gi-Oh!", emoji: "👁️", color: "from-blue-500 to-cyan-500" },
-  { name: "Sports Cards", emoji: "⚽", color: "from-green-500 to-emerald-500" }
+const pricingTiers = [
+  {
+    name: "Basic",
+    price: "24 PLN",
+    description: "Per exchange",
+    features: ["Standard escrow protection", "Basic verification", "Standard delivery"]
+  },
+  {
+    name: "Standard",
+    price: "35 PLN",
+    description: "Per exchange",
+    features: ["Enhanced escrow protection", "Detailed verification", "Priority support"],
+    popular: true
+  },
+  {
+    name: "Premium",
+    price: "59.99 PLN",
+    description: "Per exchange",
+    features: ["Maximum protection", "Professional authentication", "Premium support", "Insurance included"]
+  }
 ];
 
 export default function Landing() {
@@ -65,7 +109,6 @@ export default function Landing() {
         const authenticated = await base44.auth.isAuthenticated();
         setIsAuthenticated(authenticated);
         
-        // Redirect authenticated users to Home
         if (authenticated) {
           window.location.replace(createPageUrl('Home'));
           return;
@@ -85,28 +128,30 @@ export default function Landing() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="text-slate-400">Loading...</div>
       </div>
     );
   }
 
   if (isAuthenticated) {
-    return null; // Will redirect
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-900">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-lg border-b border-slate-200 z-50">
+      <nav className="fixed top-0 w-full bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl text-slate-900">
-            <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span>CardExchange</span>
+          <div className="flex items-center gap-2 font-bold text-xl text-white">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693ecc5599cec84236ae4d99/147165ce2_FLIPCARDZ2.png" 
+              alt="FlipCardZ" 
+              className="w-9 h-9 rounded-xl"
+            />
+            <span>FlipCardZ</span>
           </div>
-          <Button onClick={handleGetStarted} variant="outline">
+          <Button onClick={handleGetStarted} variant="outline" className="border-slate-700 text-white hover:bg-slate-800">
             Sign In
           </Button>
         </div>
@@ -114,10 +159,9 @@ export default function Landing() {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-indigo-50 -z-10" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-200 rounded-full blur-3xl opacity-30 -z-10" />
-        <div className="absolute bottom-10 right-20 w-96 h-96 bg-indigo-200 rounded-full blur-3xl opacity-30 -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 -z-10" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-10 right-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -126,28 +170,28 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <Badge className="mb-6 bg-violet-100 text-violet-700 border-violet-200 px-4 py-1">
-              <Zap className="w-3 h-3 mr-1" />
-              Live Marketplace
+            <Badge className="mb-6 bg-violet-600/20 text-violet-300 border-violet-500/30 px-4 py-1">
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              Secure Escrow Trading
             </Badge>
             
-            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-              Buy, Sell & Trade
-              <span className="block bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                Collectible Cards
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              Secure Trading for Collectors
+              <span className="block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+                Who Care About Their Items
               </span>
             </h1>
             
-            <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of collectors worldwide. List your cards, discover rare finds, 
-              and connect with passionate traders in our vibrant community.
+            <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
+              FlipCardZ.store is a secure escrow-based platform that lets collectors safely buy, sell, 
+              and trade valuable items online — without fear of scams or disputes.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button 
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-8 h-14 text-lg shadow-xl shadow-violet-200"
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-8 h-14 text-lg shadow-xl"
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -155,61 +199,88 @@ export default function Landing() {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="h-14 px-8 text-lg"
-                onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
+                className="h-14 px-8 text-lg border-slate-700 text-white hover:bg-slate-800"
+                onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
               >
-                Learn More
+                See How It Works
               </Button>
             </div>
-          </motion.div>
-
-          {/* Category Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-16 flex flex-wrap justify-center gap-4"
-          >
-            {cardCategories.map((category, index) => (
-              <motion.div
-                key={category.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl mb-2`}>
-                      {category.emoji}
-                    </div>
-                    <p className="font-medium text-slate-900 text-sm">{category.name}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-4 bg-slate-50">
+      {/* Categories Section */}
+      <section className="py-20 px-4 bg-slate-800/50">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              What You Can Trade on FlipCardZ
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Different collectibles, one secure trading system.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {categories.map((category, index) => (
+              <motion.div
+                key={category.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="bg-slate-800 border-slate-700 hover:border-violet-500/50 transition-all hover:shadow-lg hover:shadow-violet-500/20">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-5xl mb-3">{category.emoji}</div>
+                    <h3 className="font-semibold text-white mb-1">{category.name}</h3>
+                    <p className="text-sm text-slate-400">{category.items}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-indigo-600/20 text-indigo-300 border-indigo-500/30">
+              Escrow Process
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              How Secure Trading Works
+            </h2>
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+              Safety, transparency, and reduced risk at every step
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {howItWorks.map((item, index) => {
+              const Icon = item.icon;
               return (
                 <motion.div
-                  key={stat.label}
+                  key={item.step}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Icon className="w-8 h-8 mx-auto mb-3 text-violet-600" />
-                      <p className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</p>
-                      <p className="text-sm text-slate-500">{stat.label}</p>
+                  <Card className="bg-slate-800 border-slate-700 h-full">
+                    <CardContent className="p-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">
+                        {item.step}
+                      </div>
+                      <Icon className="w-8 h-8 text-violet-400 mb-3" />
+                      <h3 className="text-xl font-semibold text-white mb-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-slate-400 leading-relaxed">
+                        {item.description}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -219,19 +290,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4">
+      {/* Why FlipCardZ */}
+      <section className="py-20 px-4 bg-slate-800/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-indigo-100 text-indigo-700 border-indigo-200">
-              Features
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              Everything You Need
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Why Collectors Choose FlipCardZ
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Powerful tools designed for collectors, by collectors
-            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -245,15 +310,15 @@ export default function Landing() {
                   transition={{ delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow h-full">
+                  <Card className="bg-slate-800 border-slate-700 hover:border-violet-500/50 transition-all h-full">
                     <CardContent className="p-6">
                       <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-xl flex items-center justify-center mb-4">
                         <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                      <h3 className="text-xl font-semibold text-white mb-2">
                         {feature.title}
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-slate-400 leading-relaxed">
                         {feature.description}
                       </p>
                     </CardContent>
@@ -265,52 +330,78 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 px-4 bg-gradient-to-br from-slate-50 to-white">
+      {/* Pricing */}
+      <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-violet-100 text-violet-700 border-violet-200">
-              Simple Process
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              How It Works
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Simple, Transparent Pricing
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Start trading in three easy steps
+            <p className="text-slate-400 text-lg mb-2">
+              Free account with limited exchanges
+            </p>
+            <p className="text-violet-400 text-lg font-semibold">
+              Subscription: 20 PLN/month for increased exchange limits
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: "1", title: "Sign Up", description: "Create your free account in seconds" },
-              { step: "2", title: "List Your Cards", description: "Upload photos and set your price or trade preferences" },
-              { step: "3", title: "Start Trading", description: "Connect with buyers and complete secure transactions" }
-            ].map((item, index) => (
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {pricingTiers.map((tier, index) => (
               <motion.div
-                key={item.step}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.2 }}
+                key={tier.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="relative"
               >
-                <Card className="border-2 border-violet-200 shadow-lg h-full">
+                <Card className={`bg-slate-800 border-slate-700 h-full ${tier.popular ? 'ring-2 ring-violet-500' : ''}`}>
                   <CardContent className="p-8">
-                    <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">
-                      {item.step}
+                    {tier.popular && (
+                      <Badge className="mb-4 bg-violet-600 text-white">Most Popular</Badge>
+                    )}
+                    <h3 className="text-2xl font-bold text-white mb-2">{tier.name}</h3>
+                    <div className="mb-4">
+                      <span className="text-4xl font-bold text-white">{tier.price}</span>
+                      <span className="text-slate-400 ml-2">{tier.description}</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{item.description}</p>
+                    <ul className="space-y-3 mb-6">
+                      {tier.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-slate-300">
+                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </CardContent>
                 </Card>
-                {index < 2 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-violet-300" />
-                  </div>
-                )}
               </motion.div>
             ))}
           </div>
+
+          <p className="text-center text-slate-400 mt-8">
+            No hidden fees. Pay only when you trade.
+          </p>
+        </div>
+      </section>
+
+      {/* Community Section */}
+      <section className="py-20 px-4 bg-slate-800/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <ShieldCheck className="w-16 h-16 mx-auto mb-6 text-violet-400" />
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Built on Trust, Powered by Community
+            </h2>
+            <p className="text-xl text-slate-300 leading-relaxed">
+              Trust is essential in collectibles trading. FlipCardZ is designed to protect both sides 
+              of every trade with community moderation and verified processes, ensuring a safe marketplace 
+              for passionate collectors.
+            </p>
+          </motion.div>
         </div>
       </section>
 
@@ -327,21 +418,30 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="relative"
               >
-                <Sparkles className="w-16 h-16 mx-auto mb-6 text-white" />
                 <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                  Ready to Start Trading?
+                  Start Trading With Confidence
                 </h2>
                 <p className="text-xl text-violet-100 mb-8 max-w-2xl mx-auto">
-                  Join our community of collectors and find the perfect cards for your collection today.
+                  Join our community and experience secure, verified trading for your valuable collectibles.
                 </p>
-                <Button 
-                  onClick={handleGetStarted}
-                  size="lg"
-                  className="bg-white text-violet-600 hover:bg-violet-50 px-8 h-14 text-lg font-semibold shadow-xl"
-                >
-                  Create Free Account
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Button 
+                    onClick={handleGetStarted}
+                    size="lg"
+                    className="bg-white text-violet-600 hover:bg-violet-50 px-8 h-14 text-lg font-semibold shadow-xl"
+                  >
+                    Create Free Account
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Button 
+                    onClick={handleGetStarted}
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-8 text-lg border-white text-white hover:bg-white/10"
+                  >
+                    Explore the Marketplace
+                  </Button>
+                </div>
               </motion.div>
             </CardContent>
           </Card>
@@ -349,18 +449,26 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12 px-4">
+      <footer className="bg-slate-950 text-white py-12 px-4 border-t border-slate-800">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-2 font-bold text-xl">
-              <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span>CardExchange</span>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693ecc5599cec84236ae4d99/147165ce2_FLIPCARDZ2.png" 
+                alt="FlipCardZ" 
+                className="w-9 h-9 rounded-xl"
+              />
+              <span>FlipCardZ</span>
             </div>
-            <p className="text-slate-400 text-sm">
-              © 2024 CardExchange. All rights reserved.
-            </p>
+            <div className="flex gap-6 text-sm text-slate-400">
+              <a href="#" className="hover:text-white transition-colors">Terms</a>
+              <a href="#" className="hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="hover:text-white transition-colors">Contact</a>
+            </div>
+          </div>
+          <div className="text-center text-slate-500 text-sm">
+            <p className="mb-1">© 2024 FlipCardZ.store. All rights reserved.</p>
+            <p>FlipZ sp. z o.o. (in organization)</p>
           </div>
         </div>
       </footer>
