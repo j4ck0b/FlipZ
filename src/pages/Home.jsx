@@ -47,8 +47,8 @@ const tradeCategories = [
 ];
 
 export default function Home() {
-  const { t } = useLanguage();
   const [showQuickPost, setShowQuickPost] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const checkAuth = async () => {
