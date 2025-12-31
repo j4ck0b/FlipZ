@@ -4,7 +4,6 @@ import { createPageUrl } from '../utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { 
   ShieldCheck, 
   ArrowRight, 
@@ -14,8 +13,7 @@ import {
   Users,
   Eye,
   Truck,
-  Sparkles,
-  Search
+  Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -104,7 +102,6 @@ const pricingTiers = [
 export default function Landing() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -218,30 +215,13 @@ export default function Landing() {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               What You Can Trade on FlipCardZ
             </h2>
-            <p className="text-slate-400 text-lg mb-6">
+            <p className="text-slate-400 text-lg">
               Different collectibles, one secure trading system.
             </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <Input
-                placeholder="Search collectibles... (e.g., Pikachu, Charizard, Deadpool)"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-violet-500"
-              />
-            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {categories
-              .filter(category => 
-                searchQuery === '' || 
-                category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                category.items.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((category, index) => (
+            {categories.map((category, index) => (
               <motion.div
                 key={category.name}
                 initial={{ opacity: 0, y: 20 }}
@@ -259,16 +239,6 @@ export default function Landing() {
               </motion.div>
             ))}
           </div>
-          
-          {categories.filter(category => 
-            searchQuery === '' || 
-            category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            category.items.toLowerCase().includes(searchQuery.toLowerCase())
-          ).length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-400 text-lg">No categories match your search</p>
-            </div>
-          )}
         </div>
       </section>
 
