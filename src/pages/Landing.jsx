@@ -4,6 +4,7 @@ import { createPageUrl } from '../utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from '../components/LanguageProvider';
 import { 
   ShieldCheck, 
   ArrowRight, 
@@ -30,26 +31,26 @@ const categories = [
 const howItWorks = [
   {
     step: "1",
-    title: "Create Agreement",
-    description: "Create a trade or sale agreement with another collector",
+    title: t('createAgreement'),
+    description: t('createAgreementDesc'),
     icon: ArrowRightLeft
   },
   {
     step: "2",
-    title: "Send to Escrow",
-    description: "Both parties send items to FlipCardZ secure escrow",
+    title: t('sendToEscrow'),
+    description: t('sendToEscrowDesc'),
     icon: Package
   },
   {
     step: "3",
-    title: "Verification",
-    description: "Items are verified for condition and authenticity",
+    title: t('verification'),
+    description: t('verificationDesc'),
     icon: Eye
   },
   {
     step: "4",
-    title: "Safe Delivery",
-    description: "Items are safely delivered to their new owners",
+    title: t('safeDelivery'),
+    description: t('safeDeliveryDesc'),
     icon: Truck
   }
 ];
@@ -57,23 +58,23 @@ const howItWorks = [
 const features = [
   {
     icon: ShieldCheck,
-    title: "Escrow Protection",
-    description: "Items are secured before exchange, ensuring both parties are protected"
+    title: t('escrowProtection'),
+    description: t('escrowProtectionDesc')
   },
   {
     icon: Eye,
-    title: "Verification Process",
-    description: "Designed to reduce fraud and disputes with professional verification"
+    title: t('verificationProcess'),
+    description: t('verificationProcessDesc')
   },
   {
     icon: Sparkles,
-    title: "Built for Collectors",
-    description: "Tools created specifically for high-value collectibles trading"
+    title: t('builtForCollectors'),
+    description: t('builtForCollectorsDesc')
   },
   {
     icon: Users,
-    title: "Growing Community",
-    description: "Connect with passionate collectors worldwide"
+    title: t('growingCommunity'),
+    description: t('growingCommunityDesc')
   }
 ];
 
@@ -81,25 +82,26 @@ const pricingTiers = [
   {
     name: "Basic",
     price: "24 PLN",
-    description: "Per exchange",
-    features: ["Standard escrow protection", "Basic verification", "Standard delivery"]
+    description: t('perExchange'),
+    features: [t('standardEscrow'), t('basicVerification'), t('standardDelivery')]
   },
   {
     name: "Standard",
     price: "35 PLN",
-    description: "Per exchange",
-    features: ["Enhanced escrow protection", "Detailed verification", "Priority support"],
+    description: t('perExchange'),
+    features: [t('enhancedProtection'), t('detailedVerification'), t('prioritySupport')],
     popular: true
   },
   {
     name: "Premium",
     price: "59.99 PLN",
-    description: "Per exchange",
-    features: ["Maximum protection", "Professional authentication", "Premium support", "Insurance included"]
+    description: t('perExchange'),
+    features: [t('maximumProtection'), t('professionalAuth'), t('premiumSupport'), t('insuranceIncluded')]
   }
 ];
 
 export default function Landing() {
+  const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -150,10 +152,10 @@ export default function Landing() {
               className="w-9 h-9 rounded-xl"
             />
             <span>FlipCardZ</span>
-          </div>
-          <Button onClick={handleGetStarted} className="bg-white text-black hover:bg-slate-200 transition-all">
-            Sign In
-          </Button>
+            </div>
+            <Button onClick={handleGetStarted} className="bg-white text-black hover:bg-slate-200 transition-all">
+            {t('signIn')}
+            </Button>
         </div>
       </nav>
 
@@ -172,19 +174,18 @@ export default function Landing() {
           >
             <Badge className="mb-6 bg-violet-600/20 text-violet-300 border-violet-500/30 px-4 py-1">
               <ShieldCheck className="w-3 h-3 mr-1" />
-              Secure Escrow Trading
+              {t('escrowProcess')}
             </Badge>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              Secure Trading for Collectors
+              {t('secureTrading')}
               <span className="block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-                Who Care About Their Items
+                {t('whoCareAboutItems')}
               </span>
             </h1>
-            
+
             <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              FlipCardZ.store is a secure escrow-based platform that lets collectors safely buy, sell, 
-              and trade valuable items online — without fear of scams or disputes.
+              {t('secureEscrowDesc')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -193,7 +194,7 @@ export default function Landing() {
                 size="lg"
                 className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-8 h-14 text-lg shadow-xl"
               >
-                Get Started Free
+                {t('getStartedFree')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
@@ -201,7 +202,7 @@ export default function Landing() {
                 className="h-14 px-8 text-lg bg-white text-black hover:bg-slate-200 transition-all"
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
               >
-                See How It Works
+                {t('seeHowItWorks')}
               </Button>
             </div>
           </motion.div>
@@ -213,10 +214,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              What You Can Trade on FlipCardZ
+              {t('whatYouCanTrade')}
             </h2>
             <p className="text-slate-400 text-lg">
-              Different collectibles, one secure trading system.
+              {t('differentCollectibles')}
             </p>
           </div>
 
@@ -247,13 +248,13 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-indigo-600/20 text-indigo-300 border-indigo-500/30">
-              Escrow Process
+              {t('escrowProcess')}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              How Secure Trading Works
+              {t('howSecureWorks')}
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              Safety, transparency, and reduced risk at every step
+              {t('safetyTransparency')}
             </p>
           </div>
 
@@ -294,7 +295,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Why Collectors Choose FlipCardZ
+              {t('whyChoose')}
             </h2>
           </div>
 
@@ -334,13 +335,13 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Simple, Transparent Pricing
+              {t('transparentPricing')}
             </h2>
             <p className="text-slate-400 text-lg mb-2">
-              Free account with limited exchanges
+              {t('freeAccountDesc')}
             </p>
             <p className="text-violet-400 text-lg font-semibold">
-              Subscription: 20 PLN/month for increased exchange limits
+              {t('subscriptionDesc')}
             </p>
           </div>
 
@@ -356,7 +357,7 @@ export default function Landing() {
                 <Card className={`bg-slate-800 border-slate-700 h-full ${tier.popular ? 'ring-2 ring-violet-500' : ''}`}>
                   <CardContent className="p-8">
                     {tier.popular && (
-                      <Badge className="mb-4 bg-violet-600 text-white">Most Popular</Badge>
+                      <Badge className="mb-4 bg-violet-600 text-white">{t('mostPopular')}</Badge>
                     )}
                     <h3 className="text-2xl font-bold text-white mb-2">{tier.name}</h3>
                     <div className="mb-4">
@@ -378,7 +379,7 @@ export default function Landing() {
           </div>
 
           <p className="text-center text-slate-400 mt-8">
-            No hidden fees. Pay only when you trade.
+            {t('noHiddenFees')}
           </p>
         </div>
       </section>
@@ -393,12 +394,10 @@ export default function Landing() {
           >
             <ShieldCheck className="w-16 h-16 mx-auto mb-6 text-violet-400" />
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Built on Trust, Powered by Community
+              {t('builtOnTrust')}
             </h2>
             <p className="text-xl text-slate-300 leading-relaxed">
-              Trust is essential in collectibles trading. FlipCardZ is designed to protect both sides 
-              of every trade with community moderation and verified processes, ensuring a safe marketplace 
-              for passionate collectors.
+              {t('trustEssential')}
             </p>
           </motion.div>
         </div>
@@ -418,10 +417,10 @@ export default function Landing() {
                 className="relative"
               >
                 <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                  Start Trading With Confidence
+                  {t('startTradingConfidence')}
                 </h2>
                 <p className="text-xl text-violet-100 mb-8 max-w-2xl mx-auto">
-                  Join our community and experience secure, verified trading for your valuable collectibles.
+                  {t('joinCommunity')}
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button 
@@ -429,7 +428,7 @@ export default function Landing() {
                     size="lg"
                     className="bg-white text-black hover:bg-slate-100 px-8 h-14 text-lg font-semibold shadow-xl transition-all"
                   >
-                    Create Free Account
+                    {t('createFreeAccount')}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                   <Button 
@@ -437,7 +436,7 @@ export default function Landing() {
                     size="lg"
                     className="h-14 px-8 text-lg bg-white text-black hover:bg-slate-200 transition-all font-semibold"
                   >
-                    Explore the Marketplace
+                    {t('exploreMarketplace')}
                   </Button>
                 </div>
               </motion.div>
@@ -459,15 +458,15 @@ export default function Landing() {
               <span>FlipCardZ</span>
             </div>
             <div className="flex gap-6 text-sm text-slate-400">
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Contact</a>
+              <a href="#" className="hover:text-white transition-colors">{t('terms')}</a>
+              <a href="#" className="hover:text-white transition-colors">{t('privacy')}</a>
+              <a href="#" className="hover:text-white transition-colors">{t('contact')}</a>
             </div>
-          </div>
-          <div className="text-center text-slate-500 text-sm">
-            <p className="mb-1">© 2024 FlipCardZ.store. All rights reserved.</p>
+            </div>
+            <div className="text-center text-slate-500 text-sm">
+            <p className="mb-1">© 2024 FlipCardZ.store. {t('allRightsReserved')}</p>
             <p>FlipZ sp. z o.o. (in organization)</p>
-          </div>
+            </div>
         </div>
       </footer>
     </div>

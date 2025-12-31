@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Sparkles, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import QuickPostModal from '../components/home/QuickPostModal';
+import { useLanguage } from '../components/LanguageProvider';
 
 const tradeCategories = [
   {
@@ -46,6 +47,7 @@ const tradeCategories = [
 ];
 
 export default function Home() {
+  const { t } = useLanguage();
   const [showQuickPost, setShowQuickPost] = useState(false);
 
   useEffect(() => {
@@ -79,13 +81,13 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-              Trade What You Collect
+              {t('tradeWhatYouCollect')}
             </h1>
             <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto">
-              Safe exchanges. Real collectors. No selling.
+              {t('safeExchanges')}
             </p>
             <p className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto">
-              Cards, figures, bricks, and more — safely exchanged with collectors worldwide
+              {t('cardsAndMore')}
             </p>
           </motion.div>
 
@@ -129,10 +131,10 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              How FlipCardZ Works
+              {t('howItWorks')}
             </h2>
             <p className="text-slate-400 text-lg">
-              Safe, secure trades with built-in protection
+              {t('safeSecureTrades')}
             </p>
           </motion.div>
 
@@ -140,18 +142,18 @@ export default function Home() {
             {[
               {
                 step: '1',
-                title: 'Propose Trade',
-                description: 'Select items from your collection to trade'
+                title: t('proposeTrade'),
+                description: t('proposeTradeDesc')
               },
               {
                 step: '2',
-                title: 'Activate Exchange',
-                description: 'Both parties secure the trade with shipping labels (24 zł)'
+                title: t('activateExchange'),
+                description: t('activateExchangeDesc')
               },
               {
                 step: '3',
-                title: 'Ship & Complete',
-                description: 'Exchange items safely with tracking and protection'
+                title: t('shipAndComplete'),
+                description: t('shipAndCompleteDesc')
               }
             ].map((item, index) => (
               <motion.div
@@ -188,7 +190,7 @@ export default function Home() {
           className="h-16 px-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-2xl rounded-full"
         >
           <Plus className="w-6 h-6 mr-2" />
-          List Item
+          {t('listItem')}
         </Button>
       </motion.div>
 
