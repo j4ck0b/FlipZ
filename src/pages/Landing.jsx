@@ -28,82 +28,82 @@ const categories = [
   { name: "Retro Games", emoji: "🎮", items: "Consoles & Cartridges" }
 ];
 
-const howItWorks = [
-  {
-    step: "1",
-    title: t('createAgreement'),
-    description: t('createAgreementDesc'),
-    icon: ArrowRightLeft
-  },
-  {
-    step: "2",
-    title: t('sendToEscrow'),
-    description: t('sendToEscrowDesc'),
-    icon: Package
-  },
-  {
-    step: "3",
-    title: t('verification'),
-    description: t('verificationDesc'),
-    icon: Eye
-  },
-  {
-    step: "4",
-    title: t('safeDelivery'),
-    description: t('safeDeliveryDesc'),
-    icon: Truck
-  }
-];
-
-const features = [
-  {
-    icon: ShieldCheck,
-    title: t('escrowProtection'),
-    description: t('escrowProtectionDesc')
-  },
-  {
-    icon: Eye,
-    title: t('verificationProcess'),
-    description: t('verificationProcessDesc')
-  },
-  {
-    icon: Sparkles,
-    title: t('builtForCollectors'),
-    description: t('builtForCollectorsDesc')
-  },
-  {
-    icon: Users,
-    title: t('growingCommunity'),
-    description: t('growingCommunityDesc')
-  }
-];
-
-const pricingTiers = [
-  {
-    name: "Basic",
-    price: "24 PLN",
-    description: t('perExchange'),
-    features: [t('standardEscrow'), t('basicVerification'), t('standardDelivery')]
-  },
-  {
-    name: "Standard",
-    price: "35 PLN",
-    description: t('perExchange'),
-    features: [t('enhancedProtection'), t('detailedVerification'), t('prioritySupport')],
-    popular: true
-  },
-  {
-    name: "Premium",
-    price: "59.99 PLN",
-    description: t('perExchange'),
-    features: [t('maximumProtection'), t('professionalAuth'), t('premiumSupport'), t('insuranceIncluded')]
-  }
-];
-
 export default function Landing() {
   const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const howItWorks = [
+    {
+      step: "1",
+      title: t('createAgreement'),
+      description: t('createAgreementDesc'),
+      icon: ArrowRightLeft
+    },
+    {
+      step: "2",
+      title: t('sendToEscrow'),
+      description: t('sendToEscrowDesc'),
+      icon: Package
+    },
+    {
+      step: "3",
+      title: t('verification'),
+      description: t('verificationDesc'),
+      icon: Eye
+    },
+    {
+      step: "4",
+      title: t('safeDelivery'),
+      description: t('safeDeliveryDesc'),
+      icon: Truck
+    }
+  ];
+
+  const features = [
+    {
+      icon: ShieldCheck,
+      title: t('escrowProtection'),
+      description: t('escrowProtectionDesc')
+    },
+    {
+      icon: Eye,
+      title: t('verificationProcess'),
+      description: t('verificationProcessDesc')
+    },
+    {
+      icon: Sparkles,
+      title: t('builtForCollectors'),
+      description: t('builtForCollectorsDesc')
+    },
+    {
+      icon: Users,
+      title: t('growingCommunity'),
+      description: t('growingCommunityDesc')
+    }
+  ];
+
+  const pricingTiers = [
+    {
+      name: "Basic",
+      price: "24 PLN",
+      description: t('perExchange'),
+      features: [t('standardEscrow'), t('basicVerification'), t('standardDelivery')]
+    },
+    {
+      name: "Standard",
+      price: "35 PLN",
+      description: t('perExchange'),
+      features: [t('enhancedProtection'), t('detailedVerification'), t('prioritySupport')],
+      popular: true
+    },
+    {
+      name: "Premium",
+      price: "59.99 PLN",
+      description: t('perExchange'),
+      features: [t('maximumProtection'), t('professionalAuth'), t('premiumSupport'), t('insuranceIncluded')]
+    }
+  ];
 
   useEffect(() => {
     const checkAuth = async () => {
