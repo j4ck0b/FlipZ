@@ -14,7 +14,6 @@ import {
   Heart,
   Languages
 } from "lucide-react";
-import { useLanguage } from './components/LanguageProvider';
 import {
   DropdownMenu,
   DropdownMenuContent,
