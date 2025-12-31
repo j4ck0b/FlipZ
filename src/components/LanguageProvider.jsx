@@ -208,10 +208,35 @@ const translations = {
     past: "Past",
     noCompletedTransactions: "No completed transactions yet",
     sold: "Sold",
-    traded: "Traded"
-  },
-  
-  pl: {
+    traded: "Traded",
+
+    // ListingModal
+    listItemForTrade: "List Item for Trade",
+    editListing: "Edit Listing",
+    fillDetailsToList: "Fill in the details to list your item for trading",
+    updateListingDetails: "Update your listing details",
+    cardImage: "Card Image",
+    remove: "Remove",
+    clickToUpload: "Click to upload image",
+    itemName: "Item Name",
+    itemNamePlaceholder: "e.g., Charizard Base Set 1st Edition",
+    category: "Category",
+    rarity: "Rarity",
+    description: "Description",
+    descriptionPlaceholder: "Describe the item, condition, any special details...",
+    estimatedValue: "Estimated Value (Optional)",
+    estimatedValuePlaceholder: "e.g., $50-100 or €45",
+    forReferenceOnly: "For reference only, not a selling price",
+    whatLookingFor: "What are you looking for in trade?",
+    whatLookingForPlaceholder: "Describe what items you'd accept in trade...",
+    updateListing: "Update Listing",
+    listItem: "List Item",
+    setDisplayNameFirst: "Please set your display name in your profile first",
+    listingUpdated: "Listing updated successfully!",
+    cardListed: "Card listed successfully!"
+    },
+
+    pl: {
     // Navigation
     home: "Strona główna",
     myCollection: "Moja kolekcja",
@@ -418,9 +443,34 @@ const translations = {
     past: "Przeszłe",
     noCompletedTransactions: "Brak ukończonych transakcji",
     sold: "Sprzedane",
-    traded: "Wymienione"
-  }
-};
+    traded: "Wymienione",
+
+    // ListingModal
+    listItemForTrade: "Wystaw przedmiot do wymiany",
+    editListing: "Edytuj ogłoszenie",
+    fillDetailsToList: "Wypełnij szczegóły, aby wystawić przedmiot do wymiany",
+    updateListingDetails: "Zaktualizuj szczegóły ogłoszenia",
+    cardImage: "Zdjęcie karty",
+    remove: "Usuń",
+    clickToUpload: "Kliknij, aby przesłać zdjęcie",
+    itemName: "Nazwa przedmiotu",
+    itemNamePlaceholder: "np. Charizard Base Set 1st Edition",
+    category: "Kategoria",
+    rarity: "Rzadkość",
+    description: "Opis",
+    descriptionPlaceholder: "Opisz przedmiot, stan, szczególne detale...",
+    estimatedValue: "Szacunkowa wartość (Opcjonalnie)",
+    estimatedValuePlaceholder: "np. 200-400 zł lub €45",
+    forReferenceOnly: "Tylko informacyjnie, nie jest ceną sprzedaży",
+    whatLookingFor: "Czego szukasz w zamian?",
+    whatLookingForPlaceholder: "Opisz, jakie przedmioty zaakceptujesz w zamian...",
+    updateListing: "Zaktualizuj ogłoszenie",
+    listItem: "Wystaw przedmiot",
+    setDisplayNameFirst: "Najpierw ustaw swoją nazwę wyświetlaną w profilu",
+    listingUpdated: "Ogłoszenie zaktualizowane!",
+    cardListed: "Karta wystawiona pomyślnie!"
+    }
+    };
 
 const LanguageContext = createContext();
 

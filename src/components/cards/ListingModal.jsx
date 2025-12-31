@@ -9,8 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { base44 } from '@/api/base44Client';
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from '../LanguageProvider';
 
 export default function ListingModal({ open, onClose, onSuccess, editListing = null, defaultCategory = null }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,7 +67,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     
     // Check if user has a display name set
     if (!user.full_name) {
-      toast.error('Please set your display name in your profile first');
+      toast.error(t('setDisplayNameFirst'));
       setLoading(false);
       return;
     }
@@ -79,10 +81,10 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
     if (editListing) {
       await base44.entities.CardListing.update(editListing.id, data);
-      toast.success('Listing updated successfully!');
+      toast.success(t('listingUpdated'));
     } else {
       await base44.entities.CardListing.create(data);
-      toast.success('Card listed successfully!');
+      toast.success(t('cardListed'));
     }
     
     setLoading(false);
@@ -95,17 +97,17 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {editListing ? 'Edit Listing' : 'List Item for Trade'}
+            {editListing ? t('editListing') : t('listItemForTrade')}
           </DialogTitle>
           <DialogDescription>
-            {editListing ? 'Update your listing details' : 'Fill in the details to list your item for trading'}
+            {editListing ? t('updateListingDetails') : t('fillDetailsToList')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 pt-4">
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label>Card Image</Label>
+            <Label>{t('cardImage')}</Label>
             <div className="relative">
               {formData.image_url ? (
                 <div className="relative aspect-[3/4] max-h-48 w-auto mx-auto rounded-xl overflow-hidden bg-slate-100">
@@ -121,7 +123,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                     className="absolute bottom-2 right-2"
                     onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
                   >
-                    Remove
+                    {t('remove')}
                   </Button>
                 </div>
               ) : (
@@ -137,7 +139,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   ) : (
                     <>
                       <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                      <span className="text-sm text-slate-500">Click to upload image</span>
+                      <span className="text-sm text-slate-500">{t('clickToUpload')}</span>
                     </>
                   )}
                 </label>
@@ -147,12 +149,12 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Item Name *</Label>
+            <Label htmlFor="title">{t('itemName')} *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g., Charizard Base Set 1st Edition"
+              placeholder={t('itemNamePlaceholder')}
               required
             />
           </div>
@@ -160,7 +162,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
           {/* Category & Condition */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category *</Label>
+              <Label>{t('category')} *</Label>
               <Select 
                 value={formData.category} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, category: v }))}
@@ -187,7 +189,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
             </div>
 
             <div className="space-y-2">
-              <Label>Condition *</Label>
+              <Label>{t('condition')} *</Label>
               <Select 
                 value={formData.condition} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, condition: v }))}
@@ -209,7 +211,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
           {/* Rarity */}
           <div className="space-y-2">
-            <Label>Rarity</Label>
+            <Label>{t('rarity')}</Label>
             <Select 
               value={formData.rarity} 
               onValueChange={(v) => setFormData(prev => ({ ...prev, rarity: v }))}
@@ -229,36 +231,36 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe the item, condition, any special details..."
+              placeholder={t('descriptionPlaceholder')}
               rows={3}
             />
           </div>
 
           {/* Estimated Value */}
           <div className="space-y-2">
-            <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
+            <Label htmlFor="estimated_value">{t('estimatedValue')}</Label>
             <Input
               id="estimated_value"
               value={formData.estimated_value || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, estimated_value: e.target.value }))}
-              placeholder="e.g., $50-100 or €45"
+              placeholder={t('estimatedValuePlaceholder')}
             />
-            <p className="text-xs text-slate-500">For reference only, not a selling price</p>
+            <p className="text-xs text-slate-500">{t('forReferenceOnly')}</p>
           </div>
 
           {/* Looking For */}
           <div className="space-y-2">
-            <Label htmlFor="looking_for">What are you looking for in trade? *</Label>
+            <Label htmlFor="looking_for">{t('whatLookingFor')} *</Label>
             <Textarea
               id="looking_for"
               value={formData.looking_for}
               onChange={(e) => setFormData(prev => ({ ...prev, looking_for: e.target.value }))}
-              placeholder="Describe what items you'd accept in trade..."
+              placeholder={t('whatLookingForPlaceholder')}
               rows={3}
               required
             />
@@ -267,11 +269,11 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
           {/* Submit */}
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={loading} className="flex-1 bg-slate-900 hover:bg-slate-800">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editListing ? 'Update Listing' : 'List Item'}
+              {editListing ? t('updateListing') : t('listItem')}
             </Button>
           </div>
         </form>
