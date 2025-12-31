@@ -578,7 +578,17 @@ export default function MyListings() {
                            <>
                              <Button
                                onClick={async () => {
-...
+                                 const field = 'owner_inspection_accepted';
+                                 const otherField = 'sender_inspection_accepted';
+                                 const updates = { [field]: true };
+                                 if (offer[otherField]) {
+                                   updates.progress_step = 'shipping_to_users';
+                                 }
+                                 await base44.entities.TradeOffer.update(offer.id, updates);
+                                 queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                                 queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                                 toast.success('Inspection accepted!');
+                               }}
                                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                              >
                                <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -701,7 +711,7 @@ export default function MyListings() {
                           className="flex-1"
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />
-                          Chat
+                          {t('chat')}
                         </Button>
                         {offer.status === 'accepted' && offer.progress_step === 'payment' && (
                           !offer.sender_paid ? (
@@ -710,17 +720,17 @@ export default function MyListings() {
                               className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                             >
                               <CreditCard className="w-4 h-4 mr-2" />
-                              Complete Payment
+                              {t('completePayment')}
                             </Button>
                           ) : offer.owner_paid ? (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Both Paid - Ready!
+                              {t('bothPaidReady')}
                             </Badge>
                           ) : (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
                               <Clock className="w-4 h-4 mr-2" />
-                              Waiting for {offer.owner_name}
+                              {t('waitingFor')} {offer.owner_name}
                             </Badge>
                           )
                         )}
@@ -731,7 +741,7 @@ export default function MyListings() {
                               variant="outline"
                               className="flex-1"
                             >
-                              View Shipping Label
+                              {t('viewShippingLabel')}
                             </Button>
                             {!offer.sender_package_sent ? (
                               <Button
@@ -739,12 +749,12 @@ export default function MyListings() {
                                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                               >
                                 <Truck className="w-4 h-4 mr-2" />
-                                I Have Sent Package
+                                {t('iHaveSentPackage')}
                               </Button>
                             ) : (
                               <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Package Sent
+                                {t('packageSent')}
                               </Badge>
                             )}
                           </>
@@ -755,7 +765,7 @@ export default function MyListings() {
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
                           >
                             <Camera className="w-4 h-4 mr-2" />
-                            Skip to Hub Inspection
+                            {t('skipToHubInspection')}
                           </Button>
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
@@ -777,20 +787,20 @@ export default function MyListings() {
                                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                               >
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Everything OK
+                                {t('everythingOK')}
                               </Button>
                               <Button
                                 variant="outline"
                                 onClick={() => setInspectionReviewOffer({ offer, role: 'sender' })}
                                 className="flex-1"
                               >
-                                View Details
+                                {t('viewDetails')}
                               </Button>
                             </>
                           ) : (
                             <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Inspection Accepted
+                              {t('inspectionAccepted')}
                             </Badge>
                           )
                         )}
@@ -800,7 +810,7 @@ export default function MyListings() {
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Complete Trade
+                            {t('completeTrade')}
                             </Button>
                             )}
                             </div>
