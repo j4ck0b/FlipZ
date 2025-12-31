@@ -13,8 +13,10 @@ import { toast } from "sonner";
 
 import ChatPanel from '../components/chat/ChatPanel';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
+import { useLanguage } from '../components/LanguageProvider';
 
 export default function Messages() {
+  const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -96,9 +98,9 @@ export default function Messages() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <MessageCircle className="w-7 h-7 text-violet-600" />
-            Messages
+            {t('messages')}
           </h1>
-          <p className="text-slate-500 mt-1">Your trade conversations</p>
+          <p className="text-slate-500 mt-1">{t('yourTradeConversations')}</p>
         </div>
       </div>
 
@@ -113,7 +115,7 @@ export default function Messages() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
-                      placeholder="Search conversations..."
+                      placeholder={t('searchConversations')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-9"
@@ -130,7 +132,7 @@ export default function Messages() {
                   ) : filteredConversations.length === 0 ? (
                     <div className="text-center py-12 px-4">
                       <MessageCircle className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                      <p className="text-slate-500">No conversations yet</p>
+                      <p className="text-slate-500">{t('noConversationsYet')}</p>
                     </div>
                   ) : (
                     <div className="divide-y">
@@ -179,7 +181,7 @@ export default function Messages() {
                                )}
 
                                <p className="text-xs md:text-sm text-slate-600 truncate">
-                                 {conv.last_message_preview || 'No messages yet'}
+                                 {conv.last_message_preview || t('noMessagesYet')}
                                </p>
 
                                 {conv.tradeOffer && (
@@ -225,10 +227,10 @@ export default function Messages() {
                   <div className="text-center px-4">
                     <MessageCircle className="w-12 md:w-16 h-12 md:h-16 mx-auto text-slate-300 mb-4" />
                     <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-2">
-                      Select a conversation
+                      {t('selectAConversation')}
                     </h3>
                     <p className="text-sm md:text-base text-slate-500">
-                      Choose a conversation to start chatting
+                      {t('chooseConversation')}
                     </p>
                   </div>
                 </CardContent>

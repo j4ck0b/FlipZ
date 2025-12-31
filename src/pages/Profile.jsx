@@ -24,6 +24,7 @@ import EditProfileModal from '../components/profile/EditProfileModal';
 import ProfileStats from '../components/profile/ProfileStats';
 import ProfileListings from '../components/profile/ProfileListings';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
+import { useLanguage } from '../components/LanguageProvider';
 
 const categoryLabels = {
   pokemon: "Pokémon",
@@ -34,6 +35,7 @@ const categoryLabels = {
 };
 
 export default function Profile() {
+  const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -158,7 +160,7 @@ export default function Profile() {
                     className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
-                    Edit Profile
+                    {t('editProfile')}
                   </Button>
                 )}
               </div>
@@ -172,7 +174,7 @@ export default function Profile() {
                 )}
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  Joined {format(new Date(viewingUser.created_date), 'MMMM yyyy')}
+                  {t('joined')} {format(new Date(viewingUser.created_date), 'MMMM yyyy')}
                 </span>
               </div>
 
@@ -210,7 +212,7 @@ export default function Profile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Search className="w-5 h-5 text-violet-600" />
-                Looking For
+                {t('lookingFor')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -224,17 +226,17 @@ export default function Profile() {
           <TabsList className="bg-white border border-slate-200 grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
             <TabsTrigger value="listings" className="gap-2">
               <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Active Listings ({listings.length})</span>
-              <span className="sm:hidden">Listings ({listings.length})</span>
+              <span className="hidden sm:inline">{t('activeListings')} ({listings.length})</span>
+              <span className="sm:hidden">{t('listings')} ({listings.length})</span>
             </TabsTrigger>
             <TabsTrigger value="trades" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Trade Offers ({tradeOffers.length})</span>
-              <span className="sm:hidden">Trades ({tradeOffers.length})</span>
+              <span className="hidden sm:inline">{t('tradeOffers')} ({tradeOffers.length})</span>
+              <span className="sm:hidden">{t('trades')} ({tradeOffers.length})</span>
             </TabsTrigger>
             <TabsTrigger value="sold">
-              <span className="hidden sm:inline">Past Transactions ({stats.completedSales + stats.tradesMade})</span>
-              <span className="sm:hidden">Past ({stats.completedSales + stats.tradesMade})</span>
+              <span className="hidden sm:inline">{t('pastTransactions')} ({stats.completedSales + stats.tradesMade})</span>
+              <span className="sm:hidden">{t('past')} ({stats.completedSales + stats.tradesMade})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -242,7 +244,7 @@ export default function Profile() {
           <TabsContent value="listings">
             <Card>
               <CardHeader>
-                <CardTitle>Active Listings</CardTitle>
+                <CardTitle>{t('activeListings')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingListings ? (
@@ -263,7 +265,7 @@ export default function Profile() {
           <TabsContent value="trades">
             <Card>
               <CardHeader>
-                <CardTitle>Trade Offers</CardTitle>
+                <CardTitle>{t('tradeOffers')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {tradeOffers.length === 0 ? (
@@ -317,12 +319,12 @@ export default function Profile() {
           <TabsContent value="sold">
             <Card>
               <CardHeader>
-                <CardTitle>Past Transactions</CardTitle>
+                <CardTitle>{t('pastTransactions')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {allListings.filter(l => l.status === 'sold' || l.status === 'traded').length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
-                    <p>No completed transactions yet</p>
+                    <p>{t('noCompletedTransactions')}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -349,8 +351,8 @@ export default function Profile() {
                           <div className="flex-1">
                             <h4 className="font-semibold text-slate-900">{listing.title}</h4>
                             <p className="text-sm text-slate-500 mt-1">
-                              {listing.status === 'sold' ? 'Sold' : 'Traded'} • 
-                              {listing.trade_only ? ' Trade' : ` $${listing.price}`}
+                              {listing.status === 'sold' ? t('sold') : t('traded')} • 
+                              {listing.trade_only ? ` ${t('tradeOnly')}` : ` $${listing.price}`}
                             </p>
                           </div>
                           <Badge className={
@@ -358,7 +360,7 @@ export default function Profile() {
                               ? 'bg-blue-100 text-blue-700' 
                               : 'bg-violet-100 text-violet-700'
                           }>
-                            {listing.status}
+                            {listing.status === 'sold' ? t('sold') : t('traded')}
                           </Badge>
                         </div>
                       ))}

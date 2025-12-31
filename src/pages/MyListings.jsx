@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import ListingModal from '../components/cards/ListingModal';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
 import FloatingChat from '../components/chat/FloatingChat';
+import { useLanguage } from '../components/LanguageProvider';
 import FinalizeTradeModal from '../components/trade/FinalizeTradeModal';
 import EscrowModeSelector from '../components/trade/EscrowModeSelector';
 import TradeProgressTracker from '../components/trade/TradeProgressTracker';
@@ -64,6 +65,7 @@ const statusConfig = {
 };
 
 export default function MyListings() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
   const [showListingModal, setShowListingModal] = useState(false);
@@ -245,8 +247,8 @@ export default function MyListings() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">My Dashboard</h1>
-              <p className="text-slate-500 mt-1">Manage your listings and trade requests</p>
+              <h1 className="text-2xl font-bold text-slate-900">{t('myDashboard')}</h1>
+              <p className="text-slate-500 mt-1">{t('manageListing')}</p>
             </div>
             <Button 
               onClick={() => {
@@ -256,7 +258,7 @@ export default function MyListings() {
               className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
-              New Listing
+              {t('newListing')}
             </Button>
           </div>
         </div>
@@ -268,22 +270,22 @@ export default function MyListings() {
           <TabsList className="bg-white border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
             <TabsTrigger value="listings" className="gap-2">
               <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">My Listings</span>
-              <span className="sm:hidden">Listings</span>
+              <span className="hidden sm:inline">{t('myListings')}</span>
+              <span className="sm:hidden">{t('listings')}</span>
               <Badge variant="secondary" className="ml-1">{myListings.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="incoming" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Incoming Offers</span>
-              <span className="sm:hidden">Incoming</span>
+              <span className="hidden sm:inline">{t('incomingOffers')}</span>
+              <span className="sm:hidden">{t('incomingOffers')}</span>
               {pendingIncoming > 0 && (
                 <Badge className="ml-1 bg-rose-500">{pendingIncoming}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="sent" className="gap-2">
               <ArrowRightLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">My Offers</span>
-              <span className="sm:hidden">Sent</span>
+              <span className="hidden sm:inline">{t('myOffers')}</span>
+              <span className="sm:hidden">{t('myOffers')}</span>
               <Badge variant="secondary" className="ml-1">{myOffers.length}</Badge>
             </TabsTrigger>
           </TabsList>
@@ -298,11 +300,11 @@ export default function MyListings() {
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <Package className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">No listings yet</h3>
-                  <p className="text-slate-500 mb-4">Start by listing your first card</p>
+                  <h3 className="font-semibold text-slate-900 mb-2">{t('noListingsYet')}</h3>
+                  <p className="text-slate-500 mb-4">{t('startByListing')}</p>
                   <Button onClick={() => setShowListingModal(true)}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Listing
+                    {t('createListing')}
                   </Button>
                 </CardContent>
               </Card>
@@ -354,7 +356,7 @@ export default function MyListings() {
                                   </span>
                                 </div>
                                 <p className="text-lg font-bold text-slate-900 mt-2">
-                                  {listing.trade_only ? 'Trade Only' : `$${listing.price}`}
+                                  {listing.trade_only ? t('tradeOnly') : `$${listing.price}`}
                                 </p>
                               </div>
 
@@ -371,17 +373,17 @@ export default function MyListings() {
                                     setShowListingModal(true);
                                   }}>
                                     <Pencil className="w-4 h-4 mr-2" />
-                                    Edit
+                                    {t('edit')}
                                   </DropdownMenuItem>
                                   {listing.status === 'available' && (
                                     <>
                                       <DropdownMenuItem onClick={() => handleStatusChange(listing, 'sold')}>
                                         <CheckCircle2 className="w-4 h-4 mr-2" />
-                                        Mark as Sold
+                                        {t('markAsSold')}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleStatusChange(listing, 'traded')}>
                                         <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                        Mark as Traded
+                                        {t('markAsTraded')}
                                       </DropdownMenuItem>
                                     </>
                                   )}
@@ -390,7 +392,7 @@ export default function MyListings() {
                                     className="text-red-600"
                                   >
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
+                                    {t('delete')}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -415,8 +417,8 @@ export default function MyListings() {
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">No offers yet</h3>
-                  <p className="text-slate-500">Trade offers from collectors will appear here</p>
+                  <h3 className="font-semibold text-slate-900 mb-2">{t('noOffersYet')}</h3>
+                  <p className="text-slate-500">{t('tradeOffersAppear')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -434,7 +436,7 @@ export default function MyListings() {
                             <div>
                               <p className="font-bold text-slate-900 text-lg">{offer.sender_name}</p>
                               <p className="text-sm text-slate-600">
-                                Wants: <span className="font-semibold text-violet-700">{offer.requested_card_title}</span>
+                                {t('wants')}: <span className="font-semibold text-violet-700">{offer.requested_card_title}</span>
                               </p>
                             </div>
                           </div>
@@ -455,7 +457,7 @@ export default function MyListings() {
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-1 h-4 bg-violet-500 rounded-full"></div>
-                            <p className="text-sm font-semibold text-slate-700">Their Offer</p>
+                            <p className="text-sm font-semibold text-slate-700">{t('theirOffer')}</p>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
@@ -495,7 +497,7 @@ export default function MyListings() {
                          className="flex-1"
                        >
                          <MessageCircle className="w-4 h-4 mr-2" />
-                         Chat
+                         {t('chat')}
                        </Button>
                        {offer.status === 'pending' && (
                          <>
@@ -504,7 +506,7 @@ export default function MyListings() {
                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                            >
                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                             Accept
+                             {t('accept')}
                            </Button>
                            <Button 
                              variant="outline"
@@ -512,7 +514,7 @@ export default function MyListings() {
                              className="flex-1"
                            >
                              <XCircle className="w-4 h-4 mr-2" />
-                             Decline
+                             {t('decline')}
                            </Button>
                          </>
                        )}
@@ -523,17 +525,17 @@ export default function MyListings() {
                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                            >
                              <CreditCard className="w-4 h-4 mr-2" />
-                             Complete Payment
+                             {t('completePayment')}
                            </Button>
                          ) : offer.sender_paid ? (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                             Both Paid - Ready!
+                             {t('bothPaidReady')}
                            </Badge>
                          ) : (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
                              <Clock className="w-4 h-4 mr-2" />
-                             Waiting for {offer.sender_name}
+                             {t('waitingFor')} {offer.sender_name}
                            </Badge>
                          )
                        )}
@@ -544,7 +546,7 @@ export default function MyListings() {
                              variant="outline"
                              className="flex-1"
                            >
-                             View Shipping Label
+                             {t('viewShippingLabel')}
                            </Button>
                            {!offer.owner_package_sent ? (
                              <Button
@@ -552,12 +554,12 @@ export default function MyListings() {
                                className="flex-1 bg-blue-600 hover:bg-blue-700"
                              >
                                <Truck className="w-4 h-4 mr-2" />
-                               I Have Sent Package
+                               {t('iHaveSentPackage')}
                              </Button>
                            ) : (
                              <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                               Package Sent
+                               {t('packageSent')}
                              </Badge>
                            )}
                          </>
@@ -568,7 +570,7 @@ export default function MyListings() {
                            className="flex-1 bg-blue-600 hover:bg-blue-700"
                          >
                            <Camera className="w-4 h-4 mr-2" />
-                           Skip to Hub Inspection
+                           {t('skipToHubInspection')}
                          </Button>
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
@@ -576,34 +578,24 @@ export default function MyListings() {
                            <>
                              <Button
                                onClick={async () => {
-                                 const field = 'owner_inspection_accepted';
-                                 const otherField = 'sender_inspection_accepted';
-                                 const updates = { [field]: true };
-                                 if (offer[otherField]) {
-                                   updates.progress_step = 'shipping_to_users';
-                                 }
-                                 await base44.entities.TradeOffer.update(offer.id, updates);
-                                 queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-                                 queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                                 toast.success('Inspection accepted!');
-                               }}
+...
                                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                              >
                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                               Everything OK
+                               {t('everythingOK')}
                              </Button>
                              <Button
                                variant="outline"
                                onClick={() => setInspectionReviewOffer({ offer, role: 'owner' })}
                                className="flex-1"
                              >
-                               View Details
+                               {t('viewDetails')}
                              </Button>
                            </>
                          ) : (
                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                             Inspection Accepted
+                             {t('inspectionAccepted')}
                            </Badge>
                          )
                        )}
@@ -613,7 +605,7 @@ export default function MyListings() {
                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                          >
                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                           Complete Trade
+                           {t('completeTrade')}
                            </Button>
                            )}
                            </div>
@@ -635,8 +627,8 @@ export default function MyListings() {
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">No offers made</h3>
-                  <p className="text-slate-500">Your trade offers will appear here</p>
+                  <h3 className="font-semibold text-slate-900 mb-2">{t('noOffersMade')}</h3>
+                  <p className="text-slate-500">{t('yourOffersAppear')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -652,9 +644,9 @@ export default function MyListings() {
                               {offer.owner_name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-900 text-lg">To: {offer.owner_name}</p>
+                              <p className="font-bold text-slate-900 text-lg">{t('to')} {offer.owner_name}</p>
                               <p className="text-sm text-slate-600">
-                                For: <span className="font-semibold text-indigo-700">{offer.requested_card_title}</span>
+                                {t('for')}: <span className="font-semibold text-indigo-700">{offer.requested_card_title}</span>
                               </p>
                             </div>
                           </div>
@@ -675,7 +667,7 @@ export default function MyListings() {
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
-                            <p className="text-sm font-semibold text-slate-700">Your Offer</p>
+                            <p className="text-sm font-semibold text-slate-700">{t('yourOffer')}</p>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
@@ -865,18 +857,18 @@ export default function MyListings() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Listing</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteListing')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirm?.title}"? This action cannot be undone.
+              {t('areYouSure')} "{deleteConfirm?.title}"? {t('cannotBeUndone')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => handleDelete(deleteConfirm)}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
