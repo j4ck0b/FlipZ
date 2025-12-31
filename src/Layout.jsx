@@ -26,19 +26,19 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NotificationProvider from './components/notifications/NotificationProvider';
 import NotificationPanel from './components/notifications/NotificationPanel';
-import LanguageProvider from './components/LanguageProvider';
+import LanguageProvider, { useLanguage } from './components/LanguageProvider';
 
-const navItems = [
-  { name: t('home'), page: 'Home', icon: HomeIcon },
-  { name: t('myCollection'), page: 'MyListings', icon: LayoutDashboard },
-  { name: t('messages'), page: 'Messages', icon: MessageCircle },
-  { name: t('profile'), page: 'Profile', icon: UserCircle },
-];
-
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const { language, toggleLanguage, t } = useLanguage();
   const [user, setUser] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navItems = [
+    { name: t('home'), page: 'Home', icon: HomeIcon },
+    { name: t('myCollection'), page: 'MyListings', icon: LayoutDashboard },
+    { name: t('messages'), page: 'Messages', icon: MessageCircle },
+    { name: t('profile'), page: 'Profile', icon: UserCircle },
+  ];
 
   useEffect(() => {
     const loadUser = async () => {
@@ -54,9 +54,8 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <LanguageProvider>
-      <NotificationProvider>
-        <div className="min-h-screen bg-slate-50">
+    <NotificationProvider>
+      <div className="min-h-screen bg-slate-50">
         {/* Navigation */}
         <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
@@ -213,9 +212,16 @@ export default function Layout({ children, currentPageName }) {
         {/* Main Content */}
         <main>
           {children}
-        </main>
-        </div>
-      </NotificationProvider>
+      </main>
+    </div>
+  </NotificationProvider>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <LanguageProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
     </LanguageProvider>
   );
 }
