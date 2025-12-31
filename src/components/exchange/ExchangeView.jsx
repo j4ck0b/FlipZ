@@ -46,7 +46,8 @@ export default function ExchangeView({
       const searchLower = filters.search.toLowerCase();
       result = result.filter(l => 
         l.title?.toLowerCase().includes(searchLower) ||
-        l.description?.toLowerCase().includes(searchLower)
+        l.description?.toLowerCase().includes(searchLower) ||
+        l.tags?.some(tag => tag?.toLowerCase().includes(searchLower))
       );
     }
 
