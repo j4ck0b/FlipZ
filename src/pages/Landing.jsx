@@ -14,7 +14,8 @@ import {
   Users,
   Eye,
   Truck,
-  Sparkles
+  Sparkles,
+  Languages
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -29,7 +30,7 @@ const categories = [
 ];
 
 export default function Landing() {
-  const { t } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -152,10 +153,24 @@ export default function Landing() {
               className="w-9 h-9 rounded-xl"
             />
             <span>FlipCardZ</span>
-            </div>
-            <Button onClick={handleGetStarted} className="bg-white text-black hover:bg-slate-200 transition-all">
-            {t('signIn')}
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleLanguage}
+              className="relative text-white hover:bg-white/10"
+              title={language === 'en' ? 'Switch to Polish' : 'Przełącz na angielski'}
+            >
+              <Languages className="w-5 h-5" />
+              <span className="absolute -bottom-1 text-[10px] font-bold">
+                {language.toUpperCase()}
+              </span>
             </Button>
+            <Button onClick={handleGetStarted} className="bg-white text-black hover:bg-slate-200 transition-all">
+              {t('signIn')}
+            </Button>
+          </div>
         </div>
       </nav>
 
