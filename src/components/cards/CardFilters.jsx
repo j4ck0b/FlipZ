@@ -36,10 +36,10 @@ export default function CardFilters({ filters, setFilters }) {
       <div className="relative flex-1 w-full md:max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
-          placeholder="Search cards..."
+          placeholder="Search items... (e.g., Pikachu, Charizard, Deadpool)"
           value={filters.search}
           onChange={(e) => updateFilter('search', e.target.value)}
-          className="pl-10 bg-white border-slate-200 focus:border-slate-400 h-11"
+          className="pl-10 bg-white border-slate-200 focus:border-violet-500 h-11"
         />
       </div>
 
