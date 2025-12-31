@@ -11,8 +11,10 @@ import {
   Sparkles,
   UserCircle,
   MessageCircle,
-  Heart
+  Heart,
+  Languages
 } from "lucide-react";
+import { useLanguage } from './components/LanguageProvider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +26,17 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NotificationProvider from './components/notifications/NotificationProvider';
 import NotificationPanel from './components/notifications/NotificationPanel';
+import LanguageProvider from './components/LanguageProvider';
 
 const navItems = [
-  { name: 'Home', page: 'Home', icon: HomeIcon },
-  { name: 'My Collection', page: 'MyListings', icon: LayoutDashboard },
-  { name: 'Messages', page: 'Messages', icon: MessageCircle },
-  { name: 'Profile', page: 'Profile', icon: UserCircle },
+  { name: t('home'), page: 'Home', icon: HomeIcon },
+  { name: t('myCollection'), page: 'MyListings', icon: LayoutDashboard },
+  { name: t('messages'), page: 'Messages', icon: MessageCircle },
+  { name: t('profile'), page: 'Profile', icon: UserCircle },
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [user, setUser] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -50,8 +54,9 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <NotificationProvider>
-      <div className="min-h-screen bg-slate-50">
+    <LanguageProvider>
+      <NotificationProvider>
+        <div className="min-h-screen bg-slate-50">
         {/* Navigation */}
         <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
@@ -90,6 +95,18 @@ export default function Layout({ children, currentPageName }) {
 
             {/* User Menu */}
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleLanguage}
+                className="relative"
+                title={language === 'en' ? 'Switch to Polish' : 'Przełącz na angielski'}
+              >
+                <Languages className="w-5 h-5" />
+                <span className="absolute -bottom-1 text-[10px] font-bold">
+                  {language.toUpperCase()}
+                </span>
+              </Button>
               {user && (
                 <>
                   <NotificationPanel />
@@ -111,13 +128,13 @@ export default function Layout({ children, currentPageName }) {
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl('Profile')} className="cursor-pointer">
                         <UserCircle className="w-4 h-4 mr-2" />
-                        My Profile
+                        {t('profile')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl('MyListings')} className="cursor-pointer">
                         <LayoutDashboard className="w-4 h-4 mr-2" />
-                        My Collection
+                        {t('myCollection')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -126,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
                       className="text-red-600 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Logout
+                      {t('logout')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -182,7 +199,7 @@ export default function Layout({ children, currentPageName }) {
                         className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
-                        Logout
+                        {t('logout')}
                       </Button>
                     </div>
                   </div>
@@ -197,7 +214,8 @@ export default function Layout({ children, currentPageName }) {
         <main>
           {children}
         </main>
-      </div>
-    </NotificationProvider>
+        </div>
+      </NotificationProvider>
+    </LanguageProvider>
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, TrendingUp, Clock, Loader2, ArrowRightLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from '../LanguageProvider';
 
 import CardItem from '../cards/CardItem';
 import CardFilters from '../cards/CardFilters';
@@ -19,6 +20,7 @@ export default function ExchangeView({
   gradient = 'from-violet-600 to-indigo-600',
   icon 
 }) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [showListingModal, setShowListingModal] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -108,7 +110,7 @@ export default function ExchangeView({
               className="bg-white text-slate-900 hover:bg-slate-100 h-14 px-8 text-lg font-medium shadow-2xl"
             >
               <Plus className="w-5 h-5 mr-2" />
-              List Item
+              {t('listItem')}
             </Button>
           </motion.div>
         </div>
@@ -125,7 +127,7 @@ export default function ExchangeView({
                 onClick={() => setFilters(prev => ({ ...prev, category: 'all' }))}
                 className={filters.category === 'all' ? `bg-gradient-to-r ${gradient} text-white` : ''}
               >
-                All
+                {t('all')}
               </Button>
               {subcategories.map((sub) => (
                 <Button
@@ -147,18 +149,18 @@ export default function ExchangeView({
           
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500">
-              {filteredListings.length} items available
+              {filteredListings.length} {t('itemsAvailable')}
             </p>
-            
+
             <Tabs value={sortBy} onValueChange={setSortBy}>
               <TabsList className="bg-white border border-slate-200">
                 <TabsTrigger value="newest" className="text-sm">
                   <Clock className="w-4 h-4 mr-1" />
-                  Newest
+                  {t('newest')}
                 </TabsTrigger>
                 <TabsTrigger value="trades" className="text-sm">
                   <ArrowRightLeft className="w-4 h-4 mr-1" />
-                  Most Traded
+                  {t('mostTraded')}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -180,11 +182,11 @@ export default function ExchangeView({
             className="text-center py-24"
           >
             <div className="text-6xl mb-4">{icon}</div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No items found</h3>
-            <p className="text-slate-500 mb-6">Be the first to list an item in this category!</p>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">{t('noItemsFound')}</h3>
+            <p className="text-slate-500 mb-6">{t('beFirstToList')}</p>
             <Button onClick={() => setShowListingModal(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              List Item
+              {t('listItem')}
             </Button>
           </motion.div>
         )}
