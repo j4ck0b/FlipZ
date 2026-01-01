@@ -479,7 +479,7 @@ export default function Landing() {
             </div>
             </div>
             <div className="text-center text-slate-500 text-sm">
-            <p className="mb-1">© 2024 FlipCardZ.store. {t('allRightsReserved')}</p>
+            <p className="mb-1">© 2026 FlipCardZ.store. {t('allRightsReserved')}</p>
             <p>FlipZ sp. z o.o. (in organization)</p>
             </div>
         </div>
