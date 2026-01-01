@@ -91,11 +91,26 @@ export default function Profile() {
     enabled: !!viewingUser
   });
 
+  // Helper function to parse estimated value
+  const parseEstimatedValue = (estimatedValue) => {
+    if (!estimatedValue) return 0;
+    // Remove "zł" and trim
+    const cleaned = estimatedValue.replace(/zł/g, '').trim();
+    // Check for range (e.g., "200-400")
+    if (cleaned.includes('-')) {
+      const [min, max] = cleaned.split('-').map(v => parseFloat(v.trim()));
+      return (min + max) / 2; // Return average of range
+    }
+    // Single value
+    const value = parseFloat(cleaned);
+    return isNaN(value) ? 0 : value;
+  };
+
   const stats = {
     activeListings: listings.length,
     completedSales: allListings.filter(l => l.status === 'sold').length,
     tradesMade: allListings.filter(l => l.status === 'traded').length,
-    totalValue: listings.reduce((sum, l) => sum + (l.price || 0), 0)
+    totalValue: listings.reduce((sum, l) => sum + parseEstimatedValue(l.estimated_value), 0)
   };
 
   const getInitials = (name) => {
