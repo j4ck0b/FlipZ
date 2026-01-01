@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { base44 } from '@/api/base44Client';
-import { Upload, Loader2, ImageIcon } from "lucide-react";
+import { Upload, Loader2, ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from '../LanguageProvider';
 
@@ -22,11 +22,12 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     condition: 'near_mint',
     rarity: 'common',
     looking_for: '',
-    image_url: ''
+    image_urls: []
   });
 
   useEffect(() => {
     if (editListing) {
+      const images = editListing.image_urls || (editListing.image_url ? [editListing.image_url] : []);
       setFormData({
         title: editListing.title || '',
         description: editListing.description || '',
@@ -34,7 +35,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         condition: editListing.condition || 'near_mint',
         rarity: editListing.rarity || 'common',
         looking_for: editListing.looking_for || '',
-        image_url: editListing.image_url || ''
+        image_urls: images
       });
     } else {
       setFormData({
@@ -44,19 +45,50 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         condition: 'near_mint',
         rarity: 'common',
         looking_for: '',
-        image_url: ''
+        image_urls: []
       });
     }
   }, [editListing, open, defaultCategory]);
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    const currentImages = formData.image_urls.length;
+    const maxImages = 10;
+    
+    if (currentImages >= maxImages) {
+      toast.error(`Maximum ${maxImages} photos allowed`);
+      return;
+    }
+    
+    const remainingSlots = maxImages - currentImages;
+    const filesToUpload = files.slice(0, remainingSlots);
+    
+    if (files.length > remainingSlots) {
+      toast.warning(`Only ${remainingSlots} photo(s) can be added (max ${maxImages} total)`);
+    }
     
     setUploading(true);
-    const result = await base44.integrations.Core.UploadFile({ file });
-    setFormData(prev => ({ ...prev, image_url: result.file_url }));
+    const uploadedUrls = [];
+    
+    for (const file of filesToUpload) {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      uploadedUrls.push(result.file_url);
+    }
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      image_urls: [...prev.image_urls, ...uploadedUrls] 
+    }));
     setUploading(false);
+  };
+
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      image_urls: prev.image_urls.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -107,44 +139,60 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         <form onSubmit={handleSubmit} className="space-y-5 pt-4">
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label>{t('cardImage')}</Label>
-            <div className="relative">
-              {formData.image_url ? (
-                <div className="relative aspect-[3/4] max-h-48 w-auto mx-auto rounded-xl overflow-hidden bg-slate-100">
-                  <img 
-                    src={formData.image_url} 
-                    alt="Card" 
-                    className="w-full h-full object-contain"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    className="absolute bottom-2 right-2"
-                    onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
-                  >
-                    {t('remove')}
-                  </Button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  {uploading ? (
-                    <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
-                  ) : (
-                    <>
-                      <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                      <span className="text-sm text-slate-500">{t('clickToUpload')}</span>
-                    </>
-                  )}
-                </label>
-              )}
-            </div>
+            <Label>
+              {t('cardImage')} ({formData.image_urls.length}/10)
+            </Label>
+            
+            {/* Image Grid */}
+            {formData.image_urls.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {formData.image_urls.map((url, index) => (
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 group">
+                    <img 
+                      src={url} 
+                      alt={`Product ${index + 1}`} 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    {index === 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 text-center">
+                        Main
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Upload Button */}
+            {formData.image_urls.length < 10 && (
+              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                {uploading ? (
+                  <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                ) : (
+                  <>
+                    <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
+                    <span className="text-sm text-slate-500">{t('clickToUpload')}</span>
+                    <span className="text-xs text-slate-400 mt-1">Max 10 photos</span>
+                  </>
+                )}
+              </label>
+            )}
           </div>
 
           {/* Title */}
