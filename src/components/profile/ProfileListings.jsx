@@ -75,7 +75,7 @@ export default function ProfileListings({ listings, onCardClick }) {
                 <Badge variant="outline" className={`text-xs ${conditionColors[listing.condition]}`}>
                   {listing.condition?.replace('_', ' ')}
                 </Badge>
-                {listing.trade_only ? (
+                {listing.trade_only || !listing.price ? (
                   <span className="text-xs font-medium text-violet-600">Trade</span>
                 ) : (
                   <span className="text-sm font-bold text-slate-900">${listing.price}</span>
