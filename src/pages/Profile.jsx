@@ -336,9 +336,9 @@ export default function Profile() {
                           className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-slate-50 rounded-lg"
                         >
                           <div className="w-16 h-20 rounded-lg bg-white overflow-hidden flex-shrink-0">
-                            {listing.image_url ? (
+                            {(listing.image_urls && listing.image_urls.length > 0) || listing.image_url ? (
                               <img 
-                                src={listing.image_url} 
+                                src={listing.image_urls?.[0] || listing.image_url} 
                                 alt={listing.title}
                                 className="w-full h-full object-cover"
                               />
