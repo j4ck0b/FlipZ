@@ -356,7 +356,7 @@ export default function MyListings() {
                                   </span>
                                 </div>
                                 <p className="text-lg font-bold text-slate-900 mt-2">
-                                  {listing.trade_only || !listing.price ? t('tradeOnly') : `$${listing.price}`}
+                                  {listing.trade_only || !listing.price ? t('tradeOnly') : `${listing.price} zł`}
                                 </p>
                               </div>
 

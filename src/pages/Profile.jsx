@@ -352,7 +352,7 @@ export default function Profile() {
                             <h4 className="font-semibold text-slate-900">{listing.title}</h4>
                             <p className="text-sm text-slate-500 mt-1">
                               {listing.status === 'sold' ? t('sold') : t('traded')} • 
-                              {listing.trade_only || !listing.price ? ` ${t('tradeOnly')}` : ` $${listing.price}`}
+                              {listing.trade_only || !listing.price ? ` ${t('tradeOnly')}` : ` ${listing.price} zł`}
                             </p>
                           </div>
                           <Badge className={
