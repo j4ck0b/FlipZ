@@ -150,7 +150,7 @@ export default function CardItem({ listing, onClick }) {
             {listing.trade_only ? (
               <span className="text-sm font-medium text-violet-600">Open to offers</span>
             ) : (
-              <span className="text-lg font-bold text-slate-900">${listing.price}</span>
+              <span className="text-lg font-bold text-slate-900">{listing.price} zł</span>
             )}
             <button
               onClick={(e) => {
