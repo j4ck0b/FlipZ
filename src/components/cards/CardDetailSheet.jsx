@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
@@ -58,6 +59,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -121,7 +123,8 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                 <img 
                   src={images[selectedImageIndex]} 
                   alt={listing.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain cursor-pointer"
+                  onClick={() => setFullScreenImage(images[selectedImageIndex])}
                 />
                 {images.length > 1 && (
                   <>
@@ -310,6 +313,16 @@ export default function CardDetailSheet({ listing, open, onClose }) {
           onClose();
         }}
       />
-    </>
-  );
-}
+
+      <Dialog open={!!fullScreenImage} onOpenChange={() => setFullScreenImage(null)}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95">
+          <img 
+            src={fullScreenImage} 
+            alt="Full screen view"
+            className="w-full h-full object-contain max-h-[95vh]"
+          />
+        </DialogContent>
+      </Dialog>
+      </>
+      );
+      }
