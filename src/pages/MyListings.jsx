@@ -462,8 +462,8 @@ export default function MyListings() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
                               <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
-                                {card.image_url && (
-                                  <img src={card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
+                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
@@ -682,8 +682,8 @@ export default function MyListings() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
                               <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
-                                {card.image_url && (
-                                  <img src={card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
+                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
