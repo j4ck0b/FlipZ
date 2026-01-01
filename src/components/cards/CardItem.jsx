@@ -147,7 +147,7 @@ export default function CardItem({ listing, onClick }) {
           </div>
           
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-            {listing.trade_only ? (
+            {listing.trade_only || !listing.price ? (
               <span className="text-sm font-medium text-violet-600">Open to offers</span>
             ) : (
               <span className="text-lg font-bold text-slate-900">{listing.price} zł</span>
