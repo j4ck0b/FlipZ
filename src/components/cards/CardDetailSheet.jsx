@@ -55,6 +55,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
   if (!listing) return null;
 
   const isOwnListing = currentUser?.email === listing.created_by;
+  const images = listing.image_urls || (listing.image_url ? [listing.image_url] : []);
 
   return (
     <>
@@ -112,12 +114,29 @@ export default function CardDetailSheet({ listing, open, onClose }) {
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
           {/* Card Image */}
           <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50">
-            {listing.image_url ? (
-              <img 
-                src={listing.image_url} 
-                alt={listing.title}
-                className="w-full h-full object-contain"
-              />
+            {images.length > 0 ? (
+              <>
+                <img 
+                  src={images[selectedImageIndex]} 
+                  alt={listing.title}
+                  className="w-full h-full object-contain"
+                />
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          idx === selectedImageIndex 
+                            ? 'bg-white w-6' 
+                            : 'bg-white/50 hover:bg-white/80'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-8xl opacity-50">
                 🃏
@@ -135,7 +154,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
             </div>
             
             {/* Badges */}
-            <div className="absolute bottom-4 left-4 flex gap-2">
+            <div className="absolute top-4 left-4 flex gap-2">
               {listing.rarity && (
                 <Badge className={`${rarityColors[listing.rarity]} border-0`}>
                   {listing.rarity === 'legendary' && <Sparkles className="w-3 h-3 mr-1" />}

@@ -92,9 +92,9 @@ export default function CardItem({ listing, onClick }) {
         onClick={onClick}
       >
         <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
-          {listing.image_url ? (
+          {(listing.image_urls && listing.image_urls.length > 0) || listing.image_url ? (
             <img 
-              src={listing.image_url} 
+              src={listing.image_urls?.[0] || listing.image_url} 
               alt={listing.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

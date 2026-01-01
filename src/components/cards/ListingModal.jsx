@@ -116,7 +116,13 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       toast.success(t('listingUpdated'));
     } else {
       await base44.entities.CardListing.create(data);
-      toast.success(t('cardListed'));
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <div className="font-semibold">🎉 {t('cardListed')}</div>
+          <div className="text-sm opacity-90">Your item is now live on the marketplace!</div>
+        </div>,
+        { duration: 4000 }
+      );
     }
     
     setLoading(false);

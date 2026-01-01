@@ -233,7 +233,8 @@ const translations = {
     listItem: "List Item",
     setDisplayNameFirst: "Please set your display name in your profile first",
     listingUpdated: "Listing updated successfully!",
-    cardListed: "Card listed successfully!"
+    cardListed: "Card listed successfully!",
+    yourItemIsLive: "Your item is now live on the marketplace!"
     },
 
     pl: {
@@ -468,7 +469,8 @@ const translations = {
     listItem: "Wystaw przedmiot",
     setDisplayNameFirst: "Najpierw ustaw swoją nazwę wyświetlaną w profilu",
     listingUpdated: "Ogłoszenie zaktualizowane!",
-    cardListed: "Karta wystawiona pomyślnie!"
+    cardListed: "Karta wystawiona pomyślnie!",
+    yourItemIsLive: "Twój przedmiot jest teraz dostępny na rynku!"
     }
     };
 
