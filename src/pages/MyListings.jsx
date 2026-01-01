@@ -330,9 +330,9 @@ export default function MyListings() {
                                 className="w-20 h-28 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 cursor-pointer"
                                 onClick={() => setSelectedCard(listing)}
                               >
-                                {listing.image_url ? (
+                                {(listing.image_urls && listing.image_urls.length > 0) || listing.image_url ? (
                                   <img 
-                                    src={listing.image_url} 
+                                    src={listing.image_urls?.[0] || listing.image_url} 
                                     alt={listing.title}
                                     className="w-full h-full object-cover"
                                   />
