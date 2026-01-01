@@ -73,8 +73,16 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     const uploadedUrls = [];
     
     for (const file of filesToUpload) {
-      const result = await base44.integrations.Core.UploadFile({ file });
-      uploadedUrls.push(result.file_url);
+      // Upload original
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      
+      // Compress the image
+      const compressResult = await base44.functions.invoke('compressImage', { 
+        imageUrl: uploadResult.file_url 
+      });
+      
+      // Use compressed version
+      uploadedUrls.push(compressResult.data.compressedUrl);
     }
     
     setFormData(prev => ({ 
