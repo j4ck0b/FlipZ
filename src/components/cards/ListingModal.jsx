@@ -232,6 +232,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   <SelectItem value="lego_minifigures">LEGO</SelectItem>
                   <SelectItem value="funko_pop">Funko Pop</SelectItem>
                   <SelectItem value="anime_figures">Anime Figures</SelectItem>
+                  <SelectItem value="figures">Figures</SelectItem>
                   <SelectItem value="designer_toys">Designer Toys</SelectItem>
                   <SelectItem value="hot_wheels">Hot Wheels</SelectItem>
                   <SelectItem value="retro_games">Retro Games</SelectItem>
