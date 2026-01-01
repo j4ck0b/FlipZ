@@ -27,7 +27,7 @@ export default function ProfileStats({ stats }) {
     },
     { 
       label: 'Total Value', 
-      value: `$${stats.totalValue || 0}`, 
+      value: `${stats.totalValue || 0} zł`, 
       icon: TrendingUp,
       color: 'text-amber-600',
       bgColor: 'bg-amber-100'
