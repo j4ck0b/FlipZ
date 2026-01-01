@@ -10,7 +10,9 @@ import {
   User,
   X,
   ExternalLink,
-  Heart
+  Heart,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import TradeOfferModal from '../trade/TradeOfferModal';
@@ -113,7 +115,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
           {/* Card Image */}
-          <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50">
+          <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 group">
             {images.length > 0 ? (
               <>
                 <img 
@@ -122,19 +124,44 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                   className="w-full h-full object-contain"
                 />
                 {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {images.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setSelectedImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          idx === selectedImageIndex 
-                            ? 'bg-white w-6' 
-                            : 'bg-white/50 hover:bg-white/80'
-                        }`}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    {/* Navigation Arrows */}
+                    {selectedImageIndex > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setSelectedImageIndex(selectedImageIndex - 1)}
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+                    )}
+                    {selectedImageIndex < images.length - 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setSelectedImageIndex(selectedImageIndex + 1)}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
+                    )}
+                    
+                    {/* Dots Indicator */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      {images.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            idx === selectedImageIndex 
+                              ? 'bg-white w-6' 
+                              : 'bg-white/50 hover:bg-white/80'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </>
             ) : (
