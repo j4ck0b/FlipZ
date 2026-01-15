@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
       success: true,
       labels: [
         { recipient: offer.sender_email, tracking: mockTrackingSender, url: mockLabelUrlSender },
-        { recipient: offer.owner_email, tracking: mockTrackingOwner, url: mockLabelUrlUrlOwner }
+        { recipient: offer.owner_email, tracking: mockTrackingOwner, url: mockLabelUrlOwner }
       ]
     });
 
