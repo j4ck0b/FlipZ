@@ -35,16 +35,17 @@ export default function SubscriptionPage() {
   });
 
   const handleSubscribe = async (plan) => {
-    if (!plan.stripe_price_id) {
-      toast.error('Ten plan nie jest jeszcze dostępny');
+    if (plan.tier === 'free') {
+      toast.error('Jesteś już na darmowym planie');
       return;
     }
 
     setLoading(plan.tier);
     try {
       const { data } = await base44.functions.invoke('createCheckoutSession', {
-        priceId: plan.stripe_price_id,
-        tier: plan.tier
+        tier: plan.tier,
+        amount: plan.price_monthly,
+        planName: plan.name
       });
 
       if (data.url) {

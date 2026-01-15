@@ -12,10 +12,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { priceId, tier } = await req.json();
+    const { priceId, tier, amount, planName } = await req.json();
 
-    if (!priceId || !tier) {
-      return Response.json({ error: 'Missing priceId or tier' }, { status: 400 });
+    if (!tier) {
+      return Response.json({ error: 'Missing tier' }, { status: 400 });
     }
 
     // Get or create Stripe customer
@@ -37,13 +37,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create checkout session
+    // Create checkout session with dynamic pricing
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card', 'blik'],
       line_items: [
         {
-          price: priceId,
+          price_data: {
+            currency: 'pln',
+            product_data: {
+              name: planName || `Subscription - ${tier}`,
+              description: `Monthly subscription plan`,
+            },
+            recurring: {
+              interval: 'month',
+            },
+            unit_amount: Math.round(amount * 100), // Convert to grosz
+          },
           quantity: 1,
         },
       ],
