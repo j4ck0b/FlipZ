@@ -362,11 +362,11 @@ export default function AdminDashboard() {
 
         {/* Offers Tab */}
         {activeTab === 'offers' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Wymiany</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 md:space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Wymiany</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 md:space-y-4">
             <div className="flex flex-col gap-2 md:flex-row md:gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
