@@ -791,12 +791,12 @@ export default function AdminDashboard() {
                           </div>
 
                           <div className="flex-1">
-                            <label className="text-xs text-slate-600 mb-1 block">Zmień krok postępu</label>
+                            <label className="text-xs text-slate-600 mb-1 block">Krok</label>
                             <Select 
                               value={offer.progress_step || 'offer_sent'} 
                               onValueChange={(value) => handleProgressChange(offer.id, value)}
                             >
-                              <SelectTrigger className="h-9">
+                              <SelectTrigger className="h-9 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
