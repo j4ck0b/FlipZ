@@ -855,10 +855,59 @@ export default function AdminDashboard() {
               </div>
             )}
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+          )}
 
-      {/* Inspection Modal */}
+          {/* Listings Tab */}
+          {activeTab === 'listings' && (
+          <Card>
+          <CardHeader>
+            <CardTitle>Ogłoszenia</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {listings.length === 0 ? (
+              <div className="text-center py-12 text-slate-500">
+                <p>Brak ogłoszeń w systemie</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {listings.map((listing) => (
+                  <div key={listing.id} className="flex items-start justify-between p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-slate-900 truncate">{listing.title}</h4>
+                      <p className="text-xs text-slate-600 truncate">{listing.collector_name || listing.created_by}</p>
+                      <div className="flex gap-2 mt-1 flex-wrap">
+                        <Badge variant="outline" className="text-xs">{listing.category}</Badge>
+                        <Badge variant="outline" className="text-xs">{listing.condition}</Badge>
+                        <Badge 
+                          className={`text-xs ${
+                            listing.status === 'available' ? 'bg-green-100 text-green-800' :
+                            listing.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                            'bg-slate-100 text-slate-800'
+                          }`}
+                        >
+                          {listing.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteListing(listing)}
+                      className="ml-3 text-xs"
+                    >
+                      Usuń
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+          </Card>
+          )}
+          </div>
+
+          {/* Inspection Modal */}
       <Dialog open={inspectionModal} onOpenChange={setInspectionModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
