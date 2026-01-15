@@ -518,20 +518,26 @@ export default function MyListings() {
                            </Button>
                          </>
                        )}
-                       {(offer.status === 'pending' || offer.status === 'accepted') && (
+                       {(offer.status === 'pending' || offer.status === 'accepted') && !offer.both_paid && (
                          <Button 
                            variant="outline"
                            onClick={async () => {
-                             await base44.entities.TradeOffer.update(offer.id, { status: 'cancelled' });
-                             await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
-                             for (const cardId of offer.offered_card_ids || []) {
-                               await base44.entities.CardListing.update(cardId, { status: 'available' });
+                             try {
+                               const { data } = await base44.functions.invoke('cancelTrade', {
+                                 tradeOfferId: offer.id,
+                                 reason: 'Cancelled by owner'
+                               });
+                               if (data.success) {
+                                 queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                                 queryClient.invalidateQueries({ queryKey: ['myListings'] });
+                                 toast.success('Trade cancelled successfully');
+                               }
+                             } catch (error) {
+                               toast.error(error.response?.data?.error || 'Failed to cancel trade');
                              }
-                             queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-                             queryClient.invalidateQueries({ queryKey: ['myListings'] });
-                             toast.success('Offer cancelled');
                            }}
                            className="flex-1 text-red-600 hover:bg-red-50"
+                           disabled={offer.both_paid || (offer.sender_paid && offer.owner_paid)}
                          >
                            <XCircle className="w-4 h-4 mr-2" />
                            Anuluj
@@ -732,20 +738,26 @@ export default function MyListings() {
                           <MessageCircle className="w-4 h-4 mr-2" />
                           {t('chat')}
                         </Button>
-                        {(offer.status === 'pending' || offer.status === 'accepted') && (
+                        {(offer.status === 'pending' || offer.status === 'accepted') && !offer.both_paid && (
                           <Button 
                             variant="outline"
                             onClick={async () => {
-                              await base44.entities.TradeOffer.update(offer.id, { status: 'cancelled' });
-                              await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
-                              for (const cardId of offer.offered_card_ids || []) {
-                                await base44.entities.CardListing.update(cardId, { status: 'available' });
+                              try {
+                                const { data } = await base44.functions.invoke('cancelTrade', {
+                                  tradeOfferId: offer.id,
+                                  reason: 'Cancelled by sender'
+                                });
+                                if (data.success) {
+                                  queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                                  queryClient.invalidateQueries({ queryKey: ['myListings'] });
+                                  toast.success('Trade cancelled successfully');
+                                }
+                              } catch (error) {
+                                toast.error(error.response?.data?.error || 'Failed to cancel trade');
                               }
-                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                              queryClient.invalidateQueries({ queryKey: ['myListings'] });
-                              toast.success('Offer cancelled');
                             }}
                             className="flex-1 text-red-600 hover:bg-red-50"
+                            disabled={offer.both_paid || (offer.sender_paid && offer.owner_paid)}
                           >
                             <XCircle className="w-4 h-4 mr-2" />
                             Anuluj
