@@ -98,12 +98,12 @@ export default function MyListings() {
     
     if (paymentStatus === 'success') {
       toast.success('Płatność zakończona sukcesem! 🎉');
-      window.history.replaceState({}, '', '/my-listings');
+      window.history.replaceState({}, '', '/MyListings');
       queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
       queryClient.invalidateQueries({ queryKey: ['myOffers'] });
     } else if (paymentStatus === 'cancelled') {
       toast.error('Płatność anulowana');
-      window.history.replaceState({}, '', '/my-listings');
+      window.history.replaceState({}, '', '/MyListings');
     }
   }, []);
 
