@@ -475,12 +475,12 @@ export default function AdminDashboard() {
                         )}
 
                         {/* Shipping to Hub Status - Admin Control */}
-                        {(offer.status === 'awaiting_shipment' || offer.status === 'in_transit_to_hub' || offer.status === 'preparing_shipment') && (
-                          <div className="space-y-2 pt-3 border-t bg-blue-50 p-3 rounded-lg">
-                            <h4 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                              <Truck className="w-4 h-4" />
-                              Kontrola wysyłki do Hub
-                            </h4>
+                         {(offer.status === 'awaiting_shipment' || offer.status === 'in_transit_to_hub' || offer.status === 'preparing_shipment') && (
+                           <div className="space-y-2 pt-2 border-t bg-blue-50 p-2 md:p-3 rounded text-sm">
+                             <h4 className="text-xs md:text-sm font-semibold text-blue-900 flex items-center gap-1 md:gap-2">
+                               <Truck className="w-3 h-3 md:w-4 md:h-4" />
+                               Kontrola wysyłki do Hub
+                             </h4>
                             <p className="text-xs text-blue-700 mb-2">
                               Zaznacz paczki, które fizycznie dotarły do centrum Hub
                             </p>
