@@ -268,21 +268,22 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-              <Shield className="w-8 h-8 text-violet-600" />
-              Panel Administratora
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <Shield className="w-6 md:w-8 h-6 md:h-8 text-violet-600" />
+              <span className="hidden md:inline">Panel Administratora</span>
+              <span className="md:hidden">Panel Admin</span>
             </h1>
-            <p className="text-slate-600 mt-1">Zarządzanie platformą FlipCardZ</p>
+            <p className="text-slate-600 text-sm mt-1">Zarządzanie FlipCardZ</p>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Wszystkie wymiany</CardTitle>
