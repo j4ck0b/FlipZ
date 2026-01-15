@@ -485,15 +485,15 @@ export default function AdminDashboard() {
                                Paczki które dotarły do Hub
                              </p>
                             <div className="space-y-2">
-                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
-                                offer.sender_package_sent 
-                                  ? 'bg-green-50 border-green-300' 
-                                  : 'bg-white border-blue-200'
-                              }`}>
-                                <div>
-                                  <span className="text-sm font-medium block">Paczka od: {offer.sender_name}</span>
-                                  <span className="text-xs text-slate-600">{offer.sender_email}</span>
-                                </div>
+                               <div className={`flex items-center justify-between p-2 md:p-3 rounded border-2 transition-all text-sm ${
+                                 offer.sender_package_sent 
+                                   ? 'bg-green-50 border-green-300' 
+                                   : 'bg-white border-blue-200'
+                               }`}>
+                                 <div className="min-w-0">
+                                   <span className="text-xs md:text-sm font-medium block truncate">Od: {offer.sender_name}</span>
+                                   <span className="text-xs text-slate-600 truncate">{offer.sender_email}</span>
+                                 </div>
                                 <Button
                                   size="sm"
                                   variant={offer.sender_package_sent ? "default" : "outline"}
