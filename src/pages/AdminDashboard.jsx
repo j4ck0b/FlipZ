@@ -336,7 +336,32 @@ export default function AdminDashboard() {
           </Card>
           </div>
 
-        {/* Filters */}
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-slate-200">
+          <button
+            onClick={() => setActiveTab('offers')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'offers'
+                ? 'border-violet-600 text-violet-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Wymiany ({tradeOffers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('listings')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'listings'
+                ? 'border-violet-600 text-violet-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Ogłoszenia ({listings.length})
+          </button>
+        </div>
+
+        {/* Offers Tab */}
+        {activeTab === 'offers' && (
         <Card>
           <CardHeader>
             <CardTitle>Wymiany</CardTitle>
