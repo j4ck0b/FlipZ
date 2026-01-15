@@ -464,11 +464,11 @@ export default function AdminDashboard() {
                             {offer.both_paid && (
                               <Button
                                 size="sm"
-                                className="w-full bg-green-600 hover:bg-green-700 mt-2"
+                                className="w-full bg-green-600 hover:bg-green-700 mt-2 text-xs md:text-sm"
                                 onClick={() => handleStatusChange(offer, 'awaiting_shipment')}
                               >
-                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Aktywuj etap wysyłki do Hub
+                                <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                                Aktywuj wysyłkę
                               </Button>
                             )}
                           </div>
