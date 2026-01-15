@@ -901,11 +901,11 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-          </Card>
-          )}
-          </div>
+              )}
+              </CardContent>
+              </Card>
+              )}
+              </div>
 
           {/* Inspection Modal */}
       <Dialog open={inspectionModal} onOpenChange={setInspectionModal}>
