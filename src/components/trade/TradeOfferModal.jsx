@@ -61,12 +61,12 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     setSending(true);
 
     try {
-      // Generate trade number
-      const { data: tradeNumberData } = await base44.functions.invoke('generateTradeNumber');
-      const tradeNumber = tradeNumberData?.tradeNumber || `TRADE-${Date.now()}`;
+      // Generate unique 12-digit trade ID
+      const { data: tradeIdData } = await base44.functions.invoke('generateTradeId');
+      const tradeId = tradeIdData?.tradeId || String(Date.now()).slice(-12);
       
       const offer = await base44.entities.TradeOffer.create({
-        trade_number: tradeNumber,
+        trade_id: tradeId,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
         owner_email: targetCard.created_by,
