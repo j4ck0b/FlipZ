@@ -48,6 +48,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Get origin URL
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/') || 'https://app.base44.app';
+    console.log('Using origin:', origin);
+
     // Create checkout session with dynamic pricing
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -69,8 +73,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/Subscription?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/Subscription?payment=cancelled`,
+      success_url: `${origin}/Subscription?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/Subscription?payment=cancelled`,
       metadata: {
         base44_user_id: user.id,
         subscription_tier: tier
