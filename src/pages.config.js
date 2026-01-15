@@ -1,3 +1,4 @@
+import AdminDashboard from './pages/AdminDashboard';
 import BrickExchange from './pages/BrickExchange';
 import CardExchange from './pages/CardExchange';
 import CollectibleExchange from './pages/CollectibleExchange';
@@ -9,11 +10,11 @@ import Landing from './pages/Landing';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
-import AdminDashboard from './pages/AdminDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminDashboard": AdminDashboard,
     "BrickExchange": BrickExchange,
     "CardExchange": CardExchange,
     "CollectibleExchange": CollectibleExchange,
@@ -25,7 +26,6 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
-    "AdminDashboard": AdminDashboard,
 }
 
 export const pagesConfig = {

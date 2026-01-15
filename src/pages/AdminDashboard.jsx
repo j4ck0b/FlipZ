@@ -111,14 +111,25 @@ export default function AdminDashboard() {
     updateOfferMutation.mutate({ id: offerId, data: { progress_step: newProgress } });
   };
 
-  const handlePackageReceived = async (offerId, packageType) => {
+  const handlePackageReceived = async (offerId, packageType, offer) => {
     const updateData = packageType === 'sender' 
       ? { sender_package_sent: true }
       : { owner_package_sent: true };
     
+    // Check if both packages will be received after this update
+    const bothReceived = packageType === 'sender' 
+      ? updateData.sender_package_sent && offer.owner_package_sent
+      : offer.sender_package_sent && updateData.owner_package_sent;
+    
+    // If both packages received, update status
+    if (bothReceived) {
+      updateData.status = 'in_transit_to_hub';
+      updateData.progress_step = 'hub_verification';
+    }
+    
     await base44.entities.TradeOffer.update(offerId, updateData);
     queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
-    toast.success(`Paczka ${packageType === 'sender' ? 'nadawcy' : 'właściciela'} potwierdzona`);
+    toast.success(`Paczka ${packageType === 'sender' ? 'nadawcy' : 'właściciela'} odebrana w Hub`);
   };
 
   const openInspectionModal = (offer) => {
@@ -449,64 +460,92 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
-                        {/* Shipping to Hub Status */}
-                        {(offer.status === 'awaiting_shipment' || offer.status === 'in_transit_to_hub') && (
+                        {/* Shipping to Hub Status - Admin Control */}
+                        {(offer.status === 'awaiting_shipment' || offer.status === 'in_transit_to_hub' || offer.status === 'preparing_shipment') && (
                           <div className="space-y-2 pt-3 border-t bg-blue-50 p-3 rounded-lg">
                             <h4 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
                               <Truck className="w-4 h-4" />
-                              Wysyłka do Hub
+                              Kontrola wysyłki do Hub
                             </h4>
+                            <p className="text-xs text-blue-700 mb-2">
+                              Zaznacz paczki, które fizycznie dotarły do centrum Hub
+                            </p>
                             <div className="space-y-2">
-                              <div className="flex items-center justify-between p-2 bg-white rounded border">
-                                <span className="text-sm">Paczka nadawcy ({offer.sender_name})</span>
+                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                                offer.sender_package_sent 
+                                  ? 'bg-green-50 border-green-300' 
+                                  : 'bg-white border-blue-200'
+                              }`}>
+                                <div>
+                                  <span className="text-sm font-medium block">Paczka od: {offer.sender_name}</span>
+                                  <span className="text-xs text-slate-600">{offer.sender_email}</span>
+                                </div>
                                 <Button
                                   size="sm"
                                   variant={offer.sender_package_sent ? "default" : "outline"}
-                                  onClick={() => handlePackageReceived(offer.id, 'sender')}
+                                  onClick={() => handlePackageReceived(offer.id, 'sender', offer)}
                                   disabled={offer.sender_package_sent}
-                                  className={offer.sender_package_sent ? "bg-green-600 hover:bg-green-700" : ""}
+                                  className={offer.sender_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}
                                 >
                                   {offer.sender_package_sent ? (
                                     <>
                                       <CheckCircle2 className="w-4 h-4 mr-1" />
-                                      Odebrana w Hub
+                                      W Hub ✓
                                     </>
                                   ) : (
                                     <>
                                       <Package className="w-4 h-4 mr-1" />
-                                      Potwierdź odbiór
+                                      Oznacz jako dostarczoną
                                     </>
                                   )}
                                 </Button>
                               </div>
-                              <div className="flex items-center justify-between p-2 bg-white rounded border">
-                                <span className="text-sm">Paczka właściciela ({offer.owner_name})</span>
+                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                                offer.owner_package_sent 
+                                  ? 'bg-green-50 border-green-300' 
+                                  : 'bg-white border-blue-200'
+                              }`}>
+                                <div>
+                                  <span className="text-sm font-medium block">Paczka od: {offer.owner_name}</span>
+                                  <span className="text-xs text-slate-600">{offer.owner_email}</span>
+                                </div>
                                 <Button
                                   size="sm"
                                   variant={offer.owner_package_sent ? "default" : "outline"}
-                                  onClick={() => handlePackageReceived(offer.id, 'owner')}
+                                  onClick={() => handlePackageReceived(offer.id, 'owner', offer)}
                                   disabled={offer.owner_package_sent}
-                                  className={offer.owner_package_sent ? "bg-green-600 hover:bg-green-700" : ""}
+                                  className={offer.owner_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}
                                 >
                                   {offer.owner_package_sent ? (
                                     <>
                                       <CheckCircle2 className="w-4 h-4 mr-1" />
-                                      Odebrana w Hub
+                                      W Hub ✓
                                     </>
                                   ) : (
                                     <>
                                       <Package className="w-4 h-4 mr-1" />
-                                      Potwierdź odbiór
+                                      Oznacz jako dostarczoną
                                     </>
                                   )}
                                 </Button>
                               </div>
                             </div>
-                            {offer.sender_package_sent && offer.owner_package_sent && (
-                              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                                <p className="text-sm text-green-800 flex items-center gap-2">
-                                  <CheckCircle2 className="w-4 h-4" />
-                                  Obie paczki są w Hub - możesz rozpocząć inspekcję
+                            {offer.sender_package_sent && offer.owner_package_sent ? (
+                              <div className="mt-3 p-3 bg-green-100 border-2 border-green-400 rounded-lg">
+                                <p className="text-sm text-green-900 font-medium flex items-center gap-2">
+                                  <CheckCircle2 className="w-5 h-5" />
+                                  Obie paczki w Hub - możesz rozpocząć inspekcję ✓
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-xs text-amber-800 flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Oczekiwanie na dostarczenie {
+                                    !offer.sender_package_sent && !offer.owner_package_sent ? 'obu paczek' :
+                                    !offer.sender_package_sent ? 'paczki nadawcy' :
+                                    'paczki właściciela'
+                                  }
                                 </p>
                               </div>
                             )}
