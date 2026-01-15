@@ -87,7 +87,7 @@ export default function Landing() {
   const pricingTiers = [
     {
       name: "Basic",
-      price: "24 PLN",
+      price: "29 PLN",
       description: t('perExchange'),
       features: [t('standardEscrow'), t('basicVerification'), t('standardDelivery')]
     },
