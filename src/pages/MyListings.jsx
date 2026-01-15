@@ -95,12 +95,22 @@ export default function MyListings() {
     // Check for payment success
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
+    const sessionId = urlParams.get('session_id');
     
-    if (paymentStatus === 'success') {
-      toast.success('Płatność zakończona sukcesem! 🎉');
-      window.history.replaceState({}, '', '/MyListings');
-      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-      queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+    if (paymentStatus === 'success' && sessionId) {
+      (async () => {
+        try {
+          const { data } = await base44.functions.invoke('checkPaymentStatus', { sessionId });
+          if (data.success && data.paid) {
+            toast.success(data.bothPaid ? 'Płatność zakończona! Obie strony zapłaciły 🎉' : 'Płatność zakończona sukcesem! 🎉');
+            queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+            queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+          }
+        } catch (error) {
+          console.error('Payment check error:', error);
+        }
+        window.history.replaceState({}, '', '/MyListings');
+      })();
     } else if (paymentStatus === 'cancelled') {
       toast.error('Płatność anulowana');
       window.history.replaceState({}, '', '/MyListings');

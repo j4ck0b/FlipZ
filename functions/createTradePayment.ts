@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/MyListings?payment=success&trade=${tradeOfferId}`,
+      success_url: `${req.headers.get('origin')}/MyListings?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/MyListings?payment=cancelled`,
       metadata: {
         base44_user_id: user.id,
