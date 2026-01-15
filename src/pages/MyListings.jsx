@@ -127,7 +127,7 @@ export default function MyListings() {
     queryKey: ['myOffers', currentUser?.email],
     queryFn: () => base44.entities.TradeOffer.filter({ sender_email: currentUser.email }, '-created_date'),
     enabled: !!currentUser,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
     refetchOnWindowFocus: true
   });
 
@@ -135,7 +135,7 @@ export default function MyListings() {
     queryKey: ['incomingOffers', currentUser?.email],
     queryFn: () => base44.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_date'),
     enabled: !!currentUser,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
     refetchOnWindowFocus: true
   });
 
