@@ -482,8 +482,8 @@ export default function AdminDashboard() {
                                Kontrola wysyłki do Hub
                              </h4>
                             <p className="text-xs text-blue-700 mb-2">
-                              Zaznacz paczki, które fizycznie dotarły do centrum Hub
-                            </p>
+                               Paczki które dotarły do Hub
+                             </p>
                             <div className="space-y-2">
                               <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
                                 offer.sender_package_sent 
