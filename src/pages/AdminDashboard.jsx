@@ -238,6 +238,7 @@ export default function AdminDashboard() {
       shipping_to_hub: { color: 'bg-indigo-100 text-indigo-700', icon: Truck, label: 'Do Hub' },
       hub_verification: { color: 'bg-purple-100 text-purple-700', icon: Shield, label: 'Inspekcja' },
       shipping_to_users: { color: 'bg-blue-100 text-blue-700', icon: Truck, label: 'Dostawa' },
+      packages_delivered: { color: 'bg-teal-100 text-teal-700', icon: CheckCircle2, label: 'Paczki dostarczone' },
       completed: { color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2, label: 'Ukończone' },
       failed: { color: 'bg-red-100 text-red-700', icon: XCircle, label: 'Nieudane' }
     };
@@ -646,8 +647,61 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
+                        {/* Packages Delivered - Final Confirmation */}
+                        {offer.progress_step === 'packages_delivered' && (
+                          <div className="space-y-2 pt-3 border-t bg-teal-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-semibold text-teal-900 flex items-center gap-2">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Obie paczki dostarczone
+                            </h4>
+                            <p className="text-xs text-teal-700 mb-2">
+                              Obie strony potwierdziły odbiór swoich paczek
+                            </p>
+                            <div className="space-y-2">
+                              <div className="p-3 rounded bg-green-50 border-2 border-green-300">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-sm font-medium block">{offer.sender_name}</span>
+                                    <span className="text-xs text-slate-600">Otrzymał paczkę ✓</span>
+                                  </div>
+                                  <Badge className="bg-green-600 text-white">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                                    Potwierdzone
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="p-3 rounded bg-green-50 border-2 border-green-300">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-sm font-medium block">{offer.owner_name}</span>
+                                    <span className="text-xs text-slate-600">Otrzymał paczkę ✓</span>
+                                  </div>
+                                  <Badge className="bg-green-600 text-white">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                                    Potwierdzone
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                await base44.entities.TradeOffer.update(offer.id, {
+                                  status: 'completed',
+                                  progress_step: 'completed'
+                                });
+                                queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+                                toast.success('Wymiana oznaczona jako ukończona! 🎉');
+                              }}
+                              className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Zakończ wymianę
+                            </Button>
+                          </div>
+                        )}
+
                         {/* Final Delivery Status - User Controlled */}
-                        {offer.status === 'shipping_to_users' && (
+                        {offer.status === 'shipping_to_users' && offer.progress_step !== 'packages_delivered' && (
                           <div className="space-y-2 pt-3 border-t bg-emerald-50 p-3 rounded-lg">
                             <h4 className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
                               <Truck className="w-4 h-4" />
@@ -765,6 +819,7 @@ export default function AdminDashboard() {
                                 <SelectItem value="shipping_to_hub">Wysyłka do hub</SelectItem>
                                 <SelectItem value="hub_verification">Weryfikacja hub</SelectItem>
                                 <SelectItem value="shipping_to_users">Wysyłka do użytkowników</SelectItem>
+                                <SelectItem value="packages_delivered">Paczki dostarczone</SelectItem>
                                 <SelectItem value="completed">Ukończone</SelectItem>
                                 <SelectItem value="failed">Nieudane</SelectItem>
                               </SelectContent>

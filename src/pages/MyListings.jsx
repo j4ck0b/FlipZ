@@ -641,13 +641,12 @@ export default function MyListings() {
                              const otherField = 'sender_delivered';
                              const updates = { [field]: true };
                              if (offer[otherField]) {
-                               updates.status = 'completed';
-                               updates.progress_step = 'completed';
+                               updates.progress_step = 'packages_delivered';
                              }
                              await base44.entities.TradeOffer.update(offer.id, updates);
                              queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                             toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
+                             toast.success(updates.progress_step === 'packages_delivered' ? 'Obie paczki dostarczone! 🎉' : 'Potwierdzono odbiór paczki');
                            }}
                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                          >
@@ -655,7 +654,7 @@ export default function MyListings() {
                            Otrzymałem paczkę
                          </Button>
                        )}
-                       {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.owner_delivered && (
+                       {(offer.progress_step === 'shipping_to_users' || offer.progress_step === 'packages_delivered') && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.owner_delivered && (
                          <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                            <CheckCircle2 className="w-4 h-4 mr-2" />
                            Paczka odebrana ✓
@@ -879,13 +878,12 @@ export default function MyListings() {
                              const otherField = 'owner_delivered';
                              const updates = { [field]: true };
                              if (offer[otherField]) {
-                               updates.status = 'completed';
-                               updates.progress_step = 'completed';
+                               updates.progress_step = 'packages_delivered';
                              }
                              await base44.entities.TradeOffer.update(offer.id, updates);
                              queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                             toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
+                             toast.success(updates.progress_step === 'packages_delivered' ? 'Obie paczki dostarczone! 🎉' : 'Potwierdzono odbiór paczki');
                            }}
                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                          >
@@ -893,7 +891,7 @@ export default function MyListings() {
                            Otrzymałem paczkę
                          </Button>
                         )}
-                        {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.sender_delivered && (
+                        {(offer.progress_step === 'shipping_to_users' || offer.progress_step === 'packages_delivered') && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.sender_delivered && (
                          <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
                            <CheckCircle2 className="w-4 h-4 mr-2" />
                            Paczka odebrana ✓
