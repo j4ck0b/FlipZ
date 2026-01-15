@@ -499,17 +499,17 @@ export default function AdminDashboard() {
                                   variant={offer.sender_package_sent ? "default" : "outline"}
                                   onClick={() => handlePackageReceived(offer.id, 'sender', offer)}
                                   disabled={offer.sender_package_sent}
-                                  className={offer.sender_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}
+                                  className={`text-xs ${offer.sender_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}`}
                                 >
                                   {offer.sender_package_sent ? (
                                     <>
-                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
                                       W Hub ✓
                                     </>
                                   ) : (
                                     <>
-                                      <Package className="w-4 h-4 mr-1" />
-                                      Oznacz jako dostarczoną
+                                      <Package className="w-3 h-3 mr-1" />
+                                      Dostarcz
                                     </>
                                   )}
                                 </Button>
