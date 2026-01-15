@@ -32,6 +32,7 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [inspectionModal, setInspectionModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('offers');
   const [uploading, setUploading] = useState(false);
   const [inspectionData, setInspectionData] = useState({
     hub_photos_sender_package: [],
