@@ -39,6 +39,8 @@ function LayoutContent({ children, currentPageName }) {
     { name: t('profile'), page: 'Profile', icon: UserCircle },
   ];
 
+  // Hide subscription for now - premium features will be added later
+
   const adminNavItems = user?.role === 'admin' ? [
     { name: 'Panel Admin', page: 'AdminDashboard', icon: Sparkles }
   ] : [];
