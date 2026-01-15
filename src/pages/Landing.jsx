@@ -126,6 +126,7 @@ export default function Landing() {
   }, []);
 
   const handleGetStarted = () => {
+    // After successful login/registration, user will be redirected to Home
     base44.auth.redirectToLogin(createPageUrl('Home'));
   };
 
