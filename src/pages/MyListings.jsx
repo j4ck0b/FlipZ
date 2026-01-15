@@ -636,12 +636,31 @@ export default function MyListings() {
                        )}
                        {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
                          <Button
-                           onClick={() => setFinalAcceptOffer(offer)}
-                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                           onClick={async () => {
+                             const field = 'owner_delivered';
+                             const otherField = 'sender_delivered';
+                             const updates = { [field]: true };
+                             if (offer[otherField]) {
+                               updates.status = 'completed';
+                               updates.progress_step = 'completed';
+                             }
+                             await base44.entities.TradeOffer.update(offer.id, updates);
+                             queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                             queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                             toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
+                           }}
+                           disabled={offer.owner_delivered}
+                           className={`flex-1 ${offer.owner_delivered ? 'bg-green-600' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                          >
                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                           {t('completeTrade')}
-                           </Button>
+                           {offer.owner_delivered ? 'Paczka odebrana ✓' : 'Otrzymałem paczkę'}
+                         </Button>
+                       )}
+                       {offer.status === 'shipping_to_users' && !offer.owner_delivered && (
+                         <Badge className="flex-1 h-10 flex items-center justify-center bg-blue-100 text-blue-700">
+                           <Truck className="w-4 h-4 mr-2" />
+                           Paczka w drodze
+                         </Badge>
                            )}
                            </div>
                            </div>
@@ -856,12 +875,31 @@ export default function MyListings() {
                         )}
                         {offer.status === 'accepted' && offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
                           <Button
-                            onClick={() => setFinalAcceptOffer(offer)}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                            onClick={async () => {
+                              const field = 'sender_delivered';
+                              const otherField = 'owner_delivered';
+                              const updates = { [field]: true };
+                              if (offer[otherField]) {
+                                updates.status = 'completed';
+                                updates.progress_step = 'completed';
+                              }
+                              await base44.entities.TradeOffer.update(offer.id, updates);
+                              queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                              toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
+                            }}
+                            disabled={offer.sender_delivered}
+                            className={`flex-1 ${offer.sender_delivered ? 'bg-green-600' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                            {t('completeTrade')}
-                            </Button>
+                            {offer.sender_delivered ? 'Paczka odebrana ✓' : 'Otrzymałem paczkę'}
+                          </Button>
+                        )}
+                        {offer.status === 'shipping_to_users' && !offer.sender_delivered && (
+                          <Badge className="flex-1 h-10 flex items-center justify-center bg-blue-100 text-blue-700">
+                            <Truck className="w-4 h-4 mr-2" />
+                            Paczka w drodze
+                          </Badge>
                             )}
                             </div>
                             </div>

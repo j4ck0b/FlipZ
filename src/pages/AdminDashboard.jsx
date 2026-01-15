@@ -645,110 +645,76 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
-                        {/* Final Delivery Control */}
+                        {/* Final Delivery Status - User Controlled */}
                         {offer.status === 'shipping_to_users' && (
                           <div className="space-y-2 pt-3 border-t bg-emerald-50 p-3 rounded-lg">
                             <h4 className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
                               <Truck className="w-4 h-4" />
-                              Kontrola dostawy końcowej
+                              Status dostawy końcowej
                             </h4>
                             <p className="text-xs text-emerald-700 mb-2">
-                              Zaznacz paczki, które dotarły do użytkowników końcowych
+                              Użytkownicy potwierdzają odbiór swoich paczek
                             </p>
                             <div className="space-y-2">
-                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                              <div className={`p-3 rounded border-2 ${
                                 offer.sender_delivered 
                                   ? 'bg-green-50 border-green-300' 
                                   : 'bg-white border-emerald-200'
                               }`}>
-                                <div>
-                                  <span className="text-sm font-medium block">Do: {offer.sender_name}</span>
-                                  <span className="text-xs text-slate-600">Otrzymuje paczkę od {offer.owner_name}</span>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant={offer.sender_delivered ? "default" : "outline"}
-                                  onClick={async () => {
-                                    const updates = { sender_delivered: true };
-                                    if (offer.owner_delivered) {
-                                      updates.status = 'completed';
-                                      updates.progress_step = 'completed';
-                                    }
-                                    await base44.entities.TradeOffer.update(offer.id, updates);
-                                    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
-                                    toast.success('Paczka dostarczona do nadawcy');
-                                  }}
-                                  disabled={offer.sender_delivered}
-                                  className={offer.sender_delivered ? "bg-green-600 hover:bg-green-700" : "border-emerald-600 text-emerald-600 hover:bg-emerald-50"}
-                                >
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-sm font-medium block">{offer.sender_name}</span>
+                                    <span className="text-xs text-slate-600">Otrzymuje od: {offer.owner_name}</span>
+                                  </div>
                                   {offer.sender_delivered ? (
-                                    <>
-                                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                                      Dostarczona ✓
-                                    </>
+                                    <Badge className="bg-green-600 text-white">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      Potwierdzone ✓
+                                    </Badge>
                                   ) : (
-                                    <>
-                                      <Package className="w-4 h-4 mr-1" />
-                                      Oznacz dostarczenie
-                                    </>
+                                    <Badge className="bg-amber-100 text-amber-700">
+                                      <Clock className="w-3 h-3 mr-1" />
+                                      Oczekuje
+                                    </Badge>
                                   )}
-                                </Button>
+                                </div>
                               </div>
-                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                              <div className={`p-3 rounded border-2 ${
                                 offer.owner_delivered 
                                   ? 'bg-green-50 border-green-300' 
                                   : 'bg-white border-emerald-200'
                               }`}>
-                                <div>
-                                  <span className="text-sm font-medium block">Do: {offer.owner_name}</span>
-                                  <span className="text-xs text-slate-600">Otrzymuje paczkę od {offer.sender_name}</span>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant={offer.owner_delivered ? "default" : "outline"}
-                                  onClick={async () => {
-                                    const updates = { owner_delivered: true };
-                                    if (offer.sender_delivered) {
-                                      updates.status = 'completed';
-                                      updates.progress_step = 'completed';
-                                    }
-                                    await base44.entities.TradeOffer.update(offer.id, updates);
-                                    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
-                                    toast.success('Paczka dostarczona do właściciela');
-                                  }}
-                                  disabled={offer.owner_delivered}
-                                  className={offer.owner_delivered ? "bg-green-600 hover:bg-green-700" : "border-emerald-600 text-emerald-600 hover:bg-emerald-50"}
-                                >
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-sm font-medium block">{offer.owner_name}</span>
+                                    <span className="text-xs text-slate-600">Otrzymuje od: {offer.sender_name}</span>
+                                  </div>
                                   {offer.owner_delivered ? (
-                                    <>
-                                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                                      Dostarczona ✓
-                                    </>
+                                    <Badge className="bg-green-600 text-white">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      Potwierdzone ✓
+                                    </Badge>
                                   ) : (
-                                    <>
-                                      <Package className="w-4 h-4 mr-1" />
-                                      Oznacz dostarczenie
-                                    </>
+                                    <Badge className="bg-amber-100 text-amber-700">
+                                      <Clock className="w-3 h-3 mr-1" />
+                                      Oczekuje
+                                    </Badge>
                                   )}
-                                </Button>
+                                </div>
                               </div>
                             </div>
                             {offer.sender_delivered && offer.owner_delivered ? (
                               <div className="mt-3 p-3 bg-green-100 border-2 border-green-400 rounded-lg">
                                 <p className="text-sm text-green-900 font-medium flex items-center gap-2">
                                   <CheckCircle2 className="w-5 h-5" />
-                                  Obie paczki dostarczone - wymiana ukończona! ✓
+                                  Obie strony potwierdziły odbiór - wymiana ukończona! ✓
                                 </p>
                               </div>
                             ) : (
-                              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                <p className="text-xs text-amber-800 flex items-center gap-2">
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-xs text-blue-800 flex items-center gap-2">
                                   <AlertCircle className="w-4 h-4" />
-                                  Oczekiwanie na dostawę {
-                                    !offer.sender_delivered && !offer.owner_delivered ? 'obu paczek' :
-                                    !offer.sender_delivered ? `do ${offer.sender_name}` :
-                                    `do ${offer.owner_name}`
-                                  }
+                                  Oczekiwanie na potwierdzenie odbioru przez użytkowników
                                 </p>
                               </div>
                             )}
