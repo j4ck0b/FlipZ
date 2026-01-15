@@ -178,23 +178,35 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
           </div>
 
           {/* Protection Tiers */}
+          {itemCount >= 2 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
+              <p className="text-sm text-amber-900">
+                ⚠️ <span className="font-semibold">Więcej niż 1 przedmiot</span> - Basic Protection jest niedostępne. Wybierz wyższą ochronę.
+              </p>
+            </div>
+          )}
           <div className="grid md:grid-cols-3 gap-4">
             {protectionTiers.map((tier) => {
               const Icon = tier.icon;
               const isSelected = selectedTier === tier.id;
+              const isDisabled = isBasicDisabled && tier.id === 'basic';
 
               return (
                 <motion.div
                   key={tier.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                  whileTap={!isDisabled ? { scale: 0.98 } : {}}
                 >
                   <Card
-                    onClick={() => setSelectedTier(tier.id)}
-                    className={`cursor-pointer transition-all ${
-                      isSelected
-                        ? 'border-violet-500 border-2 shadow-lg'
-                        : 'border-slate-200 hover:border-violet-300'
+                    onClick={() => !isDisabled && setSelectedTier(tier.id)}
+                    className={`transition-all ${
+                      isDisabled
+                        ? 'opacity-50 cursor-not-allowed border-slate-200 bg-slate-50'
+                        : `cursor-pointer ${
+                          isSelected
+                            ? 'border-violet-500 border-2 shadow-lg'
+                            : 'border-slate-200 hover:border-violet-300'
+                          }`
                     }`}
                   >
                     <CardContent className="p-6">
