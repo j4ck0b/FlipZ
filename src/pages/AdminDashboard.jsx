@@ -332,20 +332,20 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle>Wymiany</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <CardContent className="space-y-3 md:space-y-4">
+            <div className="flex flex-col gap-2 md:flex-row md:gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  placeholder="Szukaj po nazwie użytkownika lub karcie..."
+                  placeholder="Szukaj..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 text-sm"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filtruj status" />
+                <SelectTrigger className="w-full md:w-48 text-sm">
+                  <SelectValue placeholder="Filtruj" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Wszystkie statusy</SelectItem>
