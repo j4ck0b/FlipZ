@@ -434,7 +434,7 @@ export default function AdminDashboard() {
 
                         {/* Payment Status */}
                         {offer.status === 'payment_required' && (
-                          <div className="space-y-2 pt-3 border-t bg-amber-50 p-3 rounded-lg">
+                          <div className="space-y-2 pt-2 border-t bg-amber-50 p-2 md:p-3 rounded text-sm">
                             <h4 className="text-sm font-semibold text-amber-900 flex items-center gap-2">
                               <AlertCircle className="w-4 h-4" />
                               Oczekiwanie na płatności
