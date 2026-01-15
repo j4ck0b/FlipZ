@@ -1036,7 +1036,6 @@ export default function MyListings() {
           userRole={inspectionReviewOffer.role}
           onSuccess={() => {
             setInspectionReviewOffer(null);
-            setFinalAcceptOffer(inspectionReviewOffer.offer);
           }}
         />
       )}
