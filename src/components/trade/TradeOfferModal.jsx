@@ -58,6 +58,27 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
       return;
     }
 
+    // Check trade limits
+    const tier = currentUser.subscription_tier || 'free';
+    const tradeCount = currentUser.trade_count_current_month || 0;
+    
+    const limits = {
+      free: 3,
+      basic: 10,
+      premium: 0 // 0 = unlimited
+    };
+    
+    const limit = limits[tier];
+    if (limit > 0 && tradeCount >= limit) {
+      toast.error(`Osiągnięto limit ${limit} wymian w tym miesiącu. Ulepsz subskrypcję, aby wysłać więcej ofert.`, {
+        action: {
+          label: 'Zobacz plany',
+          onClick: () => window.location.href = '/subscription'
+        }
+      });
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -106,6 +127,11 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         message_type: 'system',
         content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
         read: false
+      });
+
+      // Increment trade count for current month
+      await base44.auth.updateMe({
+        trade_count_current_month: (currentUser.trade_count_current_month || 0) + 1
       });
 
       setSending(false);
