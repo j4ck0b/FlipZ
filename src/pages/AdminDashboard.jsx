@@ -285,47 +285,47 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Wszystkie wymiany</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-slate-600">Wszystkie</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{tradeOffers.length}</div>
+              <div className="text-xl md:text-2xl font-bold text-slate-900">{tradeOffers.length}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Oczekujące</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-slate-600">Oczekujące</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600">
+              <div className="text-xl md:text-2xl font-bold text-amber-600">
                 {tradeOffers.filter(o => o.status === 'pending').length}
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Aktywne</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-slate-600">Aktywne</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl md:text-2xl font-bold text-blue-600">
                 {tradeOffers.filter(o => ['accepted', 'payment_required', 'awaiting_shipment', 'in_transit_to_hub', 'hub_verification', 'shipping_to_users'].includes(o.status)).length}
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Ukończone</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-slate-600">Ukończone</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl md:text-2xl font-bold text-green-600">
                 {tradeOffers.filter(o => o.status === 'completed').length}
               </div>
             </CardContent>
           </Card>
-        </div>
+          </div>
 
         {/* Filters */}
         <Card>
