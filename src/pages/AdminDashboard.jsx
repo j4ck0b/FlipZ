@@ -55,16 +55,26 @@ export default function AdminDashboard() {
     loadUser();
   }, []);
 
-  const { data: tradeOffers = [], isLoading } = useQuery({
+  const { data: tradeOffers = [], isLoading, error } = useQuery({
     queryKey: ['allTradeOffers'],
-    queryFn: () => base44.asServiceRole.entities.TradeOffer.list('-created_date'),
-    enabled: user?.role === 'admin'
+    queryFn: async () => {
+      try {
+        const offers = await base44.asServiceRole.entities.TradeOffer.list('-created_date', 1000);
+        console.log('Admin panel loaded offers:', offers.length);
+        return offers;
+      } catch (err) {
+        console.error('Error loading trade offers:', err);
+        return [];
+      }
+    },
+    enabled: !!user && user.role === 'admin',
+    refetchInterval: 10000
   });
 
   const { data: listings = [] } = useQuery({
     queryKey: ['allListings'],
-    queryFn: () => base44.asServiceRole.entities.CardListing.list('-created_date'),
-    enabled: user?.role === 'admin'
+    queryFn: () => base44.asServiceRole.entities.CardListing.list('-created_date', 1000),
+    enabled: !!user && user.role === 'admin'
   });
 
   const updateOfferMutation = useMutation({
@@ -326,10 +336,22 @@ export default function AdminDashboard() {
               <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
               </div>
-            ) : filteredOffers.length === 0 ? (
+            ) : error ? (
+              <div className="text-center py-12 text-red-500">
+                <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+                <p>Błąd ładowania: {error.message}</p>
+              </div>
+            ) : tradeOffers.length === 0 ? (
               <div className="text-center py-12 text-slate-500">
                 <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                <p>Brak wymian do wyświetlenia</p>
+                <p>Brak wymian w systemie</p>
+                <p className="text-xs mt-2">Żadne wymiany nie zostały jeszcze utworzone</p>
+              </div>
+            ) : filteredOffers.length === 0 ? (
+              <div className="text-center py-12 text-slate-500">
+                <Search className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p>Brak wymian pasujących do filtra</p>
+                <p className="text-xs mt-2">Zmień kryteria wyszukiwania</p>
               </div>
             ) : (
               <div className="space-y-3">
