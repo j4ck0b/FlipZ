@@ -1,0 +1,318 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Shield, 
+  Loader2, 
+  Search, 
+  ArrowRightLeft,
+  Package,
+  CheckCircle2,
+  XCircle,
+  AlertCircle
+} from "lucide-react";
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+
+export default function AdminDashboard() {
+  const [user, setUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const u = await base44.auth.me();
+      setUser(u);
+      
+      // Redirect if not admin
+      if (u?.role !== 'admin') {
+        window.location.href = '/';
+      }
+    };
+    loadUser();
+  }, []);
+
+  const { data: tradeOffers = [], isLoading } = useQuery({
+    queryKey: ['allTradeOffers'],
+    queryFn: () => base44.asServiceRole.entities.TradeOffer.list('-created_date'),
+    enabled: user?.role === 'admin'
+  });
+
+  const { data: listings = [] } = useQuery({
+    queryKey: ['allListings'],
+    queryFn: () => base44.asServiceRole.entities.CardListing.list('-created_date'),
+    enabled: user?.role === 'admin'
+  });
+
+  const updateOfferMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.asServiceRole.entities.TradeOffer.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+      toast.success('Status wymiany zaktualizowany');
+    }
+  });
+
+  const filteredOffers = tradeOffers.filter(offer => {
+    const matchesSearch = 
+      offer.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      offer.owner_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      offer.requested_card_title?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || offer.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleStatusChange = (offerId, newStatus) => {
+    updateOfferMutation.mutate({ id: offerId, data: { status: newStatus } });
+  };
+
+  const handleProgressChange = (offerId, newProgress) => {
+    updateOfferMutation.mutate({ id: offerId, data: { progress_step: newProgress } });
+  };
+
+  const getStatusBadge = (status) => {
+    const configs = {
+      pending: { color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
+      accepted: { color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
+      rejected: { color: 'bg-red-100 text-red-700', icon: XCircle },
+      payment_required: { color: 'bg-blue-100 text-blue-700', icon: Package },
+      completed: { color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
+      cancelled: { color: 'bg-slate-100 text-slate-700', icon: XCircle }
+    };
+    
+    const config = configs[status] || configs.pending;
+    const Icon = config.icon;
+    
+    return (
+      <Badge className={config.color}>
+        <Icon className="w-3 h-3 mr-1" />
+        {status}
+      </Badge>
+    );
+  };
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <Shield className="w-8 h-8 text-violet-600" />
+              Panel Administratora
+            </h1>
+            <p className="text-slate-600 mt-1">Zarządzanie platformą FlipCardZ</p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">Wszystkie wymiany</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{tradeOffers.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">Oczekujące</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-600">
+                {tradeOffers.filter(o => o.status === 'pending').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">Aktywne</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {tradeOffers.filter(o => ['accepted', 'payment_required', 'awaiting_shipment', 'in_transit_to_hub', 'hub_verification', 'shipping_to_users'].includes(o.status)).length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">Ukończone</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {tradeOffers.filter(o => o.status === 'completed').length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Wymiany</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Szukaj po nazwie użytkownika lub karcie..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filtruj status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Wszystkie statusy</SelectItem>
+                  <SelectItem value="pending">Oczekujące</SelectItem>
+                  <SelectItem value="accepted">Zaakceptowane</SelectItem>
+                  <SelectItem value="payment_required">Wymaga płatności</SelectItem>
+                  <SelectItem value="awaiting_shipment">Oczekuje wysyłki</SelectItem>
+                  <SelectItem value="in_transit_to_hub">W drodze do hub</SelectItem>
+                  <SelectItem value="hub_verification">Weryfikacja hub</SelectItem>
+                  <SelectItem value="shipping_to_users">Wysyłka do użytkowników</SelectItem>
+                  <SelectItem value="completed">Ukończone</SelectItem>
+                  <SelectItem value="rejected">Odrzucone</SelectItem>
+                  <SelectItem value="cancelled">Anulowane</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Trade Offers List */}
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              </div>
+            ) : filteredOffers.length === 0 ? (
+              <div className="text-center py-12 text-slate-500">
+                <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p>Brak wymian do wyświetlenia</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredOffers.map((offer) => (
+                  <Card key={offer.id} className="border-l-4 border-l-violet-600">
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-slate-900">
+                                {offer.sender_name} ↔ {offer.owner_name}
+                              </h3>
+                              {getStatusBadge(offer.status)}
+                            </div>
+                            <p className="text-sm text-slate-600">
+                              Karta: <span className="font-medium">{offer.requested_card_title}</span>
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              Utworzono: {format(new Date(offer.created_date), 'dd.MM.yyyy HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-lg text-sm">
+                          <div>
+                            <span className="text-slate-600">Oferowane karty:</span>
+                            <span className="ml-2 font-medium">{offer.offered_card_ids?.length || 0}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Krok postępu:</span>
+                            <span className="ml-2 font-medium">{offer.progress_step || 'offer_sent'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Tryb escrow:</span>
+                            <span className="ml-2 font-medium">{offer.escrow_mode || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Obaj zapłacili:</span>
+                            <span className="ml-2 font-medium">{offer.both_paid ? '✓ Tak' : '✗ Nie'}</span>
+                          </div>
+                        </div>
+
+                        {/* Admin Controls */}
+                        <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t">
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-600 mb-1 block">Zmień status</label>
+                            <Select 
+                              value={offer.status} 
+                              onValueChange={(value) => handleStatusChange(offer.id, value)}
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Oczekujące</SelectItem>
+                                <SelectItem value="accepted">Zaakceptowane</SelectItem>
+                                <SelectItem value="rejected">Odrzucone</SelectItem>
+                                <SelectItem value="payment_required">Wymaga płatności</SelectItem>
+                                <SelectItem value="awaiting_shipment">Oczekuje wysyłki</SelectItem>
+                                <SelectItem value="in_transit_to_hub">W drodze do hub</SelectItem>
+                                <SelectItem value="hub_verification">Weryfikacja hub</SelectItem>
+                                <SelectItem value="shipping_to_users">Wysyłka do użytkowników</SelectItem>
+                                <SelectItem value="completed">Ukończone</SelectItem>
+                                <SelectItem value="cancelled">Anulowane</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-600 mb-1 block">Zmień krok postępu</label>
+                            <Select 
+                              value={offer.progress_step || 'offer_sent'} 
+                              onValueChange={(value) => handleProgressChange(offer.id, value)}
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="offer_sent">Oferta wysłana</SelectItem>
+                                <SelectItem value="accepted">Zaakceptowana</SelectItem>
+                                <SelectItem value="payment">Płatność</SelectItem>
+                                <SelectItem value="preparing_shipment">Przygotowanie wysyłki</SelectItem>
+                                <SelectItem value="shipping_to_hub">Wysyłka do hub</SelectItem>
+                                <SelectItem value="hub_verification">Weryfikacja hub</SelectItem>
+                                <SelectItem value="shipping_to_users">Wysyłka do użytkowników</SelectItem>
+                                <SelectItem value="completed">Ukończone</SelectItem>
+                                <SelectItem value="failed">Nieudane</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -39,6 +39,10 @@ function LayoutContent({ children, currentPageName }) {
     { name: t('profile'), page: 'Profile', icon: UserCircle },
   ];
 
+  const adminNavItems = user?.role === 'admin' ? [
+    { name: 'Panel Admin', page: 'AdminDashboard', icon: Sparkles }
+  ] : [];
+
   useEffect(() => {
     const loadUser = async () => {
       const u = await base44.auth.me();
@@ -74,7 +78,7 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
+              {[...navItems, ...adminNavItems].map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPageName === item.page;
                 return (
@@ -168,9 +172,9 @@ function LayoutContent({ children, currentPageName }) {
                           <p className="text-sm text-slate-500">{user.email}</p>
                         </div>
                       </div>
-                    )}
-                    
-                    {navItems.map((item) => {
+                      )}
+
+                      {[...navItems, ...adminNavItems].map((item) => {
                       const Icon = item.icon;
                       const isActive = currentPageName === item.page;
                       return (
@@ -188,7 +192,7 @@ function LayoutContent({ children, currentPageName }) {
                           </Button>
                         </Link>
                       );
-                    })}
+                      })}
                     
                     <div className="pt-4 border-t mt-auto">
                       <Button 
