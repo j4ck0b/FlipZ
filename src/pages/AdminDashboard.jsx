@@ -765,14 +765,14 @@ export default function AdminDashboard() {
                         )}
 
                         {/* Admin Controls */}
-                        <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t">
+                        <div className="flex flex-col gap-2 md:flex-row md:gap-3 pt-2 md:pt-3 border-t">
                           <div className="flex-1">
-                            <label className="text-xs text-slate-600 mb-1 block">Zmień status</label>
+                            <label className="text-xs text-slate-600 mb-1 block">Status</label>
                             <Select 
                               value={offer.status} 
                               onValueChange={(value) => handleStatusChange(offer, value)}
                             >
-                              <SelectTrigger className="h-9">
+                              <SelectTrigger className="h-9 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
