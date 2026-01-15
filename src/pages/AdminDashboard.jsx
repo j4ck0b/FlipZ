@@ -411,24 +411,26 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Details */}
-                        <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded text-xs">
-                          <div>
-                            <span className="text-slate-600">Oferowane karty:</span>
-                            <span className="ml-2 font-medium">{offer.offered_card_ids?.length || 0}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-600">Krok postępu:</span>
-                            <span className="ml-2 font-medium">{offer.progress_step || 'offer_sent'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-600">Tryb escrow:</span>
-                            <span className="ml-2 font-medium">{offer.escrow_mode || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-600">Obaj zapłacili:</span>
-                            <span className="ml-2 font-medium">{offer.both_paid ? '✓ Tak' : '✗ Nie'}</span>
-                          </div>
-                        </div>
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-2 bg-slate-50 rounded text-xs border border-slate-200">
+                           <div>
+                             <div className="text-slate-600 font-medium">Karty</div>
+                             <div className="font-semibold text-slate-900">{offer.offered_card_ids?.length || 0}</div>
+                           </div>
+                           <div>
+                             <div className="text-slate-600 font-medium">Postęp</div>
+                             <div className="font-semibold text-slate-900 truncate">{(offer.progress_step || 'offer_sent').replace(/_/g, ' ')}</div>
+                           </div>
+                           <div>
+                             <div className="text-slate-600 font-medium">Escrow</div>
+                             <div className="font-semibold text-slate-900">{offer.escrow_mode || '-'}</div>
+                           </div>
+                           <div>
+                             <div className="text-slate-600 font-medium">Płatność</div>
+                             <div className={`font-semibold ${offer.both_paid ? 'text-green-700' : 'text-amber-700'}`}>
+                               {offer.both_paid ? '✓ Tak' : '✗ Nie'}
+                             </div>
+                           </div>
+                         </div>
 
                         {/* Payment Status */}
                         {offer.status === 'payment_required' && (
