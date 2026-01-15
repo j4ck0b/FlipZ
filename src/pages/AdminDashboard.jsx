@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Shield, 
   Loader2, 
@@ -14,7 +16,11 @@ import {
   Package,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Camera,
+  Truck,
+  FileText
 } from "lucide-react";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -23,6 +29,17 @@ export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [inspectionModal, setInspectionModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [inspectionData, setInspectionData] = useState({
+    hub_photos_sender_package: [],
+    hub_photos_owner_package: [],
+    hub_notes_sender: '',
+    hub_notes_owner: '',
+    hub_verification_sender: 'pending',
+    hub_verification_owner: 'pending'
+  });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -75,6 +92,109 @@ export default function AdminDashboard() {
 
   const handleProgressChange = (offerId, newProgress) => {
     updateOfferMutation.mutate({ id: offerId, data: { progress_step: newProgress } });
+  };
+
+  const handlePackageReceived = async (offerId, packageType) => {
+    const updateData = packageType === 'sender' 
+      ? { sender_package_sent: true }
+      : { owner_package_sent: true };
+    
+    await base44.asServiceRole.entities.TradeOffer.update(offerId, updateData);
+    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+    toast.success(`Paczka ${packageType === 'sender' ? 'nadawcy' : 'właściciela'} potwierdzona`);
+  };
+
+  const openInspectionModal = (offer) => {
+    setSelectedOffer(offer);
+    setInspectionData({
+      hub_photos_sender_package: offer.hub_photos_sender_package || [],
+      hub_photos_owner_package: offer.hub_photos_owner_package || [],
+      hub_notes_sender: offer.hub_notes_sender || '',
+      hub_notes_owner: offer.hub_notes_owner || '',
+      hub_verification_sender: offer.hub_verification_sender || 'pending',
+      hub_verification_owner: offer.hub_verification_owner || 'pending'
+    });
+    setInspectionModal(true);
+  };
+
+  const handleImageUpload = async (e, packageType) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    const uploadedUrls = [];
+    
+    for (const file of files) {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      uploadedUrls.push(result.file_url);
+    }
+    
+    const field = packageType === 'sender' ? 'hub_photos_sender_package' : 'hub_photos_owner_package';
+    setInspectionData(prev => ({
+      ...prev,
+      [field]: [...prev[field], ...uploadedUrls]
+    }));
+    setUploading(false);
+  };
+
+  const removeImage = (packageType, index) => {
+    const field = packageType === 'sender' ? 'hub_photos_sender_package' : 'hub_photos_owner_package';
+    setInspectionData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const saveInspection = async () => {
+    if (!selectedOffer) return;
+    
+    await base44.asServiceRole.entities.TradeOffer.update(selectedOffer.id, {
+      ...inspectionData,
+      status: 'hub_verification',
+      progress_step: 'hub_verification'
+    });
+    
+    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+    toast.success('Inspekcja zapisana');
+    setInspectionModal(false);
+    setSelectedOffer(null);
+  };
+
+  const generateShippingLabels = async (offer) => {
+    // Generowanie etykiet wysyłkowych po inspekcji
+    try {
+      // Etykieta dla nadawcy (dostanie paczkę właściciela)
+      await base44.asServiceRole.entities.ShippingLabel.create({
+        trade_offer_id: offer.id,
+        sender_email: 'hub@flipcardz.store',
+        recipient_email: offer.sender_email,
+        sender_address: 'FlipCardZ Hub, ul. Przykładowa 1, 00-001 Warszawa',
+        recipient_address: 'Adres nadawcy',
+        tracking_number: `TRACK-${Date.now()}-A`,
+        status: 'pending'
+      });
+
+      // Etykieta dla właściciela (dostanie paczkę nadawcy)
+      await base44.asServiceRole.entities.ShippingLabel.create({
+        trade_offer_id: offer.id,
+        sender_email: 'hub@flipcardz.store',
+        recipient_email: offer.owner_email,
+        sender_address: 'FlipCardZ Hub, ul. Przykładowa 1, 00-001 Warszawa',
+        recipient_address: 'Adres właściciela',
+        tracking_number: `TRACK-${Date.now()}-B`,
+        status: 'pending'
+      });
+
+      await base44.asServiceRole.entities.TradeOffer.update(offer.id, {
+        status: 'shipping_to_users',
+        progress_step: 'shipping_to_users'
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+      toast.success('Etykiety wysyłkowe wygenerowane');
+    } catch (error) {
+      toast.error('Błąd generowania etykiet');
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -255,6 +375,61 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
+                        {/* Package Status */}
+                        {(offer.status === 'in_transit_to_hub' || offer.status === 'awaiting_shipment') && (
+                          <div className="space-y-2 pt-3 border-t">
+                            <h4 className="text-sm font-semibold text-slate-900">Status paczek</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                size="sm"
+                                variant={offer.sender_package_sent ? "default" : "outline"}
+                                onClick={() => handlePackageReceived(offer.id, 'sender')}
+                                disabled={offer.sender_package_sent}
+                              >
+                                {offer.sender_package_sent ? <CheckCircle2 className="w-4 h-4 mr-1" /> : <Package className="w-4 h-4 mr-1" />}
+                                Paczka nadawcy
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={offer.owner_package_sent ? "default" : "outline"}
+                                onClick={() => handlePackageReceived(offer.id, 'owner')}
+                                disabled={offer.owner_package_sent}
+                              >
+                                {offer.owner_package_sent ? <CheckCircle2 className="w-4 h-4 mr-1" /> : <Package className="w-4 h-4 mr-1" />}
+                                Paczka właściciela
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hub Actions */}
+                        {(offer.sender_package_sent && offer.owner_package_sent) && (
+                          <div className="space-y-2 pt-3 border-t">
+                            <h4 className="text-sm font-semibold text-slate-900">Akcje Hub</h4>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openInspectionModal(offer)}
+                                className="flex-1"
+                              >
+                                <Camera className="w-4 h-4 mr-1" />
+                                Inspekcja paczek
+                              </Button>
+                              {offer.hub_verification_sender === 'passed' && offer.hub_verification_owner === 'passed' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => generateShippingLabels(offer)}
+                                  className="flex-1 bg-green-600 hover:bg-green-700"
+                                >
+                                  <Truck className="w-4 h-4 mr-1" />
+                                  Generuj etykiety
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Admin Controls */}
                         <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t">
                           <div className="flex-1">
@@ -313,6 +488,182 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Inspection Modal */}
+      <Dialog open={inspectionModal} onOpenChange={setInspectionModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Inspekcja paczek - Hub</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 pt-4">
+            {/* Sender Package */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Paczka nadawcy ({selectedOffer?.sender_name})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Photos */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Zdjęcia inspekcji</label>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {inspectionData.hub_photos_sender_package.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100">
+                        <img src={url} alt={`Sender ${idx + 1}`} className="w-full h-full object-cover" />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => removeImage('sender', idx)}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <label className="flex items-center justify-center h-24 border-2 border-dashed border-slate-200 rounded-lg cursor-pointer hover:border-slate-400">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleImageUpload(e, 'sender')}
+                      className="hidden"
+                    />
+                    {uploading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-6 h-6 mx-auto text-slate-400 mb-1" />
+                        <span className="text-sm text-slate-500">Dodaj zdjęcia</span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                {/* Verification */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Status weryfikacji</label>
+                  <Select 
+                    value={inspectionData.hub_verification_sender}
+                    onValueChange={(v) => setInspectionData(prev => ({ ...prev, hub_verification_sender: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Oczekuje</SelectItem>
+                      <SelectItem value="passed">Zatwierdzona ✓</SelectItem>
+                      <SelectItem value="failed">Odrzucona ✗</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Notatki</label>
+                  <Textarea
+                    value={inspectionData.hub_notes_sender}
+                    onChange={(e) => setInspectionData(prev => ({ ...prev, hub_notes_sender: e.target.value }))}
+                    placeholder="Notatki z inspekcji..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Owner Package */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Paczka właściciela ({selectedOffer?.owner_name})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Photos */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Zdjęcia inspekcji</label>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {inspectionData.hub_photos_owner_package.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100">
+                        <img src={url} alt={`Owner ${idx + 1}`} className="w-full h-full object-cover" />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => removeImage('owner', idx)}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <label className="flex items-center justify-center h-24 border-2 border-dashed border-slate-200 rounded-lg cursor-pointer hover:border-slate-400">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleImageUpload(e, 'owner')}
+                      className="hidden"
+                    />
+                    {uploading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-6 h-6 mx-auto text-slate-400 mb-1" />
+                        <span className="text-sm text-slate-500">Dodaj zdjęcia</span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                {/* Verification */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Status weryfikacji</label>
+                  <Select 
+                    value={inspectionData.hub_verification_owner}
+                    onValueChange={(v) => setInspectionData(prev => ({ ...prev, hub_verification_owner: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Oczekuje</SelectItem>
+                      <SelectItem value="passed">Zatwierdzona ✓</SelectItem>
+                      <SelectItem value="failed">Odrzucona ✗</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Notatki</label>
+                  <Textarea
+                    value={inspectionData.hub_notes_owner}
+                    onChange={(e) => setInspectionData(prev => ({ ...prev, hub_notes_owner: e.target.value }))}
+                    placeholder="Notatki z inspekcji..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setInspectionModal(false)} className="flex-1">
+                Anuluj
+              </Button>
+              <Button onClick={saveInspection} className="flex-1 bg-violet-600 hover:bg-violet-700">
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Zapisz inspekcję
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
