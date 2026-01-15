@@ -279,8 +279,8 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
           {/* Action Button */}
           <Button
             onClick={handleActivateTrade}
-            disabled={processing}
-            className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700"
+            disabled={processing || (isBasicDisabled && selectedTier === 'basic')}
+            className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {processing ? (
               <Loader2 className="w-5 h-5 animate-spin" />
