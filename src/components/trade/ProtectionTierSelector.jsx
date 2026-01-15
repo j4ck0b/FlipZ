@@ -58,6 +58,10 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
 
   const LABELS_FEE = 29;
 
+  // Check if Basic Protection should be disabled (2+ items)
+  const itemCount = tradeOffer?.offered_card_ids?.length || 0;
+  const isBasicDisabled = itemCount >= 2;
+
   const handleActivateTrade = async () => {
     setProcessing(true);
 
