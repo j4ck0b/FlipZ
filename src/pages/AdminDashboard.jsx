@@ -545,20 +545,20 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                             {offer.sender_package_sent && offer.owner_package_sent ? (
-                              <div className="mt-3 p-3 bg-green-100 border-2 border-green-400 rounded-lg">
-                                <p className="text-sm text-green-900 font-medium flex items-center gap-2">
-                                  <CheckCircle2 className="w-5 h-5" />
-                                  Obie paczki w Hub - możesz rozpocząć inspekcję ✓
+                              <div className="mt-2 p-2 md:p-3 bg-green-100 border border-green-400 rounded text-sm">
+                                <p className="text-xs md:text-sm text-green-900 font-medium flex items-center gap-1 md:gap-2">
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  Obie paczki w Hub ✓
                                 </p>
                               </div>
                             ) : (
-                              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                <p className="text-xs text-amber-800 flex items-center gap-2">
-                                  <AlertCircle className="w-4 h-4" />
-                                  Oczekiwanie na dostarczenie {
-                                    !offer.sender_package_sent && !offer.owner_package_sent ? 'obu paczek' :
-                                    !offer.sender_package_sent ? 'paczki nadawcy' :
-                                    'paczki właściciela'
+                              <div className="mt-2 p-2 md:p-3 bg-amber-50 border border-amber-200 rounded text-sm">
+                                <p className="text-xs text-amber-800 flex items-center gap-1 md:gap-2">
+                                  <AlertCircle className="w-3 h-3 md:w-4 md:h-4" />
+                                  Oczekiwanie na {
+                                    !offer.sender_package_sent && !offer.owner_package_sent ? 'obie paczki' :
+                                    !offer.sender_package_sent ? 'paczkę nadawcy' :
+                                    'paczkę właściciela'
                                   }
                                 </p>
                               </div>
