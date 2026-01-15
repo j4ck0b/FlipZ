@@ -210,7 +210,12 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
                     }`}
                   >
                     <CardContent className="p-6">
-                      {tier.badge && (
+                      {isDisabled && (
+                        <Badge className="mb-3 bg-red-100 text-red-700">
+                          Niedostępne
+                        </Badge>
+                      )}
+                      {tier.badge && !isDisabled && (
                         <Badge className="mb-3 bg-violet-100 text-violet-700">
                           {tier.badge}
                         </Badge>
