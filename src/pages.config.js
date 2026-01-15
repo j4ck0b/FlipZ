@@ -10,6 +10,8 @@ import Landing from './pages/Landing';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
+import Subscription from './pages/Subscription';
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +28,8 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "Profile": Profile,
+    "Subscription": Subscription,
+    "SubscriptionSuccess": SubscriptionSuccess,
 }
 
 export const pagesConfig = {
