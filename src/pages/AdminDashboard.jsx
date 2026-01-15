@@ -190,39 +190,26 @@ export default function AdminDashboard() {
   };
 
   const generateShippingLabels = async (offer) => {
-    // Generowanie etykiet wysyłkowych po inspekcji
     try {
-      // Etykieta dla nadawcy (dostanie paczkę właściciela)
-      await base44.entities.ShippingLabel.create({
-        trade_offer_id: offer.id,
-        sender_email: 'hub@flipcardz.store',
-        recipient_email: offer.sender_email,
-        sender_address: 'FlipCardZ Hub, ul. Przykładowa 1, 00-001 Warszawa',
-        recipient_address: 'Adres nadawcy',
-        tracking_number: `TRACK-${Date.now()}-A`,
-        status: 'pending'
+      // Wywołanie funkcji backendowej do generowania prawdziwych etykiet InPost
+      const { data } = await base44.functions.invoke('generateShippingLabelsFromHub', {
+        tradeOfferId: offer.id
       });
 
-      // Etykieta dla właściciela (dostanie paczkę nadawcy)
-      await base44.entities.ShippingLabel.create({
-        trade_offer_id: offer.id,
-        sender_email: 'hub@flipcardz.store',
-        recipient_email: offer.owner_email,
-        sender_address: 'FlipCardZ Hub, ul. Przykładowa 1, 00-001 Warszawa',
-        recipient_address: 'Adres właściciela',
-        tracking_number: `TRACK-${Date.now()}-B`,
-        status: 'pending'
-      });
+      if (data.success) {
+        await base44.entities.TradeOffer.update(offer.id, {
+          status: 'shipping_to_users',
+          progress_step: 'shipping_to_users'
+        });
 
-      await base44.entities.TradeOffer.update(offer.id, {
-        status: 'shipping_to_users',
-        progress_step: 'shipping_to_users'
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
-      toast.success('Etykiety wysyłkowe wygenerowane');
+        queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+        toast.success('Etykiety InPost wygenerowane! 🎉');
+      } else {
+        toast.error(data.error || 'Błąd generowania etykiet');
+      }
     } catch (error) {
-      toast.error('Błąd generowania etykiet');
+      console.error('Error generating labels:', error);
+      toast.error(error.response?.data?.error || 'Błąd generowania etykiet');
     }
   };
 
