@@ -12,15 +12,16 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
   const [accepting, setAccepting] = useState(false);
 
   const isSender = userRole === 'sender';
-  const myPackage = isSender ? 'owner' : 'sender';
-  const theirPackage = isSender ? 'sender' : 'owner';
+  // User sees what they will RECEIVE (the other person's package)
+  const packageIReceive = isSender ? 'owner' : 'sender';
+  const packageISend = isSender ? 'sender' : 'owner';
 
-  const myPhotos = tradeOffer[`hub_photos_${myPackage}_package`] || [];
-  const theirPhotos = tradeOffer[`hub_photos_${theirPackage}_package`] || [];
-  const myNotes = tradeOffer[`hub_notes_${myPackage}`];
-  const theirNotes = tradeOffer[`hub_notes_${theirPackage}`];
-  const myVerification = tradeOffer[`hub_verification_${myPackage}`];
-  const theirVerification = tradeOffer[`hub_verification_${theirPackage}`];
+  const photosIReceive = tradeOffer[`hub_photos_${packageIReceive}_package`] || [];
+  const photosISend = tradeOffer[`hub_photos_${packageISend}_package`] || [];
+  const notesIReceive = tradeOffer[`hub_notes_${packageIReceive}`];
+  const notesISend = tradeOffer[`hub_notes_${packageISend}`];
+  const verificationIReceive = tradeOffer[`hub_verification_${packageIReceive}`];
+  const verificationISend = tradeOffer[`hub_verification_${packageISend}`];
 
   const handleAccept = async () => {
     setAccepting(true);
@@ -63,99 +64,109 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
 
         <div className="space-y-6 mt-4">
           {/* Package You'll Receive */}
-          <Card>
+          <Card className="border-2 border-emerald-200 bg-emerald-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg">Package You'll Receive</h3>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <span className="text-2xl">📦</span>
+                  Co otrzymasz - Inspekcja paczki
+                </h3>
                 <Badge className={
-                  myVerification === 'passed' ? 'bg-green-100 text-green-700' :
-                  myVerification === 'failed' ? 'bg-red-100 text-red-700' :
+                  verificationIReceive === 'passed' ? 'bg-green-100 text-green-700' :
+                  verificationIReceive === 'failed' ? 'bg-red-100 text-red-700' :
                   'bg-amber-100 text-amber-700'
                 }>
-                  {myVerification}
+                  {verificationIReceive === 'passed' ? '✓ Zatwierdzona' : 
+                   verificationIReceive === 'failed' ? '✗ Odrzucona' : 
+                   '⏳ Oczekuje'}
                 </Badge>
               </div>
 
-              {myNotes && (
-                <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-                  <p className="text-sm font-medium text-slate-700 mb-1">Moderator Notes:</p>
-                  <p className="text-sm text-slate-600">{myNotes}</p>
+              {notesIReceive && (
+                <div className="mb-4 p-3 bg-white rounded-lg border border-emerald-200">
+                  <p className="text-sm font-medium text-slate-700 mb-1">📝 Notatki moderatora:</p>
+                  <p className="text-sm text-slate-600">{notesIReceive}</p>
                 </div>
               )}
 
-              {myPhotos.length > 0 ? (
+              {photosIReceive.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {myPhotos.map((photo, idx) => (
+                  {photosIReceive.map((photo, idx) => (
                     <motion.img
                       key={idx}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: idx * 0.05 }}
                       src={photo}
-                      alt={`Inspection ${idx + 1}`}
-                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75 transition"
+                      alt={`Otrzymasz ${idx + 1}`}
+                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75 transition border-2 border-emerald-300"
                       onClick={() => window.open(photo, '_blank')}
                     />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No photos available</p>
+                <p className="text-sm text-slate-500">Brak zdjęć inspekcji</p>
               )}
             </CardContent>
           </Card>
 
           {/* Your Package */}
-          <Card>
+          <Card className="border-2 border-blue-200 bg-blue-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg">Your Package (Being Sent)</h3>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <span className="text-2xl">📤</span>
+                  Twoja paczka - Inspekcja
+                </h3>
                 <Badge className={
-                  theirVerification === 'passed' ? 'bg-green-100 text-green-700' :
-                  theirVerification === 'failed' ? 'bg-red-100 text-red-700' :
+                  verificationISend === 'passed' ? 'bg-green-100 text-green-700' :
+                  verificationISend === 'failed' ? 'bg-red-100 text-red-700' :
                   'bg-amber-100 text-amber-700'
                 }>
-                  {theirVerification}
+                  {verificationISend === 'passed' ? '✓ Zatwierdzona' : 
+                   verificationISend === 'failed' ? '✗ Odrzucona' : 
+                   '⏳ Oczekuje'}
                 </Badge>
               </div>
 
-              {theirNotes && (
-                <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-                  <p className="text-sm font-medium text-slate-700 mb-1">Moderator Notes:</p>
-                  <p className="text-sm text-slate-600">{theirNotes}</p>
+              {notesISend && (
+                <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
+                  <p className="text-sm font-medium text-slate-700 mb-1">📝 Notatki moderatora:</p>
+                  <p className="text-sm text-slate-600">{notesISend}</p>
                 </div>
               )}
 
-              {theirPhotos.length > 0 ? (
+              {photosISend.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {theirPhotos.map((photo, idx) => (
+                  {photosISend.map((photo, idx) => (
                     <motion.img
                       key={idx}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: idx * 0.05 }}
                       src={photo}
-                      alt={`Your package ${idx + 1}`}
-                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75 transition"
+                      alt={`Twoja paczka ${idx + 1}`}
+                      className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75 transition border-2 border-blue-300"
                       onClick={() => window.open(photo, '_blank')}
                     />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No photos available</p>
+                <p className="text-sm text-slate-500">Brak zdjęć inspekcji</p>
               )}
             </CardContent>
           </Card>
 
           {/* Warning if failed */}
-          {(myVerification === 'failed' || theirVerification === 'failed') && (
+          {(verificationIReceive === 'failed' || verificationISend === 'failed') && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-red-900 mb-1">Verification Failed</p>
+                  <p className="font-semibold text-red-900 mb-1">Weryfikacja nie powiodła się</p>
                   <p className="text-sm text-red-700">
-                    One or both packages failed verification. Both packages will be returned to their original senders.
-                    {tradeOffer.escrow_mode === 'full' && ' All escrowed funds will be refunded.'}
+                    Jedna lub obie paczki nie przeszły weryfikacji. Obie paczki zostaną zwrócone do pierwotnych nadawców.
+                    {tradeOffer.escrow_mode === 'full' && ' Wszystkie środki zostaną zwrócone.'}
                   </p>
                 </div>
               </div>
@@ -163,14 +174,14 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
           )}
 
           {/* Success message */}
-          {myVerification === 'passed' && theirVerification === 'passed' && (
+          {verificationIReceive === 'passed' && verificationISend === 'passed' && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-green-900 mb-1">Verification Passed</p>
+                  <p className="font-semibold text-green-900 mb-1">Weryfikacja zakończona sukcesem</p>
                   <p className="text-sm text-green-700">
-                    Both packages passed verification. After both parties accept, packages will be cross-shipped to final destinations.
+                    Obie paczki przeszły weryfikację. Po zaakceptowaniu przez obie strony, paczki zostaną wysłane do ostatecznych odbiorców.
                   </p>
                 </div>
               </div>
@@ -180,9 +191,9 @@ export default function InspectionReviewModal({ open, onClose, tradeOffer, userR
 
         <div className="flex gap-3 mt-6">
           <Button variant="outline" onClick={onClose} className="flex-1">
-            Review Later
+            Przejrzyj później
           </Button>
-          {myVerification === 'passed' && theirVerification === 'passed' && (
+          {verificationIReceive === 'passed' && verificationISend === 'passed' && (
             <Button 
               onClick={handleAccept}
               disabled={accepting}
