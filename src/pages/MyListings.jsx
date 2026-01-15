@@ -91,6 +91,20 @@ export default function MyListings() {
       setCurrentUser(user);
     };
     loadUser();
+
+    // Check for payment success
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    
+    if (paymentStatus === 'success') {
+      toast.success('Płatność zakończona sukcesem! 🎉');
+      window.history.replaceState({}, '', '/my-listings');
+      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Płatność anulowana');
+      window.history.replaceState({}, '', '/my-listings');
+    }
   }, []);
 
   const { data: myListings = [], isLoading: loadingListings } = useQuery({
