@@ -9,14 +9,25 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
+      console.error('No user authenticated');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { priceId, tier, amount, planName } = await req.json();
+    const body = await req.json();
+    console.log('Received request body:', body);
+    const { priceId, tier, amount, planName } = body;
 
     if (!tier) {
+      console.error('Missing tier in request');
       return Response.json({ error: 'Missing tier' }, { status: 400 });
     }
+
+    if (!amount) {
+      console.error('Missing amount in request');
+      return Response.json({ error: 'Missing amount' }, { status: 400 });
+    }
+
+    console.log('Creating checkout session for user:', user.email, 'tier:', tier, 'amount:', amount);
 
     // Get or create Stripe customer
     let customerId = user.stripe_customer_id;
@@ -66,9 +77,11 @@ Deno.serve(async (req) => {
       }
     });
 
+    console.log('Stripe session created:', session.id, 'URL:', session.url);
     return Response.json({ url: session.url });
   } catch (error) {
     console.error('Checkout error:', error);
+    console.error('Error stack:', error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

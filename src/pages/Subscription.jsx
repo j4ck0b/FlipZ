@@ -54,18 +54,26 @@ export default function SubscriptionPage() {
 
     setLoading(plan.tier);
     try {
-      const { data } = await base44.functions.invoke('createCheckoutSession', {
+      console.log('Sending request:', { tier: plan.tier, amount: plan.price_monthly, planName: plan.name });
+      const response = await base44.functions.invoke('createCheckoutSession', {
         tier: plan.tier,
         amount: plan.price_monthly,
         planName: plan.name
       });
 
-      if (data.url) {
-        window.location.href = data.url;
+      console.log('Received response:', response);
+      
+      if (response.data?.url) {
+        console.log('Redirecting to:', response.data.url);
+        window.location.href = response.data.url;
+      } else {
+        console.error('No URL in response:', response);
+        toast.error('Brak URL przekierowania w odpowiedzi');
+        setLoading(null);
       }
     } catch (error) {
       console.error('Subscription error:', error);
-      toast.error('Błąd podczas tworzenia sesji płatności');
+      toast.error(error.response?.data?.error || 'Błąd podczas tworzenia sesji płatności');
       setLoading(null);
     }
   };
