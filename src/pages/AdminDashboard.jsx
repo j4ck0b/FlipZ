@@ -435,11 +435,11 @@ export default function AdminDashboard() {
                         {/* Payment Status */}
                         {offer.status === 'payment_required' && (
                           <div className="space-y-2 pt-2 border-t bg-amber-50 p-2 md:p-3 rounded text-sm">
-                            <h4 className="text-sm font-semibold text-amber-900 flex items-center gap-2">
-                              <AlertCircle className="w-4 h-4" />
+                            <h4 className="text-xs md:text-sm font-semibold text-amber-900 flex items-center gap-1 md:gap-2">
+                              <AlertCircle className="w-3 h-3 md:w-4 md:h-4" />
                               Oczekiwanie na płatności
                             </h4>
-                            <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
                               <div className="flex items-center gap-2">
                                 {offer.sender_paid ? (
                                   <CheckCircle2 className="w-4 h-4 text-green-600" />
