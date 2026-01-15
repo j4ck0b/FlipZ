@@ -63,6 +63,12 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
   const isBasicDisabled = itemCount >= 2;
 
   const handleActivateTrade = async () => {
+    // Validate: 2+ items require higher protection
+    if (itemCount >= 2 && selectedTier === 'basic') {
+      toast.error('2 lub więcej przedmiotów wymaga wyższej ochrony');
+      return;
+    }
+
     setProcessing(true);
 
     const tier = protectionTiers.find(t => t.id === selectedTier);
