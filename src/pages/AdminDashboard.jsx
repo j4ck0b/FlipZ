@@ -225,23 +225,47 @@ export default function AdminDashboard() {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (offer) => {
+    // Use progress_step for more accurate status display
+    const step = offer.progress_step || 'offer_sent';
+    
     const configs = {
-      pending: { color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
-      accepted: { color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-      rejected: { color: 'bg-red-100 text-red-700', icon: XCircle },
-      payment_required: { color: 'bg-blue-100 text-blue-700', icon: Package },
-      completed: { color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
-      cancelled: { color: 'bg-slate-100 text-slate-700', icon: XCircle }
+      offer_sent: { color: 'bg-amber-100 text-amber-700', icon: AlertCircle, label: 'Oferta wysłana' },
+      accepted: { color: 'bg-blue-100 text-blue-700', icon: CheckCircle2, label: 'Zaakceptowana' },
+      payment: { color: 'bg-violet-100 text-violet-700', icon: Package, label: 'Płatność' },
+      preparing_shipment: { color: 'bg-cyan-100 text-cyan-700', icon: Package, label: 'Przygotowanie' },
+      shipping_to_hub: { color: 'bg-indigo-100 text-indigo-700', icon: Truck, label: 'Do Hub' },
+      hub_verification: { color: 'bg-purple-100 text-purple-700', icon: Shield, label: 'Inspekcja' },
+      shipping_to_users: { color: 'bg-blue-100 text-blue-700', icon: Truck, label: 'Dostawa' },
+      completed: { color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2, label: 'Ukończone' },
+      failed: { color: 'bg-red-100 text-red-700', icon: XCircle, label: 'Nieudane' }
     };
     
-    const config = configs[status] || configs.pending;
+    // Override for rejected/cancelled
+    if (offer.status === 'rejected') {
+      return (
+        <Badge className="bg-red-100 text-red-700">
+          <XCircle className="w-3 h-3 mr-1" />
+          Odrzucone
+        </Badge>
+      );
+    }
+    if (offer.status === 'cancelled') {
+      return (
+        <Badge className="bg-slate-100 text-slate-700">
+          <XCircle className="w-3 h-3 mr-1" />
+          Anulowane
+        </Badge>
+      );
+    }
+    
+    const config = configs[step] || configs.offer_sent;
     const Icon = config.icon;
     
     return (
       <Badge className={config.color}>
         <Icon className="w-3 h-3 mr-1" />
-        {status}
+        {config.label}
       </Badge>
     );
   };
@@ -387,7 +411,7 @@ export default function AdminDashboard() {
                               <h3 className="font-semibold text-slate-900">
                                 {offer.sender_name} ↔ {offer.owner_name}
                               </h3>
-                              {getStatusBadge(offer.status)}
+                              {getStatusBadge(offer)}
                             </div>
                             <p className="text-sm text-slate-600">
                               Karta: <span className="font-medium">{offer.requested_card_title}</span>
@@ -615,6 +639,116 @@ export default function AdminDashboard() {
                                 <p className="text-xs text-red-800 flex items-center gap-2">
                                   <AlertCircle className="w-3 h-3" />
                                   Inspekcja wykryła problem - skontaktuj się z użytkownikami
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Final Delivery Control */}
+                        {offer.status === 'shipping_to_users' && (
+                          <div className="space-y-2 pt-3 border-t bg-emerald-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
+                              <Truck className="w-4 h-4" />
+                              Kontrola dostawy końcowej
+                            </h4>
+                            <p className="text-xs text-emerald-700 mb-2">
+                              Zaznacz paczki, które dotarły do użytkowników końcowych
+                            </p>
+                            <div className="space-y-2">
+                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                                offer.sender_delivered 
+                                  ? 'bg-green-50 border-green-300' 
+                                  : 'bg-white border-emerald-200'
+                              }`}>
+                                <div>
+                                  <span className="text-sm font-medium block">Do: {offer.sender_name}</span>
+                                  <span className="text-xs text-slate-600">Otrzymuje paczkę od {offer.owner_name}</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant={offer.sender_delivered ? "default" : "outline"}
+                                  onClick={async () => {
+                                    const updates = { sender_delivered: true };
+                                    if (offer.owner_delivered) {
+                                      updates.status = 'completed';
+                                      updates.progress_step = 'completed';
+                                    }
+                                    await base44.entities.TradeOffer.update(offer.id, updates);
+                                    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+                                    toast.success('Paczka dostarczona do nadawcy');
+                                  }}
+                                  disabled={offer.sender_delivered}
+                                  className={offer.sender_delivered ? "bg-green-600 hover:bg-green-700" : "border-emerald-600 text-emerald-600 hover:bg-emerald-50"}
+                                >
+                                  {offer.sender_delivered ? (
+                                    <>
+                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      Dostarczona ✓
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Package className="w-4 h-4 mr-1" />
+                                      Oznacz dostarczenie
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                                offer.owner_delivered 
+                                  ? 'bg-green-50 border-green-300' 
+                                  : 'bg-white border-emerald-200'
+                              }`}>
+                                <div>
+                                  <span className="text-sm font-medium block">Do: {offer.owner_name}</span>
+                                  <span className="text-xs text-slate-600">Otrzymuje paczkę od {offer.sender_name}</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant={offer.owner_delivered ? "default" : "outline"}
+                                  onClick={async () => {
+                                    const updates = { owner_delivered: true };
+                                    if (offer.sender_delivered) {
+                                      updates.status = 'completed';
+                                      updates.progress_step = 'completed';
+                                    }
+                                    await base44.entities.TradeOffer.update(offer.id, updates);
+                                    queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
+                                    toast.success('Paczka dostarczona do właściciela');
+                                  }}
+                                  disabled={offer.owner_delivered}
+                                  className={offer.owner_delivered ? "bg-green-600 hover:bg-green-700" : "border-emerald-600 text-emerald-600 hover:bg-emerald-50"}
+                                >
+                                  {offer.owner_delivered ? (
+                                    <>
+                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      Dostarczona ✓
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Package className="w-4 h-4 mr-1" />
+                                      Oznacz dostarczenie
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            {offer.sender_delivered && offer.owner_delivered ? (
+                              <div className="mt-3 p-3 bg-green-100 border-2 border-green-400 rounded-lg">
+                                <p className="text-sm text-green-900 font-medium flex items-center gap-2">
+                                  <CheckCircle2 className="w-5 h-5" />
+                                  Obie paczki dostarczone - wymiana ukończona! ✓
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-xs text-amber-800 flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Oczekiwanie na dostawę {
+                                    !offer.sender_delivered && !offer.owner_delivered ? 'obu paczek' :
+                                    !offer.sender_delivered ? `do ${offer.sender_name}` :
+                                    `do ${offer.owner_name}`
+                                  }
                                 </p>
                               </div>
                             )}
