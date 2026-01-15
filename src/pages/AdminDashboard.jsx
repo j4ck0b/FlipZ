@@ -109,6 +109,14 @@ export default function AdminDashboard() {
     updateOfferMutation.mutate({ id: offer.id, data: { status: newStatus } });
   };
 
+  const handleDeleteListing = async (listing) => {
+    if (confirm(`Usuń ogłoszenie "${listing.title}"?`)) {
+      await base44.entities.CardListing.delete(listing.id);
+      queryClient.invalidateQueries({ queryKey: ['allListings'] });
+      toast.success('Ogłoszenie usunięte');
+    }
+  };
+
   const handleProgressChange = (offerId, newProgress) => {
     updateOfferMutation.mutate({ id: offerId, data: { progress_step: newProgress } });
   };
