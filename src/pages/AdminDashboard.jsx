@@ -281,28 +281,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardContent className="p-4">
-            <Button
-              onClick={async () => {
-                try {
-                  await base44.functions.invoke('inviteAdmin', {
-                    email: 'krzyskwiatkowski123@gmail.com',
-                    role: 'admin'
-                  });
-                  toast.success('Zaproszenie wysłane do Krzysztofa Kwiatkowskiego');
-                } catch (error) {
-                  toast.error('Błąd wysyłania zaproszenia');
-                }
-              }}
-              className="w-full"
-            >
-              Zaproś Krzysztofa Kwiatkowskiego jako Admin
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
