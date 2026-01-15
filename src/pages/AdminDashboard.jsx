@@ -59,9 +59,9 @@ export default function AdminDashboard() {
     queryKey: ['allTradeOffers'],
     queryFn: async () => {
       try {
-        const offers = await base44.entities.TradeOffer.list('-created_date', 1000);
-        console.log('Admin panel loaded offers:', offers.length);
-        return offers;
+        const { data } = await base44.functions.invoke('getAdminTrades');
+        console.log('Admin panel loaded offers:', data?.trades?.length || 0);
+        return data?.trades || [];
       } catch (err) {
         console.error('Error loading trade offers:', err);
         return [];
