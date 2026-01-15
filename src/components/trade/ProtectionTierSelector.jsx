@@ -56,7 +56,7 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
   const [selectedTier, setSelectedTier] = useState('secure');
   const [processing, setProcessing] = useState(false);
 
-  const LABELS_FEE = 24;
+  const LABELS_FEE = 29;
 
   const handleActivateTrade = async () => {
     setProcessing(true);
