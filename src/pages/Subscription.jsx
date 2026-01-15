@@ -27,6 +27,18 @@ export default function SubscriptionPage() {
       setUser(u);
     };
     loadUser();
+
+    // Check for payment success
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    
+    if (paymentStatus === 'success') {
+      toast.success('Subskrypcja aktywowana pomyślnie! 🎉');
+      window.history.replaceState({}, '', '/Subscription');
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Płatność anulowana');
+      window.history.replaceState({}, '', '/Subscription');
+    }
   }, []);
 
   const { data: plans = [] } = useQuery({

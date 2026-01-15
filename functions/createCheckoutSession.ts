@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/subscription`,
+      success_url: `${req.headers.get('origin')}/Subscription?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin')}/Subscription?payment=cancelled`,
       metadata: {
         base44_user_id: user.id,
         subscription_tier: tier
