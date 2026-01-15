@@ -588,7 +588,7 @@ export default function MyListings() {
                            </Badge>
                          )
                        )}
-                       {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
+                       {offer.progress_step === 'preparing_shipment' && (
                          <>
                            <Button
                              onClick={() => setShippingLabelOffer({ offer, role: 'owner' })}
@@ -613,7 +613,7 @@ export default function MyListings() {
                            )}
                          </>
                        )}
-                       {offer.status === 'accepted' && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
+                       {(offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
                          <Button
                            onClick={() => setHubInspectionOffer(offer)}
                            className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -622,7 +622,7 @@ export default function MyListings() {
                            {t('skipToHubInspection')}
                          </Button>
                        )}
-                       {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
+                       {offer.progress_step === 'hub_verification' && (
                          !offer.owner_inspection_accepted ? (
                            <>
                              <Button
@@ -825,7 +825,7 @@ export default function MyListings() {
                             </Badge>
                           )
                         )}
-                        {offer.status === 'accepted' && offer.progress_step === 'preparing_shipment' && (
+                        {offer.progress_step === 'preparing_shipment' && (
                           <>
                             <Button
                               onClick={() => setShippingLabelOffer({ offer, role: 'sender' })}
@@ -850,7 +850,7 @@ export default function MyListings() {
                             )}
                           </>
                         )}
-                        {offer.status === 'accepted' && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
+                        {(offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
                           <Button
                             onClick={() => setHubInspectionOffer(offer)}
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -859,7 +859,7 @@ export default function MyListings() {
                             {t('skipToHubInspection')}
                           </Button>
                         )}
-                        {offer.status === 'accepted' && offer.progress_step === 'hub_verification' && (
+                        {offer.progress_step === 'hub_verification' && (
                           !offer.sender_inspection_accepted ? (
                             <>
                               <Button
