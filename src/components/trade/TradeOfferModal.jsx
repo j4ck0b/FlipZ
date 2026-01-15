@@ -61,7 +61,12 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     setSending(true);
 
     try {
+      // Generate trade number
+      const { data: tradeNumberData } = await base44.functions.invoke('generateTradeNumber');
+      const tradeNumber = tradeNumberData?.tradeNumber || `TRADE-${Date.now()}`;
+      
       const offer = await base44.entities.TradeOffer.create({
+        trade_number: tradeNumber,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
         owner_email: targetCard.created_by,
