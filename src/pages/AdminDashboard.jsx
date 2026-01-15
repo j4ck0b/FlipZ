@@ -514,31 +514,31 @@ export default function AdminDashboard() {
                                   )}
                                 </Button>
                               </div>
-                              <div className={`flex items-center justify-between p-3 rounded border-2 transition-all ${
+                              <div className={`flex items-center justify-between p-2 md:p-3 rounded border-2 transition-all text-sm ${
                                 offer.owner_package_sent 
                                   ? 'bg-green-50 border-green-300' 
                                   : 'bg-white border-blue-200'
                               }`}>
-                                <div>
-                                  <span className="text-sm font-medium block">Paczka od: {offer.owner_name}</span>
-                                  <span className="text-xs text-slate-600">{offer.owner_email}</span>
+                                <div className="min-w-0">
+                                  <span className="text-xs md:text-sm font-medium block truncate">Od: {offer.owner_name}</span>
+                                  <span className="text-xs text-slate-600 truncate">{offer.owner_email}</span>
                                 </div>
                                 <Button
                                   size="sm"
                                   variant={offer.owner_package_sent ? "default" : "outline"}
                                   onClick={() => handlePackageReceived(offer.id, 'owner', offer)}
                                   disabled={offer.owner_package_sent}
-                                  className={offer.owner_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}
+                                  className={`text-xs ${offer.owner_package_sent ? "bg-green-600 hover:bg-green-700" : "border-blue-600 text-blue-600 hover:bg-blue-50"}`}
                                 >
                                   {offer.owner_package_sent ? (
                                     <>
-                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
                                       W Hub ✓
                                     </>
                                   ) : (
                                     <>
-                                      <Package className="w-4 h-4 mr-1" />
-                                      Oznacz jako dostarczoną
+                                      <Package className="w-3 h-3 mr-1" />
+                                      Dostarcz
                                     </>
                                   )}
                                 </Button>
