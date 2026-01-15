@@ -363,6 +363,9 @@ export default function AdminDashboard() {
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="bg-slate-900 text-white font-mono text-xs">
+                                {offer.trade_number || `#${offer.id.slice(0, 8)}`}
+                              </Badge>
                               <h3 className="font-semibold text-slate-900">
                                 {offer.sender_name} ↔ {offer.owner_name}
                               </h3>
