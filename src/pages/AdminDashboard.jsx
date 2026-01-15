@@ -59,7 +59,7 @@ export default function AdminDashboard() {
     queryKey: ['allTradeOffers'],
     queryFn: async () => {
       try {
-        const offers = await base44.asServiceRole.entities.TradeOffer.list('-created_date', 1000);
+        const offers = await base44.entities.TradeOffer.list('-created_date', 1000);
         console.log('Admin panel loaded offers:', offers.length);
         return offers;
       } catch (err) {
@@ -73,12 +73,12 @@ export default function AdminDashboard() {
 
   const { data: listings = [] } = useQuery({
     queryKey: ['allListings'],
-    queryFn: () => base44.asServiceRole.entities.CardListing.list('-created_date', 1000),
+    queryFn: () => base44.entities.CardListing.list('-created_date', 1000),
     enabled: !!user && user.role === 'admin'
   });
 
   const updateOfferMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.asServiceRole.entities.TradeOffer.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.TradeOffer.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
       toast.success('Status wymiany zaktualizowany');
@@ -99,9 +99,9 @@ export default function AdminDashboard() {
   const handleStatusChange = async (offer, newStatus) => {
     // If cancelling, restore card statuses to available
     if (newStatus === 'cancelled') {
-      await base44.asServiceRole.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+      await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
       for (const cardId of offer.offered_card_ids || []) {
-        await base44.asServiceRole.entities.CardListing.update(cardId, { status: 'available' });
+        await base44.entities.CardListing.update(cardId, { status: 'available' });
       }
     }
     updateOfferMutation.mutate({ id: offer.id, data: { status: newStatus } });
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
       ? { sender_package_sent: true }
       : { owner_package_sent: true };
     
-    await base44.asServiceRole.entities.TradeOffer.update(offerId, updateData);
+    await base44.entities.TradeOffer.update(offerId, updateData);
     queryClient.invalidateQueries({ queryKey: ['allTradeOffers'] });
     toast.success(`Paczka ${packageType === 'sender' ? 'nadawcy' : 'właściciela'} potwierdzona`);
   };
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
   const saveInspection = async () => {
     if (!selectedOffer) return;
     
-    await base44.asServiceRole.entities.TradeOffer.update(selectedOffer.id, {
+    await base44.entities.TradeOffer.update(selectedOffer.id, {
       ...inspectionData,
       status: 'hub_verification',
       progress_step: 'hub_verification'
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
     // Generowanie etykiet wysyłkowych po inspekcji
     try {
       // Etykieta dla nadawcy (dostanie paczkę właściciela)
-      await base44.asServiceRole.entities.ShippingLabel.create({
+      await base44.entities.ShippingLabel.create({
         trade_offer_id: offer.id,
         sender_email: 'hub@flipcardz.store',
         recipient_email: offer.sender_email,
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
       });
 
       // Etykieta dla właściciela (dostanie paczkę nadawcy)
-      await base44.asServiceRole.entities.ShippingLabel.create({
+      await base44.entities.ShippingLabel.create({
         trade_offer_id: offer.id,
         sender_email: 'hub@flipcardz.store',
         recipient_email: offer.owner_email,
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
         status: 'pending'
       });
 
-      await base44.asServiceRole.entities.TradeOffer.update(offer.id, {
+      await base44.entities.TradeOffer.update(offer.id, {
         status: 'shipping_to_users',
         progress_step: 'shipping_to_users'
       });
