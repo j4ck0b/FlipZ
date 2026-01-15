@@ -4,34 +4,41 @@ import Stripe from 'npm:stripe@17.5.0';
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
 Deno.serve(async (req) => {
+  console.log('=== createCheckoutSession START ===');
   try {
+    console.log('1. Creating base44 client...');
     const base44 = createClientFromRequest(req);
+    
+    console.log('2. Getting user...');
     const user = await base44.auth.me();
+    console.log('User:', user?.email);
 
     if (!user) {
       console.error('No user authenticated');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('3. Parsing request body...');
     const body = await req.json();
-    console.log('Received request body:', body);
-    const { priceId, tier, amount, planName } = body;
+    console.log('Body:', JSON.stringify(body));
+    const { tier, amount, planName } = body;
 
     if (!tier) {
-      console.error('Missing tier in request');
+      console.error('Missing tier');
       return Response.json({ error: 'Missing tier' }, { status: 400 });
     }
 
     if (!amount) {
-      console.error('Missing amount in request');
+      console.error('Missing amount');
       return Response.json({ error: 'Missing amount' }, { status: 400 });
     }
 
-    console.log('Creating checkout session for user:', user.email, 'tier:', tier, 'amount:', amount);
-
-    // Get or create Stripe customer
+    console.log('4. Getting/creating Stripe customer...');
     let customerId = user.stripe_customer_id;
+    console.log('Existing customer ID:', customerId);
+    
     if (!customerId) {
+      console.log('Creating new Stripe customer...');
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.full_name,
@@ -41,19 +48,17 @@ Deno.serve(async (req) => {
         }
       });
       customerId = customer.id;
+      console.log('New customer ID:', customerId);
       
-      // Save customer ID
+      console.log('Saving customer ID to user...');
       await base44.asServiceRole.entities.User.update(user.id, {
         stripe_customer_id: customerId
       });
     }
 
-    // Get origin URL
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/') || 'https://app.base44.app';
-    console.log('Using origin:', origin);
-
-    // Create checkout session with dynamic pricing
-    const session = await stripe.checkout.sessions.create({
+    console.log('5. Creating Stripe checkout session...');
+    const origin = 'https://app.base44.app';
+    const sessionData = {
       customer: customerId,
       payment_method_types: ['card', 'blik'],
       line_items: [
@@ -62,12 +67,12 @@ Deno.serve(async (req) => {
             currency: 'pln',
             product_data: {
               name: planName || `Subscription - ${tier}`,
-              description: `Monthly subscription plan`,
+              description: 'Monthly subscription plan',
             },
             recurring: {
               interval: 'month',
             },
-            unit_amount: Math.round(amount * 100), // Convert to grosz
+            unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
         },
@@ -79,13 +84,23 @@ Deno.serve(async (req) => {
         base44_user_id: user.id,
         subscription_tier: tier
       }
-    });
-
-    console.log('Stripe session created:', session.id, 'URL:', session.url);
+    };
+    
+    console.log('Session data:', JSON.stringify(sessionData, null, 2));
+    const session = await stripe.checkout.sessions.create(sessionData);
+    
+    console.log('6. Session created successfully!');
+    console.log('Session ID:', session.id);
+    console.log('Session URL:', session.url);
+    console.log('=== createCheckoutSession END ===');
+    
     return Response.json({ url: session.url });
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error('=== ERROR in createCheckoutSession ===');
+    console.error('Error message:', error.message);
+    console.error('Error name:', error.name);
     console.error('Error stack:', error.stack);
+    console.error('Full error:', JSON.stringify(error, null, 2));
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
