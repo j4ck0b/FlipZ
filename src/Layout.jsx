@@ -37,7 +37,6 @@ function LayoutContent({ children, currentPageName }) {
     { name: t('myCollection'), page: 'MyListings', icon: LayoutDashboard },
     { name: t('messages'), page: 'Messages', icon: MessageCircle },
     { name: t('profile'), page: 'Profile', icon: UserCircle },
-    { name: 'Premium', page: 'Subscription', icon: Sparkles },
   ];
 
   const adminNavItems = user?.role === 'admin' ? [
