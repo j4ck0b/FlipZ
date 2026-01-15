@@ -390,30 +390,28 @@ export default function AdminDashboard() {
                 {filteredOffers.map((offer) => (
                   <Card key={offer.id} className="border-l-4 border-l-violet-600">
                     <CardContent className="p-4">
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {/* Header */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <Badge variant="outline" className="bg-slate-900 text-white font-mono text-xs">
-                                #{offer.trade_id || offer.trade_number || offer.id.slice(0, 12)}
-                              </Badge>
-                              {getStatusBadge(offer)}
-                            </div>
-                            <h3 className="font-semibold text-sm md:text-base text-slate-900 break-words">
-                              {offer.sender_name} ↔ {offer.owner_name}
-                            </h3>
-                            <p className="text-xs md:text-sm text-slate-600 mt-1 break-words">
-                              Karta: <span className="font-medium">{offer.requested_card_title}</span>
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {format(new Date(offer.created_date), 'dd.MM.yyyy HH:mm')}
-                            </p>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="bg-slate-900 text-white font-mono text-xs px-2 py-0.5">
+                              #{offer.trade_id || offer.trade_number || offer.id.slice(0, 12)}
+                            </Badge>
+                            {getStatusBadge(offer)}
                           </div>
+                          <h3 className="font-semibold text-sm text-slate-900">
+                            {offer.sender_name.substring(0, 15)} ↔ {offer.owner_name.substring(0, 15)}
+                          </h3>
+                          <p className="text-xs text-slate-600 truncate">
+                            {offer.requested_card_title}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {format(new Date(offer.created_date), 'dd.MM.yyyy HH:mm')}
+                          </p>
                         </div>
 
                         {/* Details */}
-                        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-3 p-2 md:p-3 bg-slate-50 rounded-lg text-xs md:text-sm">
+                        <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded text-xs">
                           <div>
                             <span className="text-slate-600">Oferowane karty:</span>
                             <span className="ml-2 font-medium">{offer.offered_card_ids?.length || 0}</span>
