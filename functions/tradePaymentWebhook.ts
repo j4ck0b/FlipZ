@@ -49,7 +49,6 @@ Deno.serve(async (req) => {
           const bothPaid = (isSender && tradeOffer.owner_paid) || (!isSender && tradeOffer.sender_paid);
           if (bothPaid) {
             updateData.both_paid = true;
-            updateData.status = 'awaiting_shipment';
             updateData.progress_step = 'preparing_shipment';
             updateData.addresses_unlocked = true;
           }
