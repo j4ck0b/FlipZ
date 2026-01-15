@@ -634,7 +634,7 @@ export default function MyListings() {
                            </Badge>
                          )
                        )}
-                       {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
+                       {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && !offer.owner_delivered && (
                          <Button
                            onClick={async () => {
                              const field = 'owner_delivered';
@@ -649,17 +649,16 @@ export default function MyListings() {
                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
                              toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
                            }}
-                           disabled={offer.owner_delivered}
-                           className={`flex-1 ${offer.owner_delivered ? 'bg-green-600' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                          >
                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                           {offer.owner_delivered ? 'Paczka odebrana ✓' : 'Otrzymałem paczkę'}
+                           Otrzymałem paczkę
                          </Button>
                        )}
-                       {offer.progress_step === 'shipping_to_users' && !offer.owner_delivered && (
-                         <Badge className="flex-1 h-10 flex items-center justify-center bg-blue-100 text-blue-700">
-                           <Truck className="w-4 h-4 mr-2" />
-                           Paczka w drodze
+                       {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.owner_delivered && (
+                         <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                           <CheckCircle2 className="w-4 h-4 mr-2" />
+                           Paczka odebrana ✓
                          </Badge>
                            )}
                            </div>
@@ -873,7 +872,7 @@ export default function MyListings() {
                             </Badge>
                           )
                         )}
-                        {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && (
+                        {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && !offer.sender_delivered && (
                          <Button
                            onClick={async () => {
                              const field = 'sender_delivered';
@@ -888,17 +887,16 @@ export default function MyListings() {
                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
                              toast.success(updates.status === 'completed' ? 'Wymiana ukończona! 🎉' : 'Potwierdzono odbiór paczki');
                            }}
-                           disabled={offer.sender_delivered}
-                           className={`flex-1 ${offer.sender_delivered ? 'bg-green-600' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                          >
                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                           {offer.sender_delivered ? 'Paczka odebrana ✓' : 'Otrzymałem paczkę'}
+                           Otrzymałem paczkę
                          </Button>
                         )}
-                        {offer.progress_step === 'shipping_to_users' && !offer.sender_delivered && (
-                         <Badge className="flex-1 h-10 flex items-center justify-center bg-blue-100 text-blue-700">
-                           <Truck className="w-4 h-4 mr-2" />
-                           Paczka w drodze
+                        {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.sender_delivered && (
+                         <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                           <CheckCircle2 className="w-4 h-4 mr-2" />
+                           Paczka odebrana ✓
                          </Badge>
                            )}
                             </div>
