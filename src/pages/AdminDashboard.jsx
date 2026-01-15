@@ -407,37 +407,147 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Package Status */}
-                        {(offer.status === 'in_transit_to_hub' || offer.status === 'awaiting_shipment') && (
-                          <div className="space-y-2 pt-3 border-t">
-                            <h4 className="text-sm font-semibold text-slate-900">Status paczek</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                size="sm"
-                                variant={offer.sender_package_sent ? "default" : "outline"}
-                                onClick={() => handlePackageReceived(offer.id, 'sender')}
-                                disabled={offer.sender_package_sent}
-                              >
-                                {offer.sender_package_sent ? <CheckCircle2 className="w-4 h-4 mr-1" /> : <Package className="w-4 h-4 mr-1" />}
-                                Paczka nadawcy
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={offer.owner_package_sent ? "default" : "outline"}
-                                onClick={() => handlePackageReceived(offer.id, 'owner')}
-                                disabled={offer.owner_package_sent}
-                              >
-                                {offer.owner_package_sent ? <CheckCircle2 className="w-4 h-4 mr-1" /> : <Package className="w-4 h-4 mr-1" />}
-                                Paczka właściciela
-                              </Button>
+                        {/* Payment Status */}
+                        {offer.status === 'payment_required' && (
+                          <div className="space-y-2 pt-3 border-t bg-amber-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-semibold text-amber-900 flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              Oczekiwanie na płatności
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="flex items-center gap-2">
+                                {offer.sender_paid ? (
+                                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-400" />
+                                )}
+                                <span className={offer.sender_paid ? 'text-green-700 font-medium' : 'text-slate-600'}>
+                                  Nadawca: {offer.sender_paid ? 'Zapłacił' : 'Nie zapłacił'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {offer.owner_paid ? (
+                                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-400" />
+                                )}
+                                <span className={offer.owner_paid ? 'text-green-700 font-medium' : 'text-slate-600'}>
+                                  Właściciel: {offer.owner_paid ? 'Zapłacił' : 'Nie zapłacił'}
+                                </span>
+                              </div>
                             </div>
+                            {offer.both_paid && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-green-600 hover:bg-green-700 mt-2"
+                                onClick={() => handleStatusChange(offer, 'awaiting_shipment')}
+                              >
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Aktywuj etap wysyłki do Hub
+                              </Button>
+                            )}
                           </div>
                         )}
 
-                        {/* Hub Actions */}
+                        {/* Shipping to Hub Status */}
+                        {(offer.status === 'awaiting_shipment' || offer.status === 'in_transit_to_hub') && (
+                          <div className="space-y-2 pt-3 border-t bg-blue-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                              <Truck className="w-4 h-4" />
+                              Wysyłka do Hub
+                            </h4>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between p-2 bg-white rounded border">
+                                <span className="text-sm">Paczka nadawcy ({offer.sender_name})</span>
+                                <Button
+                                  size="sm"
+                                  variant={offer.sender_package_sent ? "default" : "outline"}
+                                  onClick={() => handlePackageReceived(offer.id, 'sender')}
+                                  disabled={offer.sender_package_sent}
+                                  className={offer.sender_package_sent ? "bg-green-600 hover:bg-green-700" : ""}
+                                >
+                                  {offer.sender_package_sent ? (
+                                    <>
+                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      Odebrana w Hub
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Package className="w-4 h-4 mr-1" />
+                                      Potwierdź odbiór
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <div className="flex items-center justify-between p-2 bg-white rounded border">
+                                <span className="text-sm">Paczka właściciela ({offer.owner_name})</span>
+                                <Button
+                                  size="sm"
+                                  variant={offer.owner_package_sent ? "default" : "outline"}
+                                  onClick={() => handlePackageReceived(offer.id, 'owner')}
+                                  disabled={offer.owner_package_sent}
+                                  className={offer.owner_package_sent ? "bg-green-600 hover:bg-green-700" : ""}
+                                >
+                                  {offer.owner_package_sent ? (
+                                    <>
+                                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                                      Odebrana w Hub
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Package className="w-4 h-4 mr-1" />
+                                      Potwierdź odbiór
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            {offer.sender_package_sent && offer.owner_package_sent && (
+                              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm text-green-800 flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  Obie paczki są w Hub - możesz rozpocząć inspekcję
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Hub Inspection */}
                         {(offer.sender_package_sent && offer.owner_package_sent) && (
-                          <div className="space-y-2 pt-3 border-t">
-                            <h4 className="text-sm font-semibold text-slate-900">Akcje Hub</h4>
+                          <div className="space-y-2 pt-3 border-t bg-violet-50 p-3 rounded-lg">
+                            <h4 className="text-sm font-semibold text-violet-900 flex items-center gap-2">
+                              <Shield className="w-4 h-4" />
+                              Weryfikacja w Hub
+                            </h4>
+                            <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                              <div className={`p-2 rounded ${
+                                offer.hub_verification_sender === 'passed' ? 'bg-green-100' :
+                                offer.hub_verification_sender === 'failed' ? 'bg-red-100' :
+                                'bg-slate-100'
+                              }`}>
+                                <div className="font-medium mb-1">Paczka nadawcy</div>
+                                <div className="flex items-center gap-1">
+                                  {offer.hub_verification_sender === 'passed' && <CheckCircle2 className="w-3 h-3 text-green-600" />}
+                                  {offer.hub_verification_sender === 'failed' && <XCircle className="w-3 h-3 text-red-600" />}
+                                  {offer.hub_verification_sender === 'pending' && <AlertCircle className="w-3 h-3 text-slate-400" />}
+                                  <span>{offer.hub_verification_sender || 'Oczekuje'}</span>
+                                </div>
+                              </div>
+                              <div className={`p-2 rounded ${
+                                offer.hub_verification_owner === 'passed' ? 'bg-green-100' :
+                                offer.hub_verification_owner === 'failed' ? 'bg-red-100' :
+                                'bg-slate-100'
+                              }`}>
+                                <div className="font-medium mb-1">Paczka właściciela</div>
+                                <div className="flex items-center gap-1">
+                                  {offer.hub_verification_owner === 'passed' && <CheckCircle2 className="w-3 h-3 text-green-600" />}
+                                  {offer.hub_verification_owner === 'failed' && <XCircle className="w-3 h-3 text-red-600" />}
+                                  {offer.hub_verification_owner === 'pending' && <AlertCircle className="w-3 h-3 text-slate-400" />}
+                                  <span>{offer.hub_verification_owner || 'Oczekuje'}</span>
+                                </div>
+                              </div>
+                            </div>
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
@@ -446,7 +556,9 @@ export default function AdminDashboard() {
                                 className="flex-1"
                               >
                                 <Camera className="w-4 h-4 mr-1" />
-                                Inspekcja paczek
+                                {offer.hub_verification_sender === 'pending' || offer.hub_verification_owner === 'pending' 
+                                  ? 'Rozpocznij inspekcję' 
+                                  : 'Edytuj inspekcję'}
                               </Button>
                               {offer.hub_verification_sender === 'passed' && offer.hub_verification_owner === 'passed' && (
                                 <Button
@@ -455,10 +567,18 @@ export default function AdminDashboard() {
                                   className="flex-1 bg-green-600 hover:bg-green-700"
                                 >
                                   <Truck className="w-4 h-4 mr-1" />
-                                  Generuj etykiety
+                                  Wyślij do użytkowników
                                 </Button>
                               )}
                             </div>
+                            {offer.hub_verification_sender === 'failed' || offer.hub_verification_owner === 'failed' && (
+                              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                                <p className="text-xs text-red-800 flex items-center gap-2">
+                                  <AlertCircle className="w-3 h-3" />
+                                  Inspekcja wykryła problem - skontaktuj się z użytkownikami
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
 
