@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CreditCard, Loader2, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from 'sonner';
 
 export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess }) {
   const [processing, setProcessing] = useState(false);
@@ -12,18 +14,21 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
   const handlePay = async () => {
     setProcessing(true);
     
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setPaid(true);
-    setProcessing(false);
-    
-    // Wait a bit to show success
-    setTimeout(() => {
-      onSuccess();
-      onClose();
-      setPaid(false);
-    }, 1500);
+    try {
+      const { data } = await base44.functions.invoke('createTradePayment', {
+        tradeOfferId: tradeOffer.id,
+        escrowMode: tradeOffer.escrow_mode,
+        amount: getAmount()
+      });
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Błąd podczas tworzenia płatności');
+      setProcessing(false);
+    }
   };
 
   const getAmount = () => {
@@ -65,9 +70,9 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
                 </CardContent>
               </Card>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  💳 This is a simulated payment. In production, this would connect to a real payment gateway.
+              <div className="bg-violet-50 border border-violet-200 rounded-lg p-4">
+                <p className="text-sm text-violet-800">
+                  💳 Płatność za pomocą Stripe (karty, BLIK)
                 </p>
               </div>
 
@@ -88,12 +93,12 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
                   {processing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
+                      Przekierowywanie...
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-4 h-4 mr-2" />
-                      Pay {getAmount()} PLN
+                      Zapłać {getAmount()} PLN
                     </>
                   )}
                 </Button>
