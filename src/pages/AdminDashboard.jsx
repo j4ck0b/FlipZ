@@ -400,7 +400,7 @@ export default function AdminDashboard() {
                             {getStatusBadge(offer)}
                           </div>
                           <h3 className="font-semibold text-sm text-slate-900">
-                            {offer.sender_name.substring(0, 15)} ↔ {offer.owner_name.substring(0, 15)}
+                            {(offer.sender_name || 'Unknown').substring(0, 15)} ↔ {(offer.owner_name || 'Unknown').substring(0, 15)}
                           </h3>
                           <p className="text-xs text-slate-600 truncate">
                             {offer.requested_card_title}
