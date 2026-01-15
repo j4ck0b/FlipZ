@@ -96,8 +96,15 @@ export default function AdminDashboard() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleStatusChange = (offerId, newStatus) => {
-    updateOfferMutation.mutate({ id: offerId, data: { status: newStatus } });
+  const handleStatusChange = async (offer, newStatus) => {
+    // If cancelling, restore card statuses to available
+    if (newStatus === 'cancelled') {
+      await base44.asServiceRole.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+      for (const cardId of offer.offered_card_ids || []) {
+        await base44.asServiceRole.entities.CardListing.update(cardId, { status: 'available' });
+      }
+    }
+    updateOfferMutation.mutate({ id: offer.id, data: { status: newStatus } });
   };
 
   const handleProgressChange = (offerId, newProgress) => {
@@ -461,7 +468,7 @@ export default function AdminDashboard() {
                             <label className="text-xs text-slate-600 mb-1 block">Zmień status</label>
                             <Select 
                               value={offer.status} 
-                              onValueChange={(value) => handleStatusChange(offer.id, value)}
+                              onValueChange={(value) => handleStatusChange(offer, value)}
                             >
                               <SelectTrigger className="h-9">
                                 <SelectValue />

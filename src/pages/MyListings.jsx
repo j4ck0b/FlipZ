@@ -518,6 +518,25 @@ export default function MyListings() {
                            </Button>
                          </>
                        )}
+                       {(offer.status === 'pending' || offer.status === 'accepted') && (
+                         <Button 
+                           variant="outline"
+                           onClick={async () => {
+                             await base44.entities.TradeOffer.update(offer.id, { status: 'cancelled' });
+                             await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+                             for (const cardId of offer.offered_card_ids || []) {
+                               await base44.entities.CardListing.update(cardId, { status: 'available' });
+                             }
+                             queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                             queryClient.invalidateQueries({ queryKey: ['myListings'] });
+                             toast.success('Offer cancelled');
+                           }}
+                           className="flex-1 text-red-600 hover:bg-red-50"
+                         >
+                           <XCircle className="w-4 h-4 mr-2" />
+                           Anuluj
+                         </Button>
+                       )}
                        {offer.status === 'accepted' && offer.progress_step === 'payment' && (
                          !offer.owner_paid ? (
                            <Button
@@ -713,6 +732,25 @@ export default function MyListings() {
                           <MessageCircle className="w-4 h-4 mr-2" />
                           {t('chat')}
                         </Button>
+                        {(offer.status === 'pending' || offer.status === 'accepted') && (
+                          <Button 
+                            variant="outline"
+                            onClick={async () => {
+                              await base44.entities.TradeOffer.update(offer.id, { status: 'cancelled' });
+                              await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+                              for (const cardId of offer.offered_card_ids || []) {
+                                await base44.entities.CardListing.update(cardId, { status: 'available' });
+                              }
+                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                              queryClient.invalidateQueries({ queryKey: ['myListings'] });
+                              toast.success('Offer cancelled');
+                            }}
+                            className="flex-1 text-red-600 hover:bg-red-50"
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Anuluj
+                          </Button>
+                        )}
                         {offer.status === 'accepted' && offer.progress_step === 'payment' && (
                           !offer.sender_paid ? (
                             <Button
