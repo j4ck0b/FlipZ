@@ -25,7 +25,6 @@ import {
   CreditCard,
   X
 } from 'lucide-react';
-import { createPageUrl } from './utils';
 import FloatingChat from './components/chat/FloatingChat';
 import NotificationPanel from './components/notifications/NotificationPanel';
 
@@ -35,16 +34,21 @@ export default function Layout({ children }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Jeśli nie ma usera, nie pokazuj nawigacji (nie powinno się zdarzyć bo ProtectedRoute to pilnuje)
+  if (!user) {
+    return <div>{children}</div>;
+  }
+
   const handleSignOut = async () => {
     await signOut();
-    navigate(createPageUrl('Login'));
+    navigate('/login');
   };
 
   const navItems = [
-    { name: 'Home', path: '/Home', icon: Home },
-    { name: 'Wiadomości', path: '/Messages', icon: MessageSquare },
-    { name: 'Ulubione', path: '/Favorites', icon: Heart },
-    { name: 'Profil', path: `/Profile/${user?.id}`, icon: User },
+    { name: 'Home', path: '/home', icon: Home },
+    { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
+    { name: 'Ulubione', path: '/favorites', icon: Heart },
+    { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
   ];
 
   const isActivePath = (path) => {
@@ -58,7 +62,7 @@ export default function Layout({ children }) {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/Home" className="flex items-center gap-3 group">
+            <Link to="/home" className="flex items-center gap-3 group">
               <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-6 h-6" />
               </div>
@@ -102,7 +106,7 @@ export default function Layout({ children }) {
                     <Avatar className="h-10 w-10 border-2 border-violet-200">
                       <AvatarImage src={profile?.avatar_url} alt={profile?.username} />
                       <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                        {profile?.username?.substring(0, 2).toUpperCase() || 'U'}
+                        {profile?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     {profile?.subscription_tier !== 'free' && (
@@ -113,24 +117,24 @@ export default function Layout({ children }) {
                 <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{profile?.username}</p>
+                      <p className="text-sm font-medium leading-none">{profile?.username || 'Użytkownik'}</p>
                       <p className="text-xs text-slate-500">{user?.email}</p>
-                      {profile?.subscription_tier !== 'free' && (
+                      {profile?.subscription_tier && profile?.subscription_tier !== 'free' && (
                         <Badge className="w-fit bg-gradient-to-r from-violet-600 to-purple-600">
                           <Crown className="w-3 h-3 mr-1" />
-                          {profile?.subscription_tier}
+                          {profile.subscription_tier}
                         </Badge>
                       )}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuItem onClick={() => navigate(`/Profile/${user?.id}`)}>
+                  <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)}>
                     <User className="mr-2 h-4 w-4" />
                     Profil
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem onClick={() => navigate('/Subscription')}>
+                  <DropdownMenuItem onClick={() => navigate('/subscription')}>
                     <CreditCard className="mr-2 h-4 w-4" />
                     Subskrypcja
                   </DropdownMenuItem>
@@ -139,7 +143,7 @@ export default function Layout({ children }) {
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
-                        onClick={() => navigate('/Admin-Panel')}
+                        onClick={() => navigate('/admin')}
                         className="text-violet-600 font-medium"
                       >
                         <Shield className="mr-2 h-4 w-4" />
@@ -205,7 +209,7 @@ export default function Layout({ children }) {
                         <>
                           <div className="my-2 border-t border-slate-200" />
                           <Link
-                            to="/Admin-Panel"
+                            to="/admin"
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             <Button
