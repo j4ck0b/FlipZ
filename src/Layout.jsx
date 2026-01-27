@@ -1,234 +1,250 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './lib/AuthContext';
 import { Button } from "@/components/ui/button";
-import { 
-  Home as HomeIcon,
-  LayoutDashboard, 
-  Menu,
-  LogOut,
-  Sparkles,
-  UserCircle,
-  MessageCircle,
-  Heart,
-  Languages
-} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import NotificationProvider from './components/notifications/NotificationProvider';
-import NotificationPanel from './components/notifications/NotificationPanel';
-import LanguageProvider, { useLanguage } from './components/LanguageProvider';
+import { Badge } from "@/components/ui/badge";
+import {
+  Menu,
+  Home,
+  MessageSquare,
+  Heart,
+  User,
+  LogOut,
+  Crown,
+  Shield,
+  CreditCard,
+  X
+} from 'lucide-react';
+import { createPageUrl } from './utils';
+import FloatingChat from './components/chat/FloatingChat';
+import { NotificationPanel } from './components/notifications/NotificationPanel';
 
-function LayoutContent({ children, currentPageName }) {
-  const { language, toggleLanguage, t } = useLanguage();
-  const [user, setUser] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function Layout({ children }) {
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // --- NOWA LOGIKA ---
-  // Sprawdzamy czy strona to Login lub Signup
-  const isAuthPage = window.location.pathname === '/Login' || window.location.pathname === '/Signup';
-  // -------------------
+  const handleSignOut = async () => {
+    await signOut();
+    navigate(createPageUrl('Login'));
+  };
 
   const navItems = [
-    { name: t('home'), page: 'Home', icon: HomeIcon },
-    { name: t('myCollection'), page: 'MyListings', icon: LayoutDashboard },
-    { name: t('messages'), page: 'Messages', icon: MessageCircle },
-    { name: t('profile'), page: 'Profile', icon: UserCircle },
+    { name: 'Home', path: '/Home', icon: Home },
+    { name: 'Wiadomości', path: '/Messages', icon: MessageSquare },
+    { name: 'Ulubione', path: '/Favorites', icon: Heart },
+    { name: 'Profil', path: `/Profile/${user?.id}`, icon: User },
   ];
 
-  const adminNavItems = user?.role === 'admin' ? [
-    { name: 'Panel Admin', page: 'AdminDashboard', icon: Sparkles }
-  ] : [];
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const u = await base44.auth.me();
-      setUser(u);
-    };
-    loadUser();
-  }, []);
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const isActivePath = (path) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   return (
-    <NotificationProvider>
-      <div className="min-h-screen bg-slate-50">
-        
-        {/* --- MODYFIKACJA: Nawigacja wyświetla się tylko jeśli NIE jest to strona Auth --- */}
-        {!isAuthPage && (
-          <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="flex items-center justify-between h-16">
-                {/* Logo */}
-                <Link 
-                  to={createPageUrl('Home')} 
-                  className="flex items-center gap-2 font-bold text-xl text-slate-900"
-                >
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693ecc5599cec84236ae4d99/147165ce2_FLIPCARDZ2.png" 
-                    alt="FlipCardZ" 
-                    className="w-9 h-9 rounded-xl"
-                  />
-                  <span className="hidden sm:inline">FlipCardZ</span>
-                </Link>
-
-                {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-1">
-                  {[...navItems, ...adminNavItems].map((item) => {
-                    const Icon = item.icon;
-                    const isActive = currentPageName === item.page;
-                    return (
-                      <Link key={item.page} to={createPageUrl(item.page)}>
-                        <Button
-                          variant={isActive ? "secondary" : "ghost"}
-                          className={isActive ? "bg-slate-100" : ""}
-                        >
-                          <Icon className="w-4 h-4 mr-2" />
-                          {item.name}
-                        </Button>
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                {/* User Menu */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleLanguage}
-                    className="relative"
-                    title={language === 'en' ? 'Switch to Polish' : 'Przełącz na angielski'}
-                  >
-                    <Languages className="w-5 h-5" />
-                    <span className="absolute -bottom-1 text-[10px] font-bold">
-                      {language.toUpperCase()}
-                    </span>
-                  </Button>
-                  {user && <NotificationPanel />}
-                  {user && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="gap-2 hidden md:flex">
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-500 text-white text-sm">
-                              {getInitials(user.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="max-w-[120px] truncate">{user.full_name || user.email}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('Profile')} className="cursor-pointer">
-                            <UserCircle className="w-4 h-4 mr-2" />
-                            {t('profile')}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('MyListings')} className="cursor-pointer">
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            {t('myCollection')}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => base44.auth.logout(createPageUrl('Home'))}
-                          className="text-red-600 cursor-pointer"
-                        >
-                          <LogOut className="w-4 h-4 mr-2" />
-                          {t('logout')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
-                  {/* Mobile Menu */}
-                  <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon" className="md:hidden">
-                        <Menu className="w-5 h-5" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-72">
-                      <div className="flex flex-col gap-4 mt-8">
-                        {user && (
-                          <div className="flex items-center gap-3 pb-4 border-b">
-                            <Avatar className="w-10 h-10">
-                              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-500 text-white">
-                                {getInitials(user.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-slate-900">{user.full_name}</p>
-                              <p className="text-sm text-slate-500">{user.email}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {[...navItems, ...adminNavItems].map((item) => {
-                          const Icon = item.icon;
-                          const isActive = currentPageName === item.page;
-                          return (
-                            <Link 
-                              key={item.page} 
-                              to={createPageUrl(item.page)}
-                              onClick={() => setMobileOpen(false)}
-                            >
-                              <Button
-                                variant={isActive ? "secondary" : "ghost"}
-                                className="w-full justify-start"
-                              >
-                                <Icon className="w-4 h-4 mr-2" />
-                                {item.name}
-                              </Button>
-                            </Link>
-                          );
-                        })}
-                        
-                        <div className="pt-4 border-t mt-auto">
-                          <Button 
-                            variant="ghost" 
-                            onClick={() => base44.auth.logout(createPageUrl('Home'))}
-                            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            {t('logout')}
-                          </Button>
-                        </div>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/Home" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-6 h-6" />
               </div>
+              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">
+                FlipCardZ
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActivePath(item.path);
+                return (
+                  <Link key={item.path} to={item.path}>
+                    <Button
+                      variant={active ? "default" : "ghost"}
+                      className={`gap-2 ${
+                        active
+                          ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
+                          : 'text-slate-700 hover:text-violet-600'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden lg:inline">{item.name}</span>
+                    </Button>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Right section */}
+            <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <NotificationPanel />
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10 border-2 border-violet-200">
+                      <AvatarImage src={profile?.avatar_url} alt={profile?.username} />
+                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
+                        {profile?.username?.substring(0, 2).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {profile?.subscription_tier !== 'free' && (
+                      <Crown className="absolute -top-1 -right-1 w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{profile?.username}</p>
+                      <p className="text-xs text-slate-500">{user?.email}</p>
+                      {profile?.subscription_tier !== 'free' && (
+                        <Badge className="w-fit bg-gradient-to-r from-violet-600 to-purple-600">
+                          <Crown className="w-3 h-3 mr-1" />
+                          {profile?.subscription_tier}
+                        </Badge>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => navigate(`/Profile/${user?.id}`)}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profil
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => navigate('/Subscription')}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Subskrypcja
+                  </DropdownMenuItem>
+
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/Admin-Panel')}
+                        className="text-violet-600 font-medium"
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Panel Admina
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Wyloguj się
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Mobile Menu Trigger */}
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild className="md:hidden">
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] sm:w-[350px]">
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-lg font-semibold">Menu</h2>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
+
+                    <nav className="flex flex-col gap-2 flex-1">
+                      {navItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActivePath(item.path);
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Button
+                              variant={active ? "default" : "ghost"}
+                              className={`w-full justify-start gap-3 ${
+                                active
+                                  ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
+                                  : 'text-slate-700'
+                              }`}
+                            >
+                              <Icon className="w-5 h-5" />
+                              {item.name}
+                            </Button>
+                          </Link>
+                        );
+                      })}
+
+                      {isAdmin && (
+                        <>
+                          <div className="my-2 border-t border-slate-200" />
+                          <Link
+                            to="/Admin-Panel"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-3 text-violet-600 border-violet-200"
+                            >
+                              <Shield className="w-5 h-5" />
+                              Panel Admina
+                            </Button>
+                          </Link>
+                        </>
+                      )}
+                    </nav>
+
+                    <div className="border-t border-slate-200 pt-4">
+                      <Button
+                        variant="ghost"
+                        onClick={handleSignOut}
+                        className="w-full justify-start gap-3 text-red-600"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        Wyloguj się
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-          </nav>
-        )}
+          </div>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <main className={isAuthPage ? "flex items-center justify-center min-h-screen" : ""}>
-          {children}
-        </main>
-      </div>
-    </NotificationProvider>
-  );
-}
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {children}
+      </main>
 
-export default function Layout({ children, currentPageName }) {
-  return (
-    <LanguageProvider>
-      <LayoutContent children={children} currentPageName={currentPageName} />
-    </LanguageProvider>
+      {/* Floating Chat */}
+      <FloatingChat />
+    </div>
   );
 }
