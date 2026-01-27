@@ -8,7 +8,7 @@ import NotificationProvider from './components/notifications/NotificationProvide
 import { LanguageProvider } from './components/LanguageProvider';
 import Layout from './Layout';
 
-// Pages - wszystkie istnieją w Twoim drzewie
+// Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
@@ -23,17 +23,17 @@ import Messages from './pages/Messages';
 import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
-import AdminPanel from './pages/AdminDashboard'; // Uwaga: masz AdminDashboard.jsx, nie AdminPanel.jsx
+import AdminPanel from './pages/AdminPanel';
 
 import './App.css';
 
-// Chroni przed dostępem niezalogowanych
-const ProtectedRoute = ({ children }) => {
+// Protected Route - wymaga logowania + Layout
+function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
           <p className="text-gray-600">Ładowanie...</p>
@@ -46,33 +46,154 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
-};
+  // WAŻNE: Layout tylko dla zalogowanych stron!
+  return <Layout>{children}</Layout>;
+}
+
+// Admin Route - wymaga admina
+function AdminRoute({ children }) {
+  const { user, isAdmin, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
+          <p className="text-gray-600">Ładowanie...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <Layout>{children}</Layout>;
+}
 
 function AppRoutes() {
+  const { user } = useAuth();
+
   return (
     <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
+      {/* Public routes - BEZ Layout! */}
+      <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
+      <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       
-      {/* Protected routes — UWAGA: ścieżki z myślnikami! */}
-      <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path="/card-exchange" element={<ProtectedRoute><CardExchange /></ProtectedRoute>} />
-      <Route path="/brick-exchange" element={<ProtectedRoute><BrickExchange /></ProtectedRoute>} />
-      <Route path="/diecast-exchange" element={<ProtectedRoute><DiecastExchange /></ProtectedRoute>} />
-      <Route path="/figure-exchange" element={<ProtectedRoute><FigureExchange /></ProtectedRoute>} />
-      <Route path="/collectible-exchange" element={<ProtectedRoute><CollectibleExchange /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-      <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-      <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-      <Route path="/subscription/success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+      {/* Protected routes - Z Layout przez ProtectedRoute */}
+      <Route 
+        path="/home" 
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/card-exchange" 
+        element={
+          <ProtectedRoute>
+            <CardExchange />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/brick-exchange" 
+        element={
+          <ProtectedRoute>
+            <BrickExchange />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/diecast-exchange" 
+        element={
+          <ProtectedRoute>
+            <DiecastExchange />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/figure-exchange" 
+        element={
+          <ProtectedRoute>
+            <FigureExchange />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/collectible-exchange" 
+        element={
+          <ProtectedRoute>
+            <CollectibleExchange />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/profile/:userId?" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/messages" 
+        element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/favorites" 
+        element={
+          <ProtectedRoute>
+            <Favorites />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/subscription" 
+        element={
+          <ProtectedRoute>
+            <Subscription />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/subscription/success" 
+        element={
+          <ProtectedRoute>
+            <SubscriptionSuccess />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Admin routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <AdminPanel />
+          </AdminRoute>
+        } 
+      />
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/home" replace />} />
+      <Route path="*" element={<Navigate to={user ? "/home" : "/"} replace />} />
     </Routes>
   );
 }
@@ -84,9 +205,8 @@ function App() {
         <AuthProvider>
           <NotificationProvider>
             <Router>
-              <Layout>
-                <AppRoutes />
-              </Layout>
+              {/* WAŻNE: Layout NIE jest tutaj! Jest w ProtectedRoute */}
+              <AppRoutes />
               <Toaster position="top-right" />
             </Router>
           </NotificationProvider>
