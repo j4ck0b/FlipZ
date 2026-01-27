@@ -5,7 +5,6 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Emulator SDK - mapuje tabele na obiekty, których szuka Twój kod
 const createEntity = (tableName) => ({
   filter: async (query) => {
     let req = supabase.from(tableName).select('*');
@@ -42,13 +41,18 @@ export const base44 = {
         role: user.user_metadata?.role || 'user'
       };
     },
+    // TO JEST TA BRAKUJĄCA FUNKCJA:
+    redirectToLogin: () => {
+      window.location.href = '/Login';
+    },
+    login: async (email, password) => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data.user;
+    },
     logout: async () => {
       await supabase.auth.signOut();
       window.location.href = '/Login';
-    },
-    updateMe: async (data) => {
-      const { error } = await supabase.auth.updateUser({ data });
-      if (error) throw error;
     }
   },
   entities: {
