@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { createPageUrl } from './utils';
 import FloatingChat from './components/chat/FloatingChat';
-import { NotificationPanel } from './components/notifications/NotificationPanel';
+import NotificationPanel from './components/notifications/NotificationPanel';
 
 export default function Layout({ children }) {
   const { user, profile, isAdmin, signOut } = useAuth();
