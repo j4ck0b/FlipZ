@@ -21,122 +21,105 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      if (error) throw error;
-      setProfile(data);
-      setIsAdmin(data?.role === 'admin');
-      return data;
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    let mounted = true;
     const initAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        if (session?.user && mounted) {
+        // Pobierz aktualną sesję
+        const {  { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
           setUser(session.user);
-          await fetchProfile(session.user.id);
+          
+          // Pobierz profil BEZ abort controllera (tymczasowo)
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileData) {
+            setProfile(profileData);
+            setIsAdmin(profileData.role === 'admin');
+          } else {
+            console.warn('No profile found for user:', session.user.id);
+            // Jeśli brak profilu, ustaw pusty profil
+            setProfile({ id: session.user.id, email: session.user.email });
+          }
+        } else {
+          setUser(null);
+          setProfile(null);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Auth error:', error);
+        setUser(null);
+        setProfile(null);
       } finally {
-        if (mounted) {
+        setLoading(false);
+      }
+
+      // Nasłuchuj zmian stanu logowania
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            setUser(session.user);
+            
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profileData) {
+              setProfile(profileData);
+              setIsAdmin(profileData.role === 'admin');
+            } else {
+              setProfile({ id: session.user.id, email: session.user.email });
+            }
+          } else {
+            setUser(null);
+            setProfile(null);
+            setIsAdmin(false);
+          }
           setLoading(false);
         }
-      }
+      );
+
+      return () => {
+        subscription?.unsubscribe();
+      };
     };
 
     initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user && mounted) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else if (mounted) {
-          setUser(null);
-          setProfile(null);
-          setIsAdmin(false);
-        }
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-    };
   }, []);
 
   const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      return { error };
-    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
+    });
+    if (error) console.error('Google sign in error:', error);
   };
 
   const signInWithMagicLink = async (email) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
-      if (error) throw error;
-      return { error: null };
-    } catch (error) {
-      console.error('Error sending magic link:', error);
-      return { error };
-    }
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+    });
+    if (error) console.error('Magic link error:', error);
+    return { error };
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setIsAdmin(false);
-  };
+  const signOut = () => supabase.auth.signOut();
 
   const redirectToLogin = () => {
-    window.location.href = '/Login';
-  };
-
-  const value = {
-    user,
-    profile,
-    loading,
-    isAdmin,
-    signInWithGoogle,
-    signInWithMagicLink,
-    signOut,
-    redirectToLogin,
-    fetchProfile,
+    window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user, profile, loading, isAdmin,
+      signInWithGoogle, signInWithMagicLink, signOut, redirectToLogin
+    }}>
       {children}
     </AuthContext.Provider>
   );
