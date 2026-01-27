@@ -4,9 +4,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from './lib/query-client';
 import { AuthProvider, useAuth } from './lib/AuthContext';
-import NotificationProvider from './components/notifications/NotificationProvider'; // ✅ POPRAWIONE - bez klamr
+import NotificationProvider from './components/notifications/NotificationProvider';
 import { LanguageProvider } from './components/LanguageProvider';
 import Layout from './Layout';
+
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -23,190 +24,164 @@ import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import AdminPanel from './pages/AdminDashboard';
+import CreateListing from './pages/CreateListing'; // ← dodaj ten plik osobno
+
 import './App.css';
 
-// Protected Route Component
-function ProtectedRoute({ children }) {
+// Komponent chroniący przed dostępem niezalogowanych użytkowników
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
+  
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
+          <p className="text-gray-600">Ładowanie...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/Login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
-}
+};
 
-// Admin Route Component
-function AdminRoute({ children }) {
-  const { user, isAdmin, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
-      </div>
-    );
-  }
-
-  if (!user || !isAdmin) {
-    return <Navigate to="/Home" replace />;
-  }
-
-  return children;
-}
-
+// Główna logika routingu
 function AppRoutes() {
-  const { user } = useAuth();
-
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={user ? <Navigate to="/Home" replace /> : <Landing />} />
-      <Route path="/Login" element={user ? <Navigate to="/Home" replace /> : <Login />} />
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-
+      
       {/* Protected routes */}
       <Route
-        path="/Home"
+        path="/home"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Home />
-            </Layout>
+            <Home />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Card-Exchange"
+        path="/card-exchange"
         element={
           <ProtectedRoute>
-            <Layout>
-              <CardExchange />
-            </Layout>
+            <CardExchange />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Brick-Exchange"
+        path="/brick-exchange"
         element={
           <ProtectedRoute>
-            <Layout>
-              <BrickExchange />
-            </Layout>
+            <BrickExchange />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Diecast-Exchange"
+        path="/diecast-exchange"
         element={
           <ProtectedRoute>
-            <Layout>
-              <DiecastExchange />
-            </Layout>
+            <DiecastExchange />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Figure-Exchange"
+        path="/figure-exchange"
         element={
           <ProtectedRoute>
-            <Layout>
-              <FigureExchange />
-            </Layout>
+            <FigureExchange />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Collectible-Exchange"
+        path="/collectible-exchange"
         element={
           <ProtectedRoute>
-            <Layout>
-              <CollectibleExchange />
-            </Layout>
+            <CollectibleExchange />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Profile/:userId?"
+        path="/profile"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Profile />
-            </Layout>
+            <Profile />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Messages"
+        path="/messages"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Messages />
-            </Layout>
+            <Messages />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Favorites"
+        path="/favorites"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Favorites />
-            </Layout>
+            <Favorites />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Subscription"
+        path="/subscription"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Subscription />
-            </Layout>
+            <Subscription />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/Subscription-Success"
+        path="/subscription/success"
         element={
           <ProtectedRoute>
             <SubscriptionSuccess />
           </ProtectedRoute>
         }
       />
-
-      {/* Admin routes */}
       <Route
-        path="/Admin-Panel"
+        path="/admin"
         element={
-          <AdminRoute>
+          <ProtectedRoute>
             <AdminPanel />
-          </AdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-listing"
+        element={
+          <ProtectedRoute>
+            <CreateListing />
+          </ProtectedRoute>
         }
       />
 
-      {/* Catch all - redirect to home or landing */}
-      <Route path="*" element={<Navigate to={user ? "/Home" : "/"} replace />} />
+      {/* Fallback — przekierowanie do home dla nieznanych ścieżek */}
+      <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 }
 
+// Główny komponent App
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider> {/* ✅ OPKUJ CAŁĄ APLIKACJĘ */}
+      <LanguageProvider>
         <AuthProvider>
           <NotificationProvider>
             <Router>
-              <AppRoutes />
+              <Layout>
+                <AppRoutes />
+              </Layout>
               <Toaster position="top-right" />
             </Router>
           </NotificationProvider>
