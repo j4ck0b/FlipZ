@@ -4,9 +4,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from './lib/query-client';
 import { AuthProvider, useAuth } from './lib/AuthContext';
-import { NotificationProvider } from './components/notifications/NotificationProvider';
+import NotificationProvider from './components/notifications/NotificationProvider'; // ✅ POPRAWIONE
 import Layout from './Layout';
-
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
