@@ -22,7 +22,7 @@ import Messages from './pages/Messages';
 import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
-import AdminPanel from './pages/AdminPanel';
+import AdminPanel from './pages/AdminDashboard';
 
 import './App.css';
 
