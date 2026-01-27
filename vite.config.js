@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      // To pozwala na używanie skrótu "@" w importach (np. "@/components/...")
       "@": path.resolve(__dirname, "./src"),
     },
   },
