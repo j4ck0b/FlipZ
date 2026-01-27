@@ -4,7 +4,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from './lib/query-client';
 import { AuthProvider, useAuth } from './lib/AuthContext';
-import NotificationProvider from './components/notifications/NotificationProvider'; // ✅ POPRAWIONE
+import { NotificationProvider } from './components/notifications/NotificationProvider';
+import { LanguageProvider } from './components/LanguageProvider'; // ✅ DODANE
 import Layout from './Layout';
 // Pages
 import Landing from './pages/Landing';
@@ -22,7 +23,6 @@ import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import AdminPanel from './pages/AdminDashboard';
-
 import './App.css';
 
 // Protected Route Component
@@ -202,14 +202,16 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <Router>
-            <AppRoutes />
-            <Toaster position="top-right" />
-          </Router>
-        </NotificationProvider>
-      </AuthProvider>
+      <LanguageProvider> {/* ✅ OPKUJ CAŁĄ APLIKACJĘ */}
+        <AuthProvider>
+          <NotificationProvider>
+            <Router>
+              <AppRoutes />
+              <Toaster position="top-right" />
+            </Router>
+          </NotificationProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
