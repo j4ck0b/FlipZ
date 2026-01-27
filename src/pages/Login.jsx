@@ -23,7 +23,7 @@ export default function Login() {
       toast.error(error.message);
     } else {
       toast.success(isSignUp ? "Sprawdź maila lub zaloguj się!" : "Zalogowano pomyślnie!");
-      window.location.href = '/'; // Przekierowanie na stronę główną
+      window.location.href = '/Home'; // Przekierowanie na stronę główną
     }
     setLoading(false);
   };
