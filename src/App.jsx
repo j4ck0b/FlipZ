@@ -4,8 +4,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from './lib/query-client';
 import { AuthProvider, useAuth } from './lib/AuthContext';
-import { NotificationProvider } from './components/notifications/NotificationProvider';
-import { LanguageProvider } from './components/LanguageProvider'; // ✅ DODANE
+import NotificationProvider from './components/notifications/NotificationProvider'; // ✅ POPRAWIONE - bez klamr
+import { LanguageProvider } from './components/LanguageProvider';
 import Layout from './Layout';
 // Pages
 import Landing from './pages/Landing';
