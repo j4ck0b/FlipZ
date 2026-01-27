@@ -1,12 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 1. DANE POŁĄCZENIA (Poprawiony adres bez myślnika!)
 const supabaseUrl = 'https://tazbxgisuvkkogukmqbq.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhemJ4Z2lzdXZra29ndWttcWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzEwNDIsImV4cCI6MjA4MzgwNzA0Mn0.wk8EWkJJxPU-blP8lMUX0x2ahKylhgLkkk98f9tauV0'
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
-// 2. POMOCNIK DO TABEL (EMULATOR BASE44)
 const createEntity = (tableName) => ({
   filter: async (query) => {
     let req = supabase.from(tableName).select('*');
@@ -31,9 +29,13 @@ const createEntity = (tableName) => ({
   }
 });
 
-// 3. GŁÓWNY OBIEKT BASE44 (Dostosowany do Twojej strony)
 export const base44 = {
   auth: {
+    // Sprawdza czy użytkownik jest zalogowany (TEGO BRAKOWAŁO)
+    isAuthenticated: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      return !!session;
+    },
     me: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
@@ -83,7 +85,6 @@ export const base44 = {
     Core: {
       UploadFile: async ({ file }) => {
         const fileName = `${Date.now()}-${file.name}`;
-        // Wysyłamy do bucketu card-images (pamiętaj, aby go stworzyć w Supabase!)
         const { data, error } = await supabase.storage.from('card-images').upload(fileName, file);
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('card-images').getPublicUrl(fileName);
