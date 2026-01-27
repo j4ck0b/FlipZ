@@ -174,3 +174,6 @@ export const useLanguage = () => {
   }
   return context;
 };
+
+// TO JEST TA KLUCZOWA LINIA, KTÓREJ BRAKOWAŁO:
+export default LanguageProvider;
