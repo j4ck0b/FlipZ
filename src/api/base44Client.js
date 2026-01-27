@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://tazbxgi-suvkkogukmqbq.supabase.co'
+// 1. DANE POŁĄCZENIA (Poprawiony adres bez myślnika!)
+const supabaseUrl = 'https://tazbxgisuvkkogukmqbq.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhemJ4Z2lzdXZra29ndWttcWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzEwNDIsImV4cCI6MjA4MzgwNzA0Mn0.wk8EWkJJxPU-blP8lMUX0x2ahKylhgLkkk98f9tauV0'
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
+// 2. POMOCNIK DO TABEL (EMULATOR BASE44)
 const createEntity = (tableName) => ({
   filter: async (query) => {
     let req = supabase.from(tableName).select('*');
@@ -29,6 +31,7 @@ const createEntity = (tableName) => ({
   }
 });
 
+// 3. GŁÓWNY OBIEKT BASE44 (Dostosowany do Twojej strony)
 export const base44 = {
   auth: {
     me: async () => {
@@ -41,12 +44,20 @@ export const base44 = {
         role: user.user_metadata?.role || 'user'
       };
     },
-    // TO JEST TA BRAKUJĄCA FUNKCJA:
     redirectToLogin: () => {
       window.location.href = '/Login';
     },
     login: async (email, password) => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data.user;
+    },
+    signup: async (email, password, fullName) => {
+      const { data, error } = await supabase.auth.signUp({
+        email, 
+        password,
+        options: { data: { full_name: fullName } }
+      });
       if (error) throw error;
       return data.user;
     },
@@ -71,10 +82,11 @@ export const base44 = {
   integrations: {
     Core: {
       UploadFile: async ({ file }) => {
-        const fileName = `${Math.random()}-${file.name}`;
-        const { data, error } = await supabase.storage.from('public').upload(fileName, file);
+        const fileName = `${Date.now()}-${file.name}`;
+        // Wysyłamy do bucketu card-images (pamiętaj, aby go stworzyć w Supabase!)
+        const { data, error } = await supabase.storage.from('card-images').upload(fileName, file);
         if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(fileName);
+        const { data: { publicUrl } } = supabase.storage.from('card-images').getPublicUrl(fileName);
         return { file_url: publicUrl };
       }
     }
