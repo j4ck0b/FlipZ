@@ -8,7 +8,7 @@ import NotificationProvider from './components/notifications/NotificationProvide
 import { LanguageProvider } from './components/LanguageProvider';
 import Layout from './Layout';
 
-// Pages
+// Pages - wszystkie istnieją w Twoim drzewie
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
@@ -23,12 +23,11 @@ import Messages from './pages/Messages';
 import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
-import AdminPanel from './pages/AdminDashboard';
-import CreateListing from './pages/CreateListing'; // ← dodaj ten plik osobno
+import AdminPanel from './pages/AdminDashboard'; // Uwaga: masz AdminDashboard.jsx, nie AdminPanel.jsx
 
 import './App.css';
 
-// Komponent chroniący przed dostępem niezalogowanych użytkowników
+// Chroni przed dostępem niezalogowanych
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -50,7 +49,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Główna logika routingu
 function AppRoutes() {
   return (
     <Routes>
@@ -59,119 +57,26 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       
-      {/* Protected routes */}
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/card-exchange"
-        element={
-          <ProtectedRoute>
-            <CardExchange />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/brick-exchange"
-        element={
-          <ProtectedRoute>
-            <BrickExchange />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/diecast-exchange"
-        element={
-          <ProtectedRoute>
-            <DiecastExchange />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/figure-exchange"
-        element={
-          <ProtectedRoute>
-            <FigureExchange />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/collectible-exchange"
-        element={
-          <ProtectedRoute>
-            <CollectibleExchange />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/messages"
-        element={
-          <ProtectedRoute>
-            <Messages />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/favorites"
-        element={
-          <ProtectedRoute>
-            <Favorites />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/subscription"
-        element={
-          <ProtectedRoute>
-            <Subscription />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/subscription/success"
-        element={
-          <ProtectedRoute>
-            <SubscriptionSuccess />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminPanel />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/create-listing"
-        element={
-          <ProtectedRoute>
-            <CreateListing />
-          </ProtectedRoute>
-        }
-      />
+      {/* Protected routes — UWAGA: ścieżki z myślnikami! */}
+      <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/card-exchange" element={<ProtectedRoute><CardExchange /></ProtectedRoute>} />
+      <Route path="/brick-exchange" element={<ProtectedRoute><BrickExchange /></ProtectedRoute>} />
+      <Route path="/diecast-exchange" element={<ProtectedRoute><DiecastExchange /></ProtectedRoute>} />
+      <Route path="/figure-exchange" element={<ProtectedRoute><FigureExchange /></ProtectedRoute>} />
+      <Route path="/collectible-exchange" element={<ProtectedRoute><CollectibleExchange /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+      <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+      <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+      <Route path="/subscription/success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
 
-      {/* Fallback — przekierowanie do home dla nieznanych ścieżek */}
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 }
 
-// Główny komponent App
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
