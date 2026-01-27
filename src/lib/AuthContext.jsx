@@ -25,25 +25,24 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       try {
         // Pobierz aktualną sesję
-        const {  { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           setUser(session.user);
           
-          // Pobierz profil BEZ abort controllera (tymczasowo)
-          const { data: profileData } = await supabase
+          // Pobierz profil
+          const { data: profileData, error } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (profileData) {
+          if (error) {
+            console.warn('No profile found, creating empty one:', error);
+            setProfile({ id: session.user.id, email: session.user.email });
+          } else {
             setProfile(profileData);
             setIsAdmin(profileData.role === 'admin');
-          } else {
-            console.warn('No profile found for user:', session.user.id);
-            // Jeśli brak profilu, ustaw pusty profil
-            setProfile({ id: session.user.id, email: session.user.email });
           }
         } else {
           setUser(null);
@@ -63,17 +62,17 @@ export function AuthProvider({ children }) {
           if (session?.user) {
             setUser(session.user);
             
-            const { data: profileData } = await supabase
+            const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
-            if (profileData) {
+            if (error) {
+              setProfile({ id: session.user.id, email: session.user.email });
+            } else {
               setProfile(profileData);
               setIsAdmin(profileData.role === 'admin');
-            } else {
-              setProfile({ id: session.user.id, email: session.user.email });
             }
           } else {
             setUser(null);
