@@ -8,17 +8,16 @@ import FigureExchange from './pages/FigureExchange';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Messages from './pages/Messages';
-import MyListings from './pages/MyListings';
 import Profile from './pages/Profile';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
-import Login from './pages/Login'; // Nowy import
+import Login from './pages/Login';
 import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Home": Home,
     "Landing": Landing,
-    "Login": Login, // Dodana strona
+    "Login": Login,
     "AdminDashboard": AdminDashboard,
     "BrickExchange": BrickExchange,
     "CardExchange": CardExchange,
@@ -27,7 +26,6 @@ export const PAGES = {
     "Favorites": Favorites,
     "FigureExchange": FigureExchange,
     "Messages": Messages,
-    "MyListings": MyListings,
     "Profile": Profile,
     "Subscription": Subscription,
     "SubscriptionSuccess": SubscriptionSuccess,
