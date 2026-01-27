@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const LanguageContext = createContext();
 
 export const translations = {
   pl: {
-    // Ogólne
+    // Nagłówki i ogólne
     title: "FlipCardZ",
-    tagline: "Wymieniaj się kartami kolekcjonerskimi bezpiecznie i łatwo",
-    searchPlaceholder: "Szukaj kart, kategorii...",
+    tagline: "Wymieniaj się kartami bezpiecznie",
+    searchPlaceholder: "Szukaj kart...",
     categories: "Kategorie",
     allCategories: "Wszystkie kategorie",
     signIn: "Zaloguj się",
@@ -18,9 +18,7 @@ export const translations = {
     error: "Wystąpił błąd",
     success: "Sukces!",
     settings: "Ustawienia",
-    language: "Język",
-    notifications: "Powiadomienia",
-
+    
     // Profil i Ogłoszenia
     myProfile: "Mój profil",
     myListings: "Moje ogłoszenia",
@@ -30,69 +28,72 @@ export const translations = {
     deleteListing: "Usuń ogłoszenie",
     updateListing: "Zaktualizuj ogłoszenie",
     listItem: "Wystaw przedmiot",
-    confirmDelete: "Czy na pewno chcesz usunąć to ogłoszenie?",
-    listingCreated: "Ogłoszenie zostało wystawione!",
-    listingUpdated: "Ogłoszenie zaktualizowane!",
-    setDisplayNameFirst: "Najpierw ustaw swoją nazwę wyświetlaną w profilu",
-    noListings: "Nie znaleziono żadnych ogłoszeń",
-    
-    // Szczegóły Karty
+    edit: "Edytuj",
+    markAsSold: "Oznacz jako sprzedane",
+    confirmDelete: "Czy na pewno chcesz usunąć?",
+    listingCreated: "Ogłoszenie wystawione!",
+    listingUpdated: "Zaktualizowano!",
+    setDisplayNameFirst: "Ustaw nazwę w profilu",
+    noListings: "Brak ogłoszeń",
+
+    // Karta i Filtry
     condition: "Stan",
     rarity: "Rzadkość",
-    value: "Szacowana wartość",
-    listingDate: "Data wystawienia",
+    value: "Wartość",
+    listingDate: "Dodano",
     description: "Opis",
     lookingFor: "Szukam",
     category: "Kategoria",
-    itemNamePlaceholder: "np. Charizard Base Set 1st Edition",
-    descriptionPlaceholder: "Opisz przedmiot, stan, szczególne detale...",
-    whatLookingForPlaceholder: "Opisz, jakie przedmioty zaakceptujesz w zamian...",
+    itemNamePlaceholder: "np. Charizard Base Set",
+    descriptionPlaceholder: "Opisz kartę...",
+    whatLookingForPlaceholder: "Co chcesz w zamian?",
     priceRange: "Zakres wartości",
     allConditions: "Wszystkie stany",
     allRarities: "Wszystkie rzadkości",
     filter: "Filtruj",
-    clearFilters: "Wyczyść filtry",
+    clearFilters: "Wyczyść",
     tradeOnly: "Tylko wymiana",
-    markAsSold: "Oznacz jako sprzedane",
-    edit: "Edytuj",
-
+    
     // Wymiany i Czat
-    sendOffer: "Wyślij ofertę wymiany",
-    viewDetails: "Zobacz szczegóły",
-    tradeRequested: "Wysłano ofertę wymiany",
-    tradeAccepted: "Zaakceptowano wymianę",
-    tradeRejected: "Odrzucono wymianę",
-    tradeCompleted: "Wymiana zakończona",
+    sendOffer: "Wyślij ofertę",
+    viewDetails: "Szczegóły",
+    tradeRequested: "Oferta wysłana",
+    tradeAccepted: "Zaakceptowano",
+    tradeRejected: "Odrzucono",
+    tradeCompleted: "Zakończono",
     status: "Status",
     actions: "Akcje",
     accept: "Akceptuj",
     reject: "Odrzuć",
     chat: "Czat",
     send: "Wyślij",
-    typeMessage: "Wpisz wiadomość...",
+    typeMessage: "Napisz...",
     noMessages: "Brak wiadomości",
     noOffersMade: "Nie złożono ofert",
-    yourOffersAppear: "Twoje oferty wymiany pojawią się tutaj",
+    yourOffersAppear: "Tu pojawią się Twoje oferty",
 
-    // Komponenty UI
+    // UI
     uploadImages: "Dodaj zdjęcia",
-    maxImages: "Maksymalnie 5 zdjęć",
-    required: "To pole jest wymagane",
-    minChars: "Minimum {min} znaki",
-    sortBy: "Sortuj według",
+    maxImages: "Max 5 zdjęć",
+    required: "Wymagane",
+    sortBy: "Sortuj",
     newest: "Najnowsze",
-    valueLowHigh: "Wartość: od najniższej",
-    valueHighLow: "Wartość: od najwyższej"
+    valueLowHigh: "Wartość: rosnąco",
+    valueHighLow: "Wartość: malejąco"
   }
 };
 
 export const LanguageProvider = ({ children }) => {
-  // Blokujemy język na 'pl'
+  // Wymuszamy język polski
   const [language] = useState('pl');
 
   const t = (key) => {
-    // Zawsze zwraca polskie tłumaczenie
-    return translations.pl[key] || key;
+    // Jeśli klucza brakuje w tłumaczeniach, zwróć go z dużej litery, żeby nie było pustego miejsca
+    if (translations.pl[key]) {
+      return translations.pl[key];
+    }
+    console.warn(`Brakujący klucz tłumaczenia: ${key}`);
+    return key.charAt(0).toUpperCase() + key.slice(1);
   };
 
   return (
@@ -104,9 +105,7 @@ export const LanguageProvider = ({ children }) => {
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
+  if (!context) throw new Error('useLanguage must be used within a LanguageProvider');
   return context;
 };
 
