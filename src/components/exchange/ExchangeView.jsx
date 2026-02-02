@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../lib/AuthContext'; // ✅ Tylko useAuth - BEZ supabase
-import { createClient } from '@supabase/supabase-js'; // ✅ Bezpieczny import
+import { useAuth, supabase } from '../../lib/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,16 +14,6 @@ ArrowRight,
 Sparkles,
 Loader2
 } from 'lucide-react';
-
-// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function ExchangeView({
   title = "Exchange",
