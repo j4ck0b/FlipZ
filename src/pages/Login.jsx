@@ -14,6 +14,8 @@ import { createPageUrl } from '../utils';
 import NotificationProvider from '../components/notifications/NotificationProvider';
 
 export default function Login() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
