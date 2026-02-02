@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://tazbxgisuvkkogukmqbq.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhemJ4Z2lzdXZra29ndWttcWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzEwNDIsImV4cCI6MjA4MzgwNzA0Mn0.wk8EWkJJxPU-blP8lMUX0x2ahKylhgLkkk98f9tauV0';
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthContext = createContext({});
@@ -20,33 +21,21 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState('user');
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Pobierz aktualną sesję
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           setUser(session.user);
-          
-          // Pobierz profil
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (error) {
-            console.warn('No profile found, creating empty one:', error);
-            setProfile({ id: session.user.id, email: session.user.email });
-          } else {
-            setProfile(profileData);
-            setIsAdmin(profileData.role === 'admin');
-          }
+          await loadUserProfile(session.user.id);
         } else {
           setUser(null);
           setProfile(null);
+          setIsAdmin(false);
+          setRole('user');
         }
       } catch (error) {
         console.error('Auth error:', error);
@@ -56,28 +45,16 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
 
-      // Nasłuchuj zmian stanu logowania
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (session?.user) {
             setUser(session.user);
-            
-            const { data: profileData, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (error) {
-              setProfile({ id: session.user.id, email: session.user.email });
-            } else {
-              setProfile(profileData);
-              setIsAdmin(profileData.role === 'admin');
-            }
+            await loadUserProfile(session.user.id);
           } else {
             setUser(null);
             setProfile(null);
             setIsAdmin(false);
+            setRole('user');
           }
           setLoading(false);
         }
@@ -91,33 +68,156 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
+  const loadUserProfile = async (userId) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: user?.email,
+            username: user?.email?.split('@')[0],
+            full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0],
+            role: 'user',
+            subscription_tier: 'free',
+            trade_count_current_month: 0
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        setProfile(newProfile);
+        setIsAdmin(newProfile.role === 'admin');
+        setRole(newProfile.role || 'user');
+      } else if (error) {
+        throw error;
+      } else {
+        setProfile(profileData);
+        setIsAdmin(profileData.role === 'admin');
+        setRole(profileData.role || 'user');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` }
-    });
-    if (error) console.error('Google sign in error:', error);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    }
   };
 
   const signInWithMagicLink = async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
-    });
-    if (error) console.error('Magic link error:', error);
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          shouldCreateUser: true
+        }
+      });
+      
+      if (error) {
+        console.error('Magic link error:', error);
+        return { error };
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Magic link error:', error);
+      return { error };
+    }
   };
 
-  const signOut = () => supabase.auth.signOut();
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
-  const redirectToLogin = () => {
-    window.location.href = '/login';
+  const updateProfile = async (updates) => {
+    if (!user) return { error: 'Not authenticated' };
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProfile(data);
+      return { data };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { error };
+    }
+  };
+
+  const changeUserRole = async (userId, newRole) => {
+    if (!isAdmin) return { error: 'Unauthorized' };
+
+    const validRoles = ['user', 'moderator', 'admin', 'employee'];
+    if (!validRoles.includes(newRole)) {
+      return { error: 'Invalid role' };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (userId === user.id) {
+        setProfile({ ...profile, role: newRole });
+        setRole(newRole);
+        setIsAdmin(newRole === 'admin');
+      }
+
+      return { data };
+    } catch (error) {
+      console.error('Change role error:', error);
+      return { error };
+    }
   };
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, isAdmin,
-      signInWithGoogle, signInWithMagicLink, signOut, redirectToLogin
+      user,
+      profile,
+      loading,
+      isAdmin,
+      role,
+      signInWithGoogle,
+      signInWithMagicLink,
+      signOut,
+      updateProfile,
+      changeUserRole
     }}>
       {children}
     </AuthContext.Provider>
