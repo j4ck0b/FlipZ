@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
@@ -7,28 +8,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Loader2, CheckCircle2 } from "lucide-react";
-import { createPageUrl } from '../utils';
-
-// UWAGA: NotificationProvider jest default export → bez {}
-import NotificationProvider from '../components/notifications/NotificationProvider';
+import { Mail, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function Login() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // 👇 NOWA ZMIENNA DLA BŁĘDÓW Z URL (unikamy konfliktu z istniejącym 'error')
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlError = urlParams.get('error');
+  
   const { signInWithGoogle, signInWithMagicLink } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError(error.message);
+    setSuccess('');
+    try {
+      await signInWithGoogle();
+      // Google redirect will handle the rest
+    } catch (error) {
+      setError(error.message || 'Błąd podczas logowania przez Google');
       setLoading(false);
     }
   };
@@ -39,14 +43,30 @@ export default function Login() {
       setError('Wprowadź adres email');
       return;
     }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Wprowadź poprawny adres email');
+      return;
+    }
+
     setLoading(true);
     setError('');
-    const { error } = await signInWithMagicLink(email);
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      setMagicLinkSent(true);
+    setSuccess('');
+
+    try {
+      const result = await signInWithMagicLink(email);
+      
+      if (result.error) {
+        setError(result.error.message || 'Błąd podczas wysyłania linku');
+      } else {
+        setMagicLinkSent(true);
+        setSuccess('Link logowania został wysłany na Twój email!');
+      }
+    } catch (error) {
+      setError(error.message || 'Błąd podczas wysyłania linku');
+    } finally {
       setLoading(false);
     }
   };
@@ -78,6 +98,18 @@ export default function Login() {
                 Link jest ważny przez 60 minut
               </p>
             </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              </Alert>
+            )}
             <Button
               onClick={() => {
                 setMagicLinkSent(false);
@@ -100,7 +132,7 @@ export default function Login() {
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center">
-              <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-10 h-10" />
+              <span className="text-3xl">🃏</span>
             </div>
           </div>
           <div>
@@ -113,6 +145,23 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* 👇 NOWY KOD Z BŁĘDAMI Z URL 👇 */}
+          {urlError && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">
+                    {urlError === 'google_auth_failed' && 'Anulowano logowanie przez Google'}
+                    {urlError === 'session_failed' && 'Błąd sesji. Spróbuj ponownie.'}
+                    {urlError === 'no_code' && 'Nie otrzymano kodu autoryzacji'}
+                    {urlError === 'critical_error' && 'Błąd systemu. Skontaktuj się z administratorem.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 👆 KONIEC NOWEGO KODU 👆 */}
+          
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
@@ -131,6 +180,7 @@ export default function Login() {
             )}
             Zaloguj przez Google
           </Button>
+          
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <Separator />
@@ -141,6 +191,7 @@ export default function Login() {
               </span>
             </div>
           </div>
+          
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -158,11 +209,21 @@ export default function Login() {
                 />
               </div>
             </div>
+            
             {error && (
               <Alert variant="destructive">
+                <AlertCircle className="w-4 h-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            
+            {success && (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              </Alert>
+            )}
+            
             <Button
               type="submit"
               disabled={loading}
@@ -181,6 +242,7 @@ export default function Login() {
               )}
             </Button>
           </form>
+          
           <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
             <p className="text-sm text-slate-700 text-center">
               🔒 <strong>Bez hasła!</strong> Wyślemy Ci bezpieczny link do logowania na email
