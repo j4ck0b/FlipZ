@@ -1,22 +1,13 @@
-// src/lib/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 🔑 Pobieramy zmienne środowiskowe
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// 🚨 Walidacja krytyczna — rzuca błąd jeśli brakuje zmiennych
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Brak zmiennych środowiskowych Supabase!\n' +
-    'Upewnij się, że w Vercel masz ustawione:\n' +
-    '- VITE_SUPABASE_URL\n' +
-    '- VITE_SUPABase_ANON_KEY'
-  );
+  throw new Error('Brak zmiennych środowiskowych Supabase!');
 }
 
-// ✅ BEZWARUNKOWY eksport klienta — to klucz do rozwiązania błędu buildu
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthContext = createContext({});
@@ -40,7 +31,6 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
         if (session?.user) {
           setUser(session.user);
           await loadUserProfile(session.user.id);
@@ -90,7 +80,6 @@ export function AuthProvider({ children }) {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Profil nie istnieje — tworzymy go
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -131,7 +120,6 @@ export function AuthProvider({ children }) {
           scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
         }
       });
-      
       if (error) {
         console.error('Google sign in error:', error);
         throw error;
@@ -151,12 +139,10 @@ export function AuthProvider({ children }) {
           shouldCreateUser: true
         }
       });
-      
       if (error) {
         console.error('Magic link error:', error);
         return { error };
       }
-      
       return { success: true };
     } catch (error) {
       console.error('Magic link error:', error);
@@ -170,7 +156,6 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (updates) => {
     if (!user) return { error: 'Not authenticated' };
-
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -178,9 +163,7 @@ export function AuthProvider({ children }) {
         .eq('id', user.id)
         .select()
         .single();
-
       if (error) throw error;
-
       setProfile(data);
       return { data };
     } catch (error) {
@@ -191,12 +174,10 @@ export function AuthProvider({ children }) {
 
   const changeUserRole = async (userId, newRole) => {
     if (!isAdmin) return { error: 'Unauthorized' };
-
     const validRoles = ['user', 'moderator', 'admin', 'employee'];
     if (!validRoles.includes(newRole)) {
       return { error: 'Invalid role' };
     }
-
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -204,15 +185,12 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .select()
         .single();
-
       if (error) throw error;
-
       if (userId === user.id) {
         setProfile({ ...profile, role: newRole });
         setRole(newRole);
         setIsAdmin(newRole === 'admin');
       }
-
       return { data };
     } catch (error) {
       console.error('Change role error:', error);
