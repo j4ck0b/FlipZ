@@ -1,22 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, supabase } from '../../lib/AuthContext';
+import { useAuth } from '../../lib/AuthContext'; // ✅ Tylko useAuth - BEZ supabase
+import { createClient } from '@supabase/supabase-js'; // ✅ Bezpieczny import
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Filter, 
-  Plus,
-  Package,
-  TrendingUp,
-  ArrowRight,
-  Sparkles,
-  Loader2
+import {
+Search,
+Filter,
+Plus,
+Package,
+TrendingUp,
+ArrowRight,
+Sparkles,
+Loader2
 } from 'lucide-react';
 
-export default function ExchangeView({ 
-  title = "Exchange", 
+// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function ExchangeView({
+  title = "Exchange",
   description = "Trade items",
   icon = "📦",
   allowedCategories = [],
@@ -37,29 +48,26 @@ export default function ExchangeView({
   const fetchListings = async () => {
     try {
       setLoading(true);
-
       // Try to fetch from database (może nie być tabel jeszcze)
       try {
         let query = supabase
-          .from('listings')
+          .from('card_listings')
           .select('*')
           .eq('status', 'available')
-          .order('created_at', { ascending: false });
-
+          .order('created_date', { ascending: false });
+        
         // Filter by category if specified
         if (selectedSubcategory !== 'all' && allowedCategories.length > 0) {
-          query = query.in('category', [selectedSubcategory]);
+          query = query.eq('category', selectedSubcategory);
         } else if (allowedCategories.length > 0) {
           query = query.in('category', allowedCategories);
         }
-
+        
         const { data, error } = await query;
-
         if (error && error.code !== 'PGRST116') {
           // PGRST116 = table doesn't exist, ignore
           throw error;
         }
-
         setListings(data || []);
       } catch (dbError) {
         console.log('Brak tabel - używam mock data');
@@ -82,7 +90,6 @@ export default function ExchangeView({
       { name: 'Blastoise Base Set', price: '180 zł', rarity: 'Uncommon', image: '💧' },
       { name: 'Venusaur Rainbow', price: '420 zł', rarity: 'Secret Rare', image: '🌿' },
     ];
-
     return mockItems.map((item, i) => ({
       id: `mock-${i}`,
       title: item.name,
@@ -92,12 +99,12 @@ export default function ExchangeView({
       description: `${item.rarity} - kolekcjonerska`,
       image_url: null,
       emoji: item.image,
-      created_at: new Date(Date.now() - i * 86400000).toISOString(),
-      user_id: user.id
+      created_date: new Date(Date.now() - i * 86400000).toISOString(),
+      created_by: user?.id
     }));
   };
 
-  const filteredListings = listings.filter(listing => 
+  const filteredListings = listings.filter(listing =>
     listing.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -115,7 +122,6 @@ export default function ExchangeView({
               <p className="text-lg text-slate-600">{description}</p>
             </div>
           </div>
-
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <Card>
@@ -129,7 +135,6 @@ export default function ExchangeView({
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -141,7 +146,6 @@ export default function ExchangeView({
                 </div>
               </CardContent>
             </Card>
-
             <Card className="col-span-2">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -149,7 +153,7 @@ export default function ExchangeView({
                     <p className="text-sm text-slate-600">Twój plan</p>
                     <div className="flex items-center gap-2">
                       <p className="text-xl font-bold text-slate-900">
-                        {profile?.subscription_tier === 'premium' ? 'Premium' : 
+                        {profile?.subscription_tier === 'premium' ? 'Premium' :
                          profile?.subscription_tier === 'basic' ? 'Basic' : 'Free'}
                       </p>
                       {profile?.subscription_tier !== 'free' && (
@@ -168,7 +172,6 @@ export default function ExchangeView({
             </Card>
           </div>
         </div>
-
         {/* Filters */}
         <div className="mb-6 flex flex-col md:flex-row gap-4">
           {/* Search */}
@@ -182,7 +185,6 @@ export default function ExchangeView({
               className="pl-10"
             />
           </div>
-
           {/* Subcategories */}
           {subcategories.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-2">
@@ -206,13 +208,11 @@ export default function ExchangeView({
               ))}
             </div>
           )}
-
           <Button className={`gap-2 bg-gradient-to-r ${gradient}`}>
             <Plus className="w-4 h-4" />
             Wystaw
           </Button>
         </div>
-
         {/* Listings Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -243,8 +243,8 @@ export default function ExchangeView({
                   {/* Image or Emoji */}
                   <div className={`w-full h-48 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
                     {listing.image_url ? (
-                      <img 
-                        src={listing.image_url} 
+                      <img
+                        src={listing.image_url}
                         alt={listing.title}
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -252,7 +252,6 @@ export default function ExchangeView({
                       <span className="text-6xl">{listing.emoji || icon}</span>
                     )}
                   </div>
-                  
                   <CardTitle className="text-lg group-hover:text-violet-600 transition-colors">
                     {listing.title}
                   </CardTitle>
@@ -260,7 +259,6 @@ export default function ExchangeView({
                     {listing.description || listing.condition}
                   </CardDescription>
                 </CardHeader>
-
                 <CardContent>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-2xl font-bold text-slate-900">
@@ -270,7 +268,6 @@ export default function ExchangeView({
                       {listing.condition || 'Stan dobry'}
                     </Badge>
                   </div>
-
                   <Button variant="outline" className="w-full gap-2 group-hover:bg-violet-50">
                     Zobacz więcej
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -280,7 +277,6 @@ export default function ExchangeView({
             ))}
           </div>
         )}
-
         {/* Bottom CTA */}
         {!loading && filteredListings.length > 0 && (
           <div className={`mt-12 bg-gradient-to-r ${gradient} rounded-2xl p-8 text-white text-center`}>
