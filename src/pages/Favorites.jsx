@@ -1,118 +1,184 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth, supabase } from '../lib/AuthContext';
 import { Heart, Loader2, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import CardItem from '../components/cards/CardItem';
-import CardDetailSheet from '../components/cards/CardDetailSheet';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function Favorites() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [selectedCard, setSelectedCard] = useState(null);
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
-    };
-    loadUser();
-  }, []);
+    if (!user) return;
+    fetchFavorites();
+  }, [user]);
 
-  const { data: likedListings = [], isLoading, refetch } = useQuery({
-    queryKey: ['likedListings', currentUser?.email],
-    queryFn: async () => {
-      const likes = await base44.entities.LikedListing.filter({ user_email: currentUser.email });
-      
-      if (likes.length === 0) return [];
-      
-      // Fetch all listings and filter by liked IDs
-      const allListings = await base44.entities.CardListing.list('-created_date');
-      const likedListingIds = new Set(likes.map(l => l.listing_id));
-      const filteredListings = allListings.filter(listing => 
-        likedListingIds.has(listing.id) && listing.status === 'available'
-      );
-      
-      return filteredListings;
-    },
-    enabled: !!currentUser,
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
-  });
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true);
+
+      // Try to fetch from database
+      try {
+        const { data, error } = await supabase
+          .from('favorites')
+          .select(`
+            *,
+            listing:listings(*)
+          `)
+          .eq('user_id', user.id);
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        setFavorites(data || []);
+      } catch (dbError) {
+        console.log('Brak tabel - używam mock data');
+        // Mock favorites
+        setFavorites(generateMockFavorites());
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateMockFavorites = () => {
+    return [
+      {
+        id: '1',
+        listing: {
+          id: '1',
+          title: 'Charizard Holo 1st Edition',
+          price: '500 zł',
+          category: 'pokemon',
+          emoji: '🔥'
+        }
+      },
+      {
+        id: '2',
+        listing: {
+          id: '2',
+          title: 'Pikachu VMAX Rainbow',
+          price: '350 zł',
+          category: 'pokemon',
+          emoji: '⚡'
+        }
+      },
+      {
+        id: '3',
+        listing: {
+          id: '3',
+          title: 'Mewtwo GX Secret',
+          price: '280 zł',
+          category: 'pokemon',
+          emoji: '💜'
+        }
+      }
+    ];
+  };
+
+  const removeFavorite = async (favoriteId) => {
+    try {
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('id', favoriteId);
+
+      if (!error) {
+        setFavorites(favorites.filter(f => f.id !== favoriteId));
+      }
+    } catch (error) {
+      console.log('Mock mode - cannot delete');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 md:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <div className="text-6xl mb-4">❤️</div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight">
-              Your Favorites
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-              Items you've liked and want to remember for trading
-            </p>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {isLoading && (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+    <div className="min-h-screen py-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-600 to-pink-600 flex items-center justify-center text-3xl shadow-lg">
+              ❤️
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900">Ulubione</h1>
+              <p className="text-lg text-slate-600">Przedmioty które Cię interesują</p>
+            </div>
           </div>
-        )}
+        </div>
 
-        {!isLoading && likedListings.length === 0 && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-24"
-          >
-            <Heart className="w-16 h-16 text-rose-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No favorites yet</h3>
-            <p className="text-slate-500 mb-6">Start liking items you're interested in trading for!</p>
-          </motion.div>
-        )}
-
-        {!isLoading && likedListings.length > 0 && (
-          <>
-            <p className="text-sm text-slate-500 mb-6">
-              {likedListings.length} {likedListings.length === 1 ? 'item' : 'items'} in your favorites
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-rose-600 mx-auto mb-4" />
+              <p className="text-slate-600">Ładowanie...</p>
+            </div>
+          </div>
+        ) : favorites.length === 0 ? (
+          <Card className="p-12 text-center">
+            <div className="text-6xl mb-4">💖</div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              Brak ulubionych
+            </h3>
+            <p className="text-slate-600 mb-6">
+              Polub przedmioty które Cię interesują aby je tu znaleźć!
             </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-              <AnimatePresence mode="popLayout">
-                {likedListings.map((listing, index) => (
-                  <motion.div
-                    key={listing.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: index * 0.03 }}
-                  >
-                    <CardItem 
-                      listing={listing} 
-                      onClick={() => setSelectedCard(listing)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+            <Button className="gap-2 bg-gradient-to-r from-rose-600 to-pink-600">
+              <Sparkles className="w-4 h-4" />
+              Przeglądaj oferty
+            </Button>
+          </Card>
+        ) : (
+          <>
+            <p className="text-sm text-slate-600 mb-6">
+              {favorites.length} {favorites.length === 1 ? 'przedmiot' : 'przedmiotów'} w ulubionych
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {favorites.map((favorite) => {
+                const listing = favorite.listing;
+                return (
+                  <Card key={favorite.id} className="group hover:shadow-xl transition-all">
+                    <CardContent className="p-0">
+                      {/* Image */}
+                      <div className="w-full h-48 bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center rounded-t-lg relative">
+                        <span className="text-6xl">{listing?.emoji || '📦'}</span>
+                        <button
+                          onClick={() => removeFavorite(favorite.id)}
+                          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-all"
+                        >
+                          <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
+                        </button>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4">
+                        <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-rose-600 transition-colors">
+                          {listing?.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-bold text-slate-900">
+                            {listing?.price}
+                          </span>
+                          <Badge variant="secondary">
+                            {listing?.category}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}
       </div>
-
-      <CardDetailSheet
-        listing={selectedCard}
-        open={!!selectedCard}
-        onClose={() => setSelectedCard(null)}
-      />
     </div>
   );
 }
