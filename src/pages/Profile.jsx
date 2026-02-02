@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth, supabase } from '../lib/AuthContext';
+import { useAuth } from '../lib/AuthContext'; // ✅ Tylko useAuth - BEZ supabase
+import { createClient } from '@supabase/supabase-js'; // ✅ Bezpieczny import
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Pencil, 
-  MapPin, 
+import {
+  Pencil,
+  MapPin,
   Calendar,
   Package,
   Loader2,
@@ -23,6 +24,16 @@ import {
   X,
   Save
 } from "lucide-react";
+
+// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Profile() {
   const { userId } = useParams();
@@ -54,7 +65,6 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-
       if (isOwnProfile) {
         // Własny profil - użyj currentUserProfile
         setViewingProfile(currentUserProfile);
@@ -71,16 +81,13 @@ export default function Profile() {
           .select('*')
           .eq('id', userId)
           .single();
-
         if (error) {
           console.error('Error fetching profile:', error);
           navigate('/home');
           return;
         }
-
         setViewingProfile(data);
       }
-
       // Fetch stats
       await fetchStats(userId || user.id);
     } catch (error) {
@@ -95,17 +102,17 @@ export default function Profile() {
       // Try to get stats from database
       try {
         const { data: listingsData } = await supabase
-          .from('listings')
+          .from('card_listings')
           .select('id', { count: 'exact' })
-          .eq('user_id', profileUserId)
+          .eq('created_by', profileUserId)
           .eq('status', 'available');
-
+        
         const { data: tradesData } = await supabase
-          .from('trades')
+          .from('trade_offers')
           .select('id', { count: 'exact' })
-          .eq('user_id', profileUserId)
+          .or(`sender_email.eq.${viewingProfile?.email},owner_email.eq.${viewingProfile?.email}`)
           .eq('status', 'completed');
-
+        
         setStats({
           activeListings: listingsData?.length || 0,
           completedTrades: tradesData?.length || 0,
@@ -127,12 +134,10 @@ export default function Profile() {
   const handleEditSubmit = async () => {
     try {
       const { error } = await updateProfile(editForm);
-      
       if (error) {
         console.error('Error updating profile:', error);
         return;
       }
-
       setViewingProfile({ ...viewingProfile, ...editForm });
       setEditMode(false);
     } catch (error) {
@@ -188,7 +193,6 @@ export default function Profile() {
               {getInitials(viewingProfile.full_name || viewingProfile.username, viewingProfile.email)}
             </AvatarFallback>
           </Avatar>
-
           {/* Info */}
           <div className="flex-1 w-full">
             <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
@@ -210,15 +214,13 @@ export default function Profile() {
                     </Badge>
                   )}
                 </div>
-                
                 <p className="text-slate-300 flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   {viewingProfile.email}
                 </p>
               </div>
-
               {isOwnProfile && (
-                <Button 
+                <Button
                   onClick={() => setEditMode(!editMode)}
                   variant="outline"
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
@@ -237,7 +239,6 @@ export default function Profile() {
                 </Button>
               )}
             </div>
-
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300 mb-4">
               {viewingProfile.location && (
                 <span className="flex items-center gap-1">
@@ -250,7 +251,6 @@ export default function Profile() {
                 Dołączył {new Date(viewingProfile.created_at).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}
               </span>
             </div>
-
             {viewingProfile.bio && !editMode && (
               <p className="text-slate-200 leading-relaxed">
                 {viewingProfile.bio}
@@ -277,7 +277,6 @@ export default function Profile() {
                 placeholder="Twoja nazwa użytkownika"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Pełna nazwa
@@ -288,7 +287,6 @@ export default function Profile() {
                 placeholder="Jan Kowalski"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Lokalizacja
@@ -299,7 +297,6 @@ export default function Profile() {
                 placeholder="Warszawa, Polska"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Bio
@@ -311,7 +308,6 @@ export default function Profile() {
                 rows={4}
               />
             </div>
-
             <Button onClick={handleEditSubmit} className="w-full gap-2 bg-gradient-to-r from-violet-600 to-purple-600">
               <Save className="w-4 h-4" />
               Zapisz zmiany
@@ -333,7 +329,6 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -345,7 +340,6 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -366,7 +360,6 @@ export default function Profile() {
           <TabsTrigger value="reviews">Opinie</TabsTrigger>
           <TabsTrigger value="favorites">Ulubione</TabsTrigger>
         </TabsList>
-
         <TabsContent value="listings" className="space-y-4">
           <Card className="p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
@@ -384,7 +377,6 @@ export default function Profile() {
             )}
           </Card>
         </TabsContent>
-
         <TabsContent value="reviews">
           <Card className="p-12 text-center">
             <div className="text-6xl mb-4">⭐</div>
@@ -394,7 +386,6 @@ export default function Profile() {
             </p>
           </Card>
         </TabsContent>
-
         <TabsContent value="favorites">
           <Card className="p-12 text-center">
             <div className="text-6xl mb-4">💖</div>
