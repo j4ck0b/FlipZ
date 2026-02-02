@@ -1,9 +1,20 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/AuthContext';
+import { createClient } from '@supabase/supabase-js';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
+// Unikamy problemów z exportem z AuthContext
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -15,8 +26,8 @@ export default function AuthCallback() {
       try {
         const error = searchParams.get('error');
         if (error) {
+          console.error('Auth error from provider:', error);
           setStatus('error');
-          console.error('Auth error:', error);
           setTimeout(() => navigate('/login'), 3000);
           return;
         }
@@ -26,7 +37,7 @@ export default function AuthCallback() {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
-            console.error('Error exchanging code:', error);
+            console.error('Supabase session error:', error.message);
             setStatus('error');
             setTimeout(() => navigate('/login'), 3000);
             return;
@@ -35,11 +46,12 @@ export default function AuthCallback() {
           setStatus('success');
           setTimeout(() => navigate('/home'), 2000);
         } else {
+          console.warn('No auth code in URL');
           setStatus('error');
           setTimeout(() => navigate('/login'), 3000);
         }
       } catch (error) {
-        console.error('Error in auth callback:', error);
+        console.error('Critical auth callback error:', error);
         setStatus('error');
         setTimeout(() => navigate('/login'), 3000);
       }
@@ -56,12 +68,8 @@ export default function AuthCallback() {
             <>
               <Loader2 className="w-16 h-16 animate-spin text-violet-600 mx-auto" />
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Logowanie...
-                </h2>
-                <p className="text-slate-600">
-                  Proszę czekać, przetwarzamy Twoje logowanie
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">Logowanie...</h2>
+                <p className="text-slate-600">Przetwarzamy Twoje uwierzytelnienie</p>
               </div>
             </>
           )}
@@ -72,12 +80,8 @@ export default function AuthCallback() {
                 <CheckCircle2 className="w-12 h-12 text-white" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Zalogowano pomyślnie!
-                </h2>
-                <p className="text-slate-600">
-                  Przekierowujemy do strony głównej...
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">Zalogowano pomyślnie!</h2>
+                <p className="text-slate-600">Przekierowujemy do aplikacji...</p>
               </div>
             </>
           )}
@@ -88,16 +92,12 @@ export default function AuthCallback() {
                 <XCircle className="w-12 h-12 text-white" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Błąd logowania
-                </h2>
-                <p className="text-slate-600">
-                  Wystąpił błąd podczas logowania. Spróbuj ponownie.
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">Błąd logowania</h2>
+                <p className="text-slate-600">Spróbuj ponownie za chwilę</p>
               </div>
               <Button
                 onClick={() => navigate('/login')}
-                className="w-full bg-gradient-to-r from-violet-600 to-purple-600"
+                className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90"
               >
                 Powrót do logowania
               </Button>
