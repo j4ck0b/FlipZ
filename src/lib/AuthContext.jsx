@@ -1,8 +1,23 @@
+// src/lib/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
+// 🔑 Pobieramy zmienne środowiskowe
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// 🚨 Walidacja krytyczna — rzuca błąd jeśli brakuje zmiennych
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Brak zmiennych środowiskowych Supabase!\n' +
+    'Upewnij się, że w Vercel masz ustawione:\n' +
+    '- VITE_SUPABASE_URL\n' +
+    '- VITE_SUPABase_ANON_KEY'
+  );
+}
+
+// ✅ BEZWARUNKOWY eksport klienta — to klucz do rozwiązania błędu buildu
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthContext = createContext({});
 
@@ -75,7 +90,7 @@ export function AuthProvider({ children }) {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Profile doesn't exist, create it
+        // Profil nie istnieje — tworzymy go
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -85,7 +100,8 @@ export function AuthProvider({ children }) {
             full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0],
             role: 'user',
             subscription_tier: 'free',
-            trade_count_current_month: 0
+            trade_count_current_month: 0,
+            created_at: new Date().toISOString()
           })
           .select()
           .single();
