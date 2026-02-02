@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, supabase } from '../lib/AuthContext';
+import { useAuth } from '../lib/AuthContext'; // ✅ Tylko useAuth - BEZ supabase
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Package, 
-  Boxes, 
-  Trophy, 
-  Car, 
+import {
+  Package,
+  Boxes,
+  Trophy,
+  Car,
   Sparkles,
   ArrowRight,
   TrendingUp
 } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js'; // ✅ Bezpieczny import
+
+// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Home() {
   const { user, profile } = useAuth();
@@ -24,29 +35,27 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) return;
-
     const fetchStats = async () => {
       try {
         setLoading(true);
-
         // Spróbuj pobrać statystyki (może nie będzie tabel, wtedy skip)
         try {
           const { data: offersData } = await supabase
             .from('trade_offers')
             .select('id', { count: 'exact' })
             .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
-
+          
           const { data: conversationsData } = await supabase
             .from('trade_conversations')
             .select('id', { count: 'exact' })
             .or(`owner_id.eq.${user.id},participant_id.eq.${user.id}`);
-
+          
           const { data: tradesData } = await supabase
             .from('trades')
             .select('id', { count: 'exact' })
             .eq('user_id', user.id)
             .eq('status', 'completed');
-
+          
           setStats({
             totalOffers: offersData?.length || 0,
             activeConversations: conversationsData?.length || 0,
@@ -62,7 +71,6 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, [user]);
 
@@ -116,7 +124,7 @@ export default function Home() {
             Zarządzaj swoimi wymianami i poszerzaj swoją kolekcję
           </p>
         </div>
-
+        
         {/* Stats Cards */}
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -129,7 +137,6 @@ export default function Home() {
                 <p className="text-xs text-slate-500 mt-1">Aktywnych ofert</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-slate-600">Konwersacje</CardTitle>
@@ -139,7 +146,6 @@ export default function Home() {
                 <p className="text-xs text-slate-500 mt-1">Aktywnych czatów</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-slate-600">Zrealizowane</CardTitle>
@@ -151,7 +157,7 @@ export default function Home() {
             </Card>
           </div>
         )}
-
+        
         {/* Categories */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
@@ -160,7 +166,6 @@ export default function Home() {
               Zobacz wszystkie <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category) => {
               const Icon = category.icon;
@@ -187,7 +192,7 @@ export default function Home() {
             })}
           </div>
         </div>
-
+        
         {/* Quick Actions */}
         <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl p-8 text-white">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -203,7 +208,7 @@ export default function Home() {
             </Button>
           </div>
         </div>
-
+        
         {/* Tips Section */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-blue-50 border-blue-200">
@@ -216,7 +221,6 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
-
           <Card className="bg-green-50 border-green-200">
             <CardHeader>
               <CardTitle className="text-green-900">🎯 Subskrypcja</CardTitle>
