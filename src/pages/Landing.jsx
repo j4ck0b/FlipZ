@@ -141,7 +141,6 @@ export default function Landing() {
               </Button>
               <Button 
                 size="lg"
-                variant="outline"
                 className="border-2 border-white text-white hover:bg-black/10 text-lg px-8 py-6 h-auto"
               >
                 Zobacz jak działa
