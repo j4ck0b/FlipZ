@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../lib/AuthContext'; // ✅ Tylko useAuth - BEZ supabase
+import { useAuth, supabase } from '../lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,18 +12,6 @@ import {
   ArrowRight,
   TrendingUp
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js'; // ✅ Bezpieczny import
-
-// ✅ BEZPIECZNE: Tworzymy dedykowany klient Supabase TYLKO dla tego komponentu
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Brak zmiennych środowiskowych Supabase! Sprawdź VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 export default function Home() {
   const { user, profile } = useAuth();
   const [stats, setStats] = useState({

@@ -29,9 +29,30 @@ export default function AuthCallback() {
           }
 
           navigate('/home', { replace: true });
-        } else {
-          navigate('/login?error=no_code', { replace: true });
+          return;
         }
+
+        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            console.error('Supabase session error:', error.message);
+            navigate('/login?error=session_failed', { replace: true });
+            return;
+          }
+
+          navigate('/home', { replace: true });
+          return;
+        }
+
+        navigate('/login?error=no_code', { replace: true });
       } catch (error) {
         console.error('Critical auth callback error:', error);
         navigate('/login?error=critical_error', { replace: true });
