@@ -142,7 +142,7 @@ export default function Landing() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+                className="border-2 border-white text-white hover:bg-black/10 text-lg px-8 py-6 h-auto"
               >
                 Zobacz jak działa
                 <Eye className="ml-2 w-5 h-5" />
