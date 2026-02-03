@@ -77,6 +77,26 @@ on public.card_listings for delete
 using (auth.uid() = created_by_id);
 ```
 
-## Storage bucket
+## Storage bucket (public read + authenticated upload)
 
-If you are using image uploads, create a bucket named `card-images` and add a policy that allows authenticated users to upload and read their files.
+If you are using image uploads, create a bucket named `card-images` and add policies so anyone can read and authenticated users can upload.
+
+```sql
+-- Create bucket if it does not exist (public read)
+insert into storage.buckets (id, name, public)
+values ('card-images', 'card-images', true)
+on conflict (id) do update set public = true;
+
+-- Allow public read access to images
+create policy "card_images_public_read"
+on storage.objects for select
+using (bucket_id = 'card-images');
+
+-- Allow authenticated users to upload images
+create policy "card_images_authenticated_insert"
+on storage.objects for insert
+with check (
+  bucket_id = 'card-images'
+  and auth.role() = 'authenticated'
+);
+```
