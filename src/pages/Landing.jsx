@@ -146,8 +146,8 @@ export default function Landing() {
                   const target = document.getElementById("how-it-works");
                   if (target) {
                     target.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
+                    }
+                  }}
               >
                 Zobacz jak działa
                 <Eye className="ml-2 w-5 h-5" />
