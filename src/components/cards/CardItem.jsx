@@ -155,7 +155,7 @@ export default function CardItem({ listing, onClick }) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by_id;
+                window.location.href = `/profile/${listing.created_by_id}`;
               }}
               className="text-xs text-slate-400 hover:text-slate-600 hover:underline transition-colors"
             >
