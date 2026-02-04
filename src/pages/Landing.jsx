@@ -139,10 +139,15 @@ export default function Landing() {
                 Zacznij wymianę
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button 
+              <Button
                 size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+                className="bg-white text-violet-600 hover:bg-white/90 text-lg px-8 py-6 h-auto"
+                onClick={() => {
+                  const target = document.getElementById("how-it-works");
+                  if (target) {
+                    target.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
               >
                 Zobacz jak działa
                 <Eye className="ml-2 w-5 h-5" />
