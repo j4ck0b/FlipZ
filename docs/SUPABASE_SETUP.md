@@ -21,7 +21,6 @@ create table if not exists public.profiles (
   location text,
   created_at timestamptz default now()
 );
-
 -- card_listings table
 create table if not exists public.card_listings (
   id uuid primary key default gen_random_uuid(),
@@ -44,18 +43,17 @@ create table if not exists public.card_listings (
 
 -- RLS policies: profiles
 alter table public.profiles enable row level security;
-
-drop policy if exists "profiles_select_own" on public.profiles;
+<
 create policy "profiles_select_own"
 on public.profiles for select
 using (auth.uid() = id);
 
-drop policy if exists "profiles_insert_own" on public.profiles;
+
 create policy "profiles_insert_own"
 on public.profiles for insert
 with check (auth.uid() = id);
 
-drop policy if exists "profiles_update_own" on public.profiles;
+
 create policy "profiles_update_own"
 on public.profiles for update
 using (auth.uid() = id);
@@ -63,22 +61,21 @@ using (auth.uid() = id);
 -- RLS policies: card_listings
 alter table public.card_listings enable row level security;
 
-drop policy if exists "card_listings_select_public" on public.card_listings;
-create policy "card_listings_select_public"
+"card_listings_select_public"
 on public.card_listings for select
 using (true);
 
-drop policy if exists "card_listings_insert_own" on public.card_listings;
+
 create policy "card_listings_insert_own"
 on public.card_listings for insert
 with check (auth.uid() = created_by_id);
 
-drop policy if exists "card_listings_update_own" on public.card_listings;
+
 create policy "card_listings_update_own"
 on public.card_listings for update
 using (auth.uid() = created_by_id);
 
-drop policy if exists "card_listings_delete_own" on public.card_listings;
+
 create policy "card_listings_delete_own"
 on public.card_listings for delete
 using (auth.uid() = created_by_id);
@@ -95,13 +92,13 @@ values ('card-images', 'card-images', true)
 on conflict (id) do update set public = true;
 
 -- Allow public read access to images
-drop policy if exists "card_images_public_read" on storage.objects;
+
 create policy "card_images_public_read"
 on storage.objects for select
 using (bucket_id = 'card-images');
 
 -- Allow authenticated users to upload images
-drop policy if exists "card_images_authenticated_insert" on storage.objects;
+in
 create policy "card_images_authenticated_insert"
 on storage.objects for insert
 with check (
@@ -109,32 +106,4 @@ with check (
   and auth.role() = 'authenticated'
 );
 ```
-
-## Cleanup duplicate RLS policies (profiles + card_listings)
-
-If you accidentally created duplicate/overlapping policies, run the SQL below. It will **keep only** the canonical policies listed in this document and remove any other policy on `profiles` or `card_listings`.
-
-```sql
-do $$
-declare
-  r record;
-begin
-  for r in
-    select schemaname, tablename, policyname
-    from pg_policies
-    where schemaname = 'public'
-      and tablename in ('profiles', 'card_listings')
-      and policyname not in (
-        'profiles_select_own',
-        'profiles_insert_own',
-        'profiles_update_own',
-        'card_listings_select_public',
-        'card_listings_insert_own',
-        'card_listings_update_own',
-        'card_listings_delete_own'
-      )
-  loop
-    execute format('drop policy if exists %I on %I.%I;', r.policyname, r.schemaname, r.tablename);
-  end loop;
-end $$;
-```
+<
