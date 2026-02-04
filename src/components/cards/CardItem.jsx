@@ -88,7 +88,7 @@ export default function CardItem({ listing, onClick }) {
       transition={{ duration: 0.2 }}
     >
       <Card 
-        className="group cursor-pointer overflow-hidden bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300"
+        className="card-3d group cursor-pointer overflow-hidden bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300"
         onClick={onClick}
       >
         <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
@@ -155,7 +155,7 @@ export default function CardItem({ listing, onClick }) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by_id;
+                window.location.href = `/profile/${listing.created_by_id}`;
               }}
               className="text-xs text-slate-400 hover:text-slate-600 hover:underline transition-colors"
             >

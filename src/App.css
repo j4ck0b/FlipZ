@@ -1,0 +1,94 @@
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.page-transition {
+  animation: pageFade 420ms ease-out;
+  will-change: transform, opacity;
+}
+
+.app-shell {
+  position: relative;
+  background:
+    radial-gradient(circle at top, rgba(88, 28, 135, 0.25), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(76, 29, 149, 0.35), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(37, 99, 235, 0.25), transparent 40%),
+    linear-gradient(160deg, rgba(2, 6, 23, 0.98) 0%, rgba(15, 23, 42, 0.98) 60%, rgba(2, 6, 23, 0.98) 100%);
+  overflow: hidden;
+}
+
+.app-shell__glow {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+.app-shell__glow--primary {
+  top: -120px;
+  left: -120px;
+  background: rgba(124, 58, 237, 0.55);
+}
+
+.app-shell__glow--secondary {
+  bottom: -160px;
+  right: -120px;
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.55);
+}
+
+.page-surface {
+  position: relative;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow:
+    0 24px 60px rgba(2, 6, 23, 0.55),
+    inset 0 1px 0 rgba(148, 163, 184, 0.08);
+  transform: translateZ(0);
+}
+
+.logo-orb {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(124, 58, 237, 0.9));
+  box-shadow:
+    0 10px 24px rgba(124, 58, 237, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.accent-glow {
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.45);
+}
+
+.card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 300ms ease, box-shadow 300ms ease;
+  box-shadow:
+    0 18px 40px rgba(2, 6, 23, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.card-3d:hover {
+  transform: translateY(-6px) rotateX(3deg) rotateY(-2deg);
+  box-shadow:
+    0 24px 60px rgba(2, 6, 23, 0.6),
+    0 0 0 1px rgba(148, 163, 184, 0.12);
+}
