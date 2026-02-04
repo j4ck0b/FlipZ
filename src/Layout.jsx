@@ -56,14 +56,16 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50">
+    <div className="app-shell min-h-screen">
+      <div className="app-shell__glow app-shell__glow--primary" aria-hidden="true" />
+      <div className="app-shell__glow app-shell__glow--secondary" aria-hidden="true" />
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <header className="app-header glass-panel sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-6 h-6" />
               </div>
               <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">
@@ -82,7 +84,7 @@ export default function Layout({ children }) {
                       variant={active ? "default" : "ghost"}
                       className={`gap-2 ${
                         active
-                          ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
+                          ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white accent-glow'
                           : 'text-slate-700 hover:text-violet-600'
                       }`}
                     >
@@ -194,7 +196,7 @@ export default function Layout({ children }) {
                               variant={active ? "default" : "ghost"}
                               className={`w-full justify-start gap-3 ${
                                 active
-                                  ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
+                                  ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white accent-glow'
                                   : 'text-slate-700'
                               }`}
                             >
@@ -244,7 +246,9 @@ export default function Layout({ children }) {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        {children}
+        <div className="page-surface">
+          {children}
+        </div>
       </main>
 
       {/* Floating Chat */}

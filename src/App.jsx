@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { queryClient } from './lib/query-client';
@@ -74,127 +74,130 @@ function AdminRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const location = useLocation();
 
   return (
-    <Routes>
-      {/* Public routes - BEZ Layout! */}
-      <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
-      <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      
-      {/* Protected routes - Z Layout przez ProtectedRoute */}
-      <Route 
-        path="/home" 
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/card-exchange" 
-        element={
-          <ProtectedRoute>
-            <CardExchange />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/brick-exchange" 
-        element={
-          <ProtectedRoute>
-            <BrickExchange />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/diecast-exchange" 
-        element={
-          <ProtectedRoute>
-            <DiecastExchange />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/figure-exchange" 
-        element={
-          <ProtectedRoute>
-            <FigureExchange />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/collectible-exchange" 
-        element={
-          <ProtectedRoute>
-            <CollectibleExchange />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/profile/:userId?" 
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/messages" 
-        element={
-          <ProtectedRoute>
-            <Messages />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/favorites" 
-        element={
-          <ProtectedRoute>
-            <Favorites />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/subscription" 
-        element={
-          <ProtectedRoute>
-            <Subscription />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/subscription/success" 
-        element={
-          <ProtectedRoute>
-            <SubscriptionSuccess />
-          </ProtectedRoute>
-        } 
-      />
+    <div className="page-transition" key={location.pathname}>
+      <Routes location={location}>
+        {/* Public routes - BEZ Layout! */}
+        <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
+        <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        
+        {/* Protected routes - Z Layout przez ProtectedRoute */}
+        <Route 
+          path="/home" 
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/card-exchange" 
+          element={
+            <ProtectedRoute>
+              <CardExchange />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/brick-exchange" 
+          element={
+            <ProtectedRoute>
+              <BrickExchange />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/diecast-exchange" 
+          element={
+            <ProtectedRoute>
+              <DiecastExchange />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/figure-exchange" 
+          element={
+            <ProtectedRoute>
+              <FigureExchange />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/collectible-exchange" 
+          element={
+            <ProtectedRoute>
+              <CollectibleExchange />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/profile/:userId?" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/messages" 
+          element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/favorites" 
+          element={
+            <ProtectedRoute>
+              <Favorites />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/subscription" 
+          element={
+            <ProtectedRoute>
+              <Subscription />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/subscription/success" 
+          element={
+            <ProtectedRoute>
+              <SubscriptionSuccess />
+            </ProtectedRoute>
+          } 
+        />
 
-      {/* Admin routes */}
-      <Route 
-        path="/admin" 
-        element={
-          <AdminRoute>
-            <AdminPanel />
-          </AdminRoute>
-        } 
-      />
+        {/* Admin routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          } 
+        />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to={user ? "/home" : "/"} replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to={user ? "/home" : "/"} replace />} />
+      </Routes>
+    </div>
   );
 }
 
