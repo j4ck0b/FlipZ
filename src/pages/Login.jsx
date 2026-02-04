@@ -73,28 +73,28 @@ export default function Login() {
 
   if (magicLinkSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-violet-200 shadow-xl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md panel-elevated shadow-xl border border-violet-500/20">
           <CardContent className="p-8 text-center space-y-6">
             <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-12 h-12 text-white" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-100">
                 Sprawdź swoją skrzynkę!
               </h2>
-              <p className="text-slate-600">
+              <p className="text-slate-300">
                 Wysłaliśmy link do logowania na adres:
               </p>
-              <p className="font-semibold text-violet-600">
+              <p className="font-semibold text-violet-400">
                 {email}
               </p>
             </div>
-            <div className="bg-violet-50 rounded-lg p-4 border border-violet-200 text-sm text-slate-700">
+            <div className="panel-muted rounded-lg p-4 text-sm text-slate-200">
               <p className="mb-2">
                 ✨ Kliknij w link w emailu aby się zalogować
               </p>
-              <p className="text-slate-500">
+              <p className="text-slate-400">
                 Link jest ważny przez 60 minut
               </p>
             </div>
@@ -105,9 +105,9 @@ export default function Login() {
               </Alert>
             )}
             {success && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              <Alert className="bg-emerald-500/10 border-emerald-500/30">
+                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                <AlertDescription className="text-emerald-200">{success}</AlertDescription>
               </Alert>
             )}
             <Button
@@ -116,7 +116,7 @@ export default function Login() {
                 setEmail('');
               }}
               variant="outline"
-              className="w-full"
+              className="w-full border-slate-600/60 text-slate-200 hover:bg-slate-800/60"
             >
               Wyślij ponownie
             </Button>
@@ -127,19 +127,19 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-violet-200 shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md panel-elevated shadow-xl border border-violet-500/20">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-[0_18px_40px_rgba(124,58,237,0.45)]">
               <span className="text-3xl">🃏</span>
             </div>
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
               FlipCardZ
             </CardTitle>
-            <CardDescription className="text-base mt-2">
+            <CardDescription className="text-base mt-2 text-slate-300">
               Zaloguj się aby rozpocząć wymianę kart
             </CardDescription>
           </div>
@@ -147,10 +147,10 @@ export default function Login() {
         <CardContent className="space-y-6">
           {/* 👇 NOWY KOD Z BŁĘDAMI Z URL 👇 */}
           {urlError && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="bg-red-500/10 border-l-4 border-red-500/70 p-4 mb-6">
               <div className="flex">
                 <div className="ml-3">
-                  <p className="text-sm text-red-700">
+                  <p className="text-sm text-red-200">
                     {urlError === 'google_auth_failed' && 'Anulowano logowanie przez Google'}
                     {urlError === 'session_failed' && 'Błąd sesji. Spróbuj ponownie.'}
                     {urlError === 'no_code' && 'Nie otrzymano kodu autoryzacji'}
@@ -165,7 +165,7 @@ export default function Login() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm h-12"
+            className="w-full bg-slate-900/80 hover:bg-slate-900 text-slate-100 border border-slate-600/60 shadow-sm h-12"
             variant="outline"
           >
             {loading ? (
@@ -186,7 +186,7 @@ export default function Login() {
               <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-500">
+              <span className="bg-slate-950 px-2 text-slate-400">
                 Lub
               </span>
             </div>
@@ -203,7 +203,7 @@ export default function Login() {
                   placeholder="twoj@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 input-contrast"
                   disabled={loading}
                   required
                 />
@@ -218,9 +218,9 @@ export default function Login() {
             )}
             
             {success && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              <Alert className="bg-emerald-500/10 border-emerald-500/30">
+                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                <AlertDescription className="text-emerald-200">{success}</AlertDescription>
               </Alert>
             )}
             
@@ -243,8 +243,8 @@ export default function Login() {
             </Button>
           </form>
           
-          <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-            <p className="text-sm text-slate-700 text-center">
+          <div className="panel-muted rounded-lg p-4">
+            <p className="text-sm text-slate-200 text-center">
               🔒 <strong>Bez hasła!</strong> Wyślemy Ci bezpieczny link do logowania na email
             </p>
           </div>

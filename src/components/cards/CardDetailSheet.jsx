@@ -221,9 +221,9 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               <div>
                 <p className="text-sm text-slate-500">Collector</p>
                 <button
-                  onClick={() => {
-                    window.location.href = createPageUrl('Profile') + '?userId=' + listing.created_by_id;
-                  }}
+                    onClick={() => {
+                      window.location.href = `/profile/${listing.created_by_id}`;
+                    }}
                   className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group mt-1"
                 >
                   <User className="w-4 h-4" />
