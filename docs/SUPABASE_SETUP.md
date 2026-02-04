@@ -21,7 +21,6 @@ create table if not exists public.profiles (
   location text,
   created_at timestamptz default now()
 );
-
 -- card_listings table
 create table if not exists public.card_listings (
   id uuid primary key default gen_random_uuid(),
@@ -44,14 +43,16 @@ create table if not exists public.card_listings (
 
 -- RLS policies: profiles
 alter table public.profiles enable row level security;
-
+<
 create policy "profiles_select_own"
 on public.profiles for select
 using (auth.uid() = id);
 
+
 create policy "profiles_insert_own"
 on public.profiles for insert
 with check (auth.uid() = id);
+
 
 create policy "profiles_update_own"
 on public.profiles for update
@@ -60,17 +61,20 @@ using (auth.uid() = id);
 -- RLS policies: card_listings
 alter table public.card_listings enable row level security;
 
-create policy "card_listings_select_public"
+"card_listings_select_public"
 on public.card_listings for select
 using (true);
+
 
 create policy "card_listings_insert_own"
 on public.card_listings for insert
 with check (auth.uid() = created_by_id);
 
+
 create policy "card_listings_update_own"
 on public.card_listings for update
 using (auth.uid() = created_by_id);
+
 
 create policy "card_listings_delete_own"
 on public.card_listings for delete
@@ -88,11 +92,13 @@ values ('card-images', 'card-images', true)
 on conflict (id) do update set public = true;
 
 -- Allow public read access to images
+
 create policy "card_images_public_read"
 on storage.objects for select
 using (bucket_id = 'card-images');
 
 -- Allow authenticated users to upload images
+in
 create policy "card_images_authenticated_insert"
 on storage.objects for insert
 with check (
@@ -100,3 +106,4 @@ with check (
   and auth.role() = 'authenticated'
 );
 ```
+<
