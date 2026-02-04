@@ -142,7 +142,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto panel-elevated text-slate-100">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {editListing ? t('editListing') : t('listItemForTrade')}
@@ -163,7 +163,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
             {formData.image_urls.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-2">
                 {formData.image_urls.map((url, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 group">
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-slate-900/70 group">
                     <img 
                       src={url} 
                       alt={`Product ${index + 1}`} 
@@ -190,7 +190,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
             
             {/* Upload Button */}
             {formData.image_urls.length < 10 && (
-              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
+              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-600/60 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-slate-900/40 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -199,11 +199,11 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   className="hidden"
                 />
                 {uploading ? (
-                  <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-slate-300 animate-spin" />
                 ) : (
                   <>
-                    <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                    <span className="text-sm text-slate-500">{t('clickToUpload')}</span>
+                    <ImageIcon className="w-8 h-8 text-slate-300 mb-2" />
+                    <span className="text-sm text-slate-200">{t('clickToUpload')}</span>
                     <span className="text-xs text-slate-400 mt-1">Max 10 photos</span>
                   </>
                 )}
@@ -219,6 +219,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder={t('itemNamePlaceholder')}
+              className="input-contrast"
               required
             />
           </div>
@@ -231,7 +232,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                 value={formData.category} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, category: v }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="input-contrast">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,7 +260,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                 value={formData.condition} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, condition: v }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="input-contrast">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -281,7 +282,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               value={formData.rarity} 
               onValueChange={(v) => setFormData(prev => ({ ...prev, rarity: v }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="input-contrast">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -303,6 +304,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder={t('descriptionPlaceholder')}
               rows={3}
+              className="input-contrast"
             />
           </div>
 
@@ -314,8 +316,9 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               value={formData.estimated_value || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, estimated_value: e.target.value }))}
               placeholder={t('estimatedValuePlaceholder')}
+              className="input-contrast"
             />
-            <p className="text-xs text-slate-500">{t('forReferenceOnly')}</p>
+            <p className="text-xs text-slate-400">{t('forReferenceOnly')}</p>
           </div>
 
           {/* Looking For */}
@@ -327,16 +330,17 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
               onChange={(e) => setFormData(prev => ({ ...prev, looking_for: e.target.value }))}
               placeholder={t('whatLookingForPlaceholder')}
               rows={3}
+              className="input-contrast"
               required
             />
           </div>
 
           {/* Submit */}
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-slate-500/60 text-slate-200 hover:bg-slate-800/60">
               {t('cancel')}
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-slate-900 hover:bg-slate-800">
+            <Button type="submit" disabled={loading} className="flex-1 bg-violet-600 hover:bg-violet-500 text-white">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editListing ? t('updateListing') : t('listItem')}
             </Button>
