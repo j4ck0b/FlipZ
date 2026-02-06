@@ -105,9 +105,13 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
 
     try {
       const user = await base44.auth.me();
-      const collectorName = user?.user_metadata?.full_name
-        || user?.user_metadata?.name
-        || user?.email?.split('@')[0]
+      if (!user?.id) {
+        throw new Error('You must be logged in to create a listing.');
+      }
+
+      const collectorName = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || user.email?.split('@')[0]
         || 'Collector';
 
       const data = {
