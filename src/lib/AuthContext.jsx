@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(session.user);
-          await loadUserProfile(session.user.id);
+          await loadUserProfile(session.user);
         } else {
           setUser(null);
           setProfile(null);
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
         async (event, session) => {
           if (session?.user) {
             setUser(session.user);
-            await loadUserProfile(session.user.id);
+            await loadUserProfile(session.user);
           } else {
             setUser(null);
             setProfile(null);
@@ -79,7 +79,10 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
-  const loadUserProfile = async (userId) => {
+  const loadUserProfile = async (authUser) => {
+    const userId = authUser?.id;
+    if (!userId) return;
+
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -92,9 +95,9 @@ export function AuthProvider({ children }) {
           .from('profiles')
           .insert({
             id: userId,
-            email: user?.email,
-            username: user?.email?.split('@')[0],
-            full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0],
+            email: authUser?.email,
+            username: authUser?.email?.split('@')[0],
+            full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
             role: 'user',
             subscription_tier: 'free',
             trade_count_current_month: 0,

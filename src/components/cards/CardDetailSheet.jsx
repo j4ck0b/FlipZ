@@ -109,7 +109,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
 
   if (!listing) return null;
 
-  const isOwnListing = currentUser?.email === listing.created_by;
+  const isOwnListing = currentUser?.id === listing.created_by;
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : []);
 
   return (
