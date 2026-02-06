@@ -121,23 +121,48 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       created_by_id: user.id
     };
 
-    if (editListing) {
-      await base44.entities.CardListing.update(editListing.id, data);
-      toast.success(t('listingUpdated'));
-    } else {
-      await base44.entities.CardListing.create(data);
-      toast.success(
-        <div className="flex flex-col gap-1">
-          <div className="font-semibold">🎉 {t('cardListed')}</div>
-          <div className="text-sm opacity-90">Your item is now live on the marketplace!</div>
-        </div>,
-        { duration: 4000 }
-      );
+    try {
+      const user = await base44.auth.me();
+      if (!user?.id) {
+        throw new Error('You must be logged in to create a listing.');
+      }
+
+      const collectorName = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || user.email?.split('@')[0]
+        || 'Collector';
+
+      const data = {
+        ...formData,
+        looking_for: formData.looking_for || 'Open to offers',
+        collector_name: collectorName,
+        status: 'available',
+        created_by: user.id,
+        created_by_id: user.id
+      };
+
+      if (editListing) {
+        await base44.entities.CardListing.update(editListing.id, data);
+        toast.success(t('listingUpdated'));
+      } else {
+        await base44.entities.CardListing.create(data);
+        toast.success(
+          <div className="flex flex-col gap-1">
+            <div className="font-semibold">🎉 {t('cardListed')}</div>
+            <div className="text-sm opacity-90">Your item is now live on the marketplace!</div>
+          </div>,
+          { duration: 4000 }
+        );
+      }
+
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error saving listing:', error);
+      toast.error(error?.message || 'Could not save listing');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
-    onSuccess();
-    onClose();
   };
 
   return (
