@@ -102,6 +102,24 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
+    const user = await base44.auth.me();
+    
+    // Check if user has a display name set
+    if (!user.full_name) {
+      toast.error(t('setDisplayNameFirst'));
+      setLoading(false);
+      return;
+    }
+    
+    const data = {
+      ...formData,
+      looking_for: formData.looking_for || 'Open to offers',
+      collector_name: user.full_name,
+      status: 'available',
+      created_by: user.id,
+      created_by_id: user.id
+    };
 
     try {
       const user = await base44.auth.me();
