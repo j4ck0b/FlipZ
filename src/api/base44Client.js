@@ -1,192 +1,196 @@
-import { supabase } from '@/lib/AuthContext';
+import { createClient } from '@supabase/supabase-js';
 
-const parseSort = (sort) => {
-  if (!sort) return null;
-  const descending = sort.startsWith('-');
-  return {
-    column: descending ? sort.slice(1) : sort,
-    ascending: !descending
-  };
-};
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const runQuery = async (buildQuery, sort) => {
-  const sortConfig = parseSort(sort);
-  if (!sortConfig) {
-    const { data, error } = await buildQuery();
-    if (error) {
-      console.error('Supabase query error:', error);
-      return [];
-    }
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: 'pkce',
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
+
+// Helper functions for entity operations
+const createEntityHelper = (tableName) => ({
+  async list(orderBy = '-created_at', limit = 1000) {
+    const [field, direction] = orderBy.startsWith('-') 
+      ? [orderBy.slice(1), false] 
+      : [orderBy, true];
+    
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('*')
+      .order(field, { ascending: direction })
+      .limit(limit);
+    
+    if (error) throw error;
     return data || [];
-  }
-
-  const { column, ascending } = sortConfig;
-  const primaryResult = await buildQuery().order(column, { ascending });
-  if (!primaryResult.error) {
-    return primaryResult.data || [];
-  }
-
-  const fallbackColumn = column === 'created_date' ? 'created_at' : column === 'created_at' ? 'created_date' : null;
-  if (fallbackColumn) {
-    const fallbackResult = await buildQuery().order(fallbackColumn, { ascending });
-    if (!fallbackResult.error) {
-      return fallbackResult.data || [];
-    }
-    console.error('Supabase query error:', primaryResult.error, fallbackResult.error);
-    return [];
-  }
-
-  console.error('Supabase query error:', primaryResult.error);
-  return [];
-};
-
-const createEntity = (tableName) => ({
-  list: async (sort) => {
-    const buildQuery = () => supabase.from(tableName).select('*');
-    return runQuery(buildQuery, sort);
   },
-  filter: async (query, sort) => {
-    const buildQuery = () => {
-      let req = supabase.from(tableName).select('*');
-      if (query && Object.keys(query).length > 0) {
-        req = req.match(query);
-      }
-      return req;
-    };
-    return runQuery(buildQuery, sort);
-  },
-  get: async (id) => {
-    const { data, error } = await supabase.from(tableName).select('*').eq('id', id).single();
-    if (error) {
-      console.error('Supabase get error:', error);
-      return null;
-    }
+
+  async get(id) {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
     return data;
   },
-  create: async (data) => {
-    const { data: res, error } = await supabase.from(tableName).insert(data).select();
-    if (error) {
-      console.error('Supabase create error:', error);
-      return null;
-    }
-    return res?.[0];
+
+  async filter(filters, orderBy = '-created_at', limit = 1000) {
+    const [field, direction] = orderBy.startsWith('-') 
+      ? [orderBy.slice(1), false] 
+      : [orderBy, true];
+    
+    let query = supabase.from(tableName).select('*');
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
+    
+    const { data, error } = await query
+      .order(field, { ascending: direction })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data || [];
   },
-  update: async (id, data) => {
-    const { data: res, error } = await supabase.from(tableName).update(data).eq('id', id).select();
-    if (error) {
-      console.error('Supabase update error:', error);
-      return null;
-    }
-    return res?.[0];
+
+  async create(data) {
+    const { data: result, error } = await supabase
+      .from(tableName)
+      .insert(data)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return result;
   },
-  delete: async (id) => {
-    const { error } = await supabase.from(tableName).delete().eq('id', id);
-    if (error) {
-      console.error('Supabase delete error:', error);
+
+  async update(id, data) {
+    const { data: result, error } = await supabase
+      .from(tableName)
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return result;
+  },
+
+  async delete(id) {
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return { success: true };
+  }
+});
+
+// Function invocation helper
+const createFunctionHelper = () => ({
+  async invoke(functionName, data = {}) {
+    try {
+      const { data: result, error } = await supabase.functions.invoke(functionName, {
+        body: data
+      });
+      
+      if (error) throw error;
+      return { data: result };
+    } catch (error) {
+      console.error(`Function ${functionName} error:`, error);
+      throw error;
     }
   }
 });
 
+// Auth helper
+const createAuthHelper = () => ({
+  async me() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  },
+
+  async signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  }
+});
+
+// File upload helper
+const createIntegrationsHelper = () => ({
+  Core: {
+    async UploadFile({ file }) {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(fileName);
+      
+      return { file_url: publicUrl };
+    }
+  }
+});
+
+// App logs helper (placeholder)
+const createAppLogsHelper = () => ({
+  async logUserInApp(pageName) {
+    // Placeholder - you can implement this if needed
+    return { success: true };
+  }
+});
+
+// Main API client
 export const base44 = {
-  auth: {
-    // Sprawdza czy użytkownik jest zalogowany (TEGO BRAKOWAŁO)
-    isAuthenticated: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      return !!session;
-    },
-    me: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      return {
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-        role: user.user_metadata?.role || 'user'
-      };
-    },
-    redirectToLogin: () => {
-      window.location.href = '/login';
-    },
-    login: async (email, password) => {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      return data.user;
-    },
-    signup: async (email, password, fullName) => {
-      const { data, error } = await supabase.auth.signUp({
-        email, 
-        password,
-        options: { data: { full_name: fullName } }
-      });
-      if (error) throw error;
-      return data.user;
-    },
-    logout: async () => {
-      await supabase.auth.signOut();
-      window.location.href = '/login';
-    },
-    updateMe: async (updates) => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error('Supabase auth error:', userError);
-        return null;
-      }
-
-      const profilePayload = {
-        id: user.id,
-        email: user.email,
-        ...updates
-      };
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .upsert(profilePayload, { onConflict: 'id' })
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('Supabase profile update error:', profileError);
-      }
-
-      const metadataUpdates = {};
-      if (updates?.full_name) metadataUpdates.full_name = updates.full_name;
-      if (updates?.profile_picture) metadataUpdates.avatar_url = updates.profile_picture;
-      if (Object.keys(metadataUpdates).length > 0) {
-        const { error: metadataError } = await supabase.auth.updateUser({ data: metadataUpdates });
-        if (metadataError) {
-          console.error('Supabase metadata update error:', metadataError);
-        }
-      }
-
-      return profileData || null;
-    }
-  },
   entities: {
-    CardListing: createEntity('card_listings'),
-    TradeOffer: createEntity('trade_offers'),
-    TradeConversation: createEntity('trade_conversations'),
-    Message: createEntity('messages'),
-    LikedListing: createEntity('liked_listings'),
-    User: createEntity('profiles'),
-    TradePayment: createEntity('trade_payments'),
-    ShippingLabel: createEntity('shipping_labels'),
-    TradeReview: createEntity('trade_reviews'),
-    SubscriptionPlan: createEntity('subscription_plans')
+    CardListing: createEntityHelper('card_listings'),
+    TradeOffer: createEntityHelper('trade_offers'),
+    TradePayment: createEntityHelper('trade_payments'),
+    ShippingLabel: createEntityHelper('shipping_labels'),
+    User: createEntityHelper('profiles'),
+    SubscriptionPlan: createEntityHelper('subscription_plans'),
+    Message: createEntityHelper('messages'),
+    Conversation: createEntityHelper('conversations')
   },
-  functions: {
-    invoke: async (name, body) => {
-      return await supabase.functions.invoke(name, { body });
-    }
-  },
-  integrations: {
-    Core: {
-      UploadFile: async ({ file }) => {
-        const fileName = `${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage.from('card-images').upload(fileName, file);
-        if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('card-images').getPublicUrl(fileName);
-        return { file_url: publicUrl };
-      }
+  functions: createFunctionHelper(),
+  auth: createAuthHelper(),
+  integrations: createIntegrationsHelper(),
+  appLogs: createAppLogsHelper(),
+  asServiceRole: {
+    entities: {
+      CardListing: createEntityHelper('card_listings'),
+      TradeOffer: createEntityHelper('trade_offers'),
+      TradePayment: createEntityHelper('trade_payments'),
+      ShippingLabel: createEntityHelper('shipping_labels'),
+      User: createEntityHelper('profiles'),
+      SubscriptionPlan: createEntityHelper('subscription_plans')
     }
   }
 };
+
+export { supabase };
