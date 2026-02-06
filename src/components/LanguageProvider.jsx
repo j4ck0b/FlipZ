@@ -110,7 +110,8 @@ export const translations = {
     chat: "Czat",
     send: "Wyślij",
     typeMessage: "Napisz wiadomość...",
-    uploadImages: "Dodaj zdjęcia"
+    uploadImages: "Dodaj zdjęcia",
+    setDisplayNameFirst: "Ustaw najpierw nazwę wyświetlaną w profilu."
   }
 };
 
