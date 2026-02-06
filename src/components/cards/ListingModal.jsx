@@ -117,7 +117,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       looking_for: formData.looking_for || 'Open to offers',
       collector_name: user.full_name,
       status: 'available',
-      created_by: user.email,
+      created_by: user.id,
       created_by_id: user.id
     };
 
