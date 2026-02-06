@@ -118,8 +118,8 @@ export default function MyListings() {
   }, []);
 
   const { data: myListings = [], isLoading: loadingListings } = useQuery({
-    queryKey: ['myListings', currentUser?.email],
-    queryFn: () => base44.entities.CardListing.filter({ created_by: currentUser.email }, '-created_date'),
+    queryKey: ['myListings', currentUser?.id],
+    queryFn: () => base44.entities.CardListing.filter({ created_by: currentUser.id }, '-created_date'),
     enabled: !!currentUser
   });
 
