@@ -38,28 +38,56 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState('user');
 
   useEffect(() => {
+    let isMounted = true;
+
+    const applySignedOutState = () => {
+      setUser(null);
+      setProfile(null);
+      setIsAdmin(false);
+      setRole('user');
+    };
+
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
         if (session?.user) {
           setUser(session.user);
           await loadUserProfile(session.user);
         } else {
-          setUser(null);
-          setProfile(null);
-          setIsAdmin(false);
-          setRole('user');
+          applySignedOutState();
         }
       } catch (error) {
         if (!isAbortError(error)) {
           console.error('Auth error:', error);
         }
+        if (isMounted) {
+          applySignedOutState();
+        }
         setUser(null);
         setProfile(null);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user);
+        } else {
+          applySignedOutState();
+        }
+
+        if (isMounted) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (session?.user) {
@@ -73,14 +101,13 @@ export function AuthProvider({ children }) {
           }
           setLoading(false);
         }
-      );
+      }
+    );
 
-      return () => {
-        subscription?.unsubscribe();
-      };
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
     };
-
-    initAuth();
   }, []);
 
   const loadUserProfile = async (authUser) => {

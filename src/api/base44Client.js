@@ -1,5 +1,15 @@
 import { supabase } from '../lib/AuthContext';
 
+const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
+const applyFilters = (query, filters = {}) => {
+  let nextQuery = query;
+
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (key === '$or' && Array.isArray(value)) {
+      const orClauses = value
+        .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
+
 const applyFilters = (query, filters = {}) => {
   let nextQuery = query;
 
