@@ -95,7 +95,67 @@ export function AuthProvider({ children }) {
 
     return () => {
       isMounted = false;
-      isMountedRef.current = false;
+      subscription?.unsubscribe();
+    };
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user);
+        } else {
+          applySignedOutState();
+        }
+      } catch (error) {
+        if (!isAbortError(error)) {
+          console.error('Auth error:', error);
+        }
+        if (isMounted) {
+          applySignedOutState();
+        }
+        setUser(null);
+        setProfile(null);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user);
+        } else {
+          applySignedOutState();
+        }
+
+        if (isMounted) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            setUser(session.user);
+            await loadUserProfile(session.user);
+          } else {
+            setUser(null);
+            setProfile(null);
+            setIsAdmin(false);
+            setRole('user');
+          }
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
       subscription?.unsubscribe();
     };
   }, []);
