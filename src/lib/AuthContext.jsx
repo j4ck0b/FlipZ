@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -20,6 +20,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 const AuthContext = createContext({});
 
+const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -34,52 +36,74 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('user');
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser(session.user);
-          await loadUserProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-          setIsAdmin(false);
-          setRole('user');
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-        setUser(null);
-        setProfile(null);
-      } finally {
-        setLoading(false);
+    let isMounted = true;
+    isMountedRef.current = true;
+
+    const applySignedOutState = () => {
+      setUser(null);
+      setProfile(null);
+      setIsAdmin(false);
+      setRole('user');
+    };
+
+    const handleSession = async (session) => {
+      if (!isMounted) return;
+
+      if (session?.user) {
+        setUser(session.user);
+        await loadUserProfile(session.user);
+      } else {
+        applySignedOutState();
       }
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (session?.user) {
-            setUser(session.user);
-            await loadUserProfile(session.user.id);
-          } else {
-            setUser(null);
-            setProfile(null);
-            setIsAdmin(false);
-            setRole('user');
-          }
+      if (isMounted) {
+        setLoading(false);
+      }
+    };
+
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        await handleSession(data?.session);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          console.error('Auth error:', error);
+        }
+        if (isMounted) {
+          applySignedOutState();
           setLoading(false);
         }
-      );
-
-      return () => {
-        subscription?.unsubscribe();
-      };
+      }
     };
 
     initAuth();
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        await handleSession(session);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          console.error('Auth state change error:', error);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      isMountedRef.current = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
-  const loadUserProfile = async (userId) => {
+  const loadUserProfile = async (authUser) => {
+    const userId = authUser?.id;
+    if (!userId) return;
+
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -92,9 +116,9 @@ export function AuthProvider({ children }) {
           .from('profiles')
           .insert({
             id: userId,
-            email: user?.email,
-            username: user?.email?.split('@')[0],
-            full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0],
+            email: authUser?.email,
+            username: authUser?.email?.split('@')[0],
+            full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
             role: 'user',
             subscription_tier: 'free',
             trade_count_current_month: 0,
@@ -104,18 +128,24 @@ export function AuthProvider({ children }) {
           .single();
 
         if (createError) throw createError;
+        if (!isMountedRef.current) return;
+
         setProfile(newProfile);
         setIsAdmin(newProfile.role === 'admin');
         setRole(newProfile.role || 'user');
       } else if (error) {
         throw error;
       } else {
+        if (!isMountedRef.current) return;
+
         setProfile(profileData);
         setIsAdmin(profileData.role === 'admin');
         setRole(profileData.role || 'user');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      if (!isAbortError(error)) {
+        console.error('Error loading profile:', error);
+      }
     }
   };
 

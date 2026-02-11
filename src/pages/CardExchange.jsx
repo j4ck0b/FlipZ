@@ -35,10 +35,8 @@ export default function CardExchange() {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchListings();
-    }
-  }, [user, filters]);
+    fetchListings();
+  }, [filters, user?.id]);
 
   const fetchListings = async () => {
     try {
@@ -177,10 +175,11 @@ export default function CardExchange() {
         <div className="mb-6">
           <Button
             onClick={() => setShowListingModal(true)}
-            className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90"
+            disabled={!user}
+            className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            List a Card
+            {user ? 'List a Card' : 'Sign in to list a card'}
           </Button>
         </div>
 
@@ -203,10 +202,11 @@ export default function CardExchange() {
             </p>
             <Button
               onClick={() => setShowListingModal(true)}
-              className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600"
+              disabled={!user}
+              className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
-              List Your First Card
+              {user ? 'List Your First Card' : 'Sign in to list a card'}
             </Button>
           </Card>
         ) : (

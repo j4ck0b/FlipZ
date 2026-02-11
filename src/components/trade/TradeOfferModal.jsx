@@ -29,9 +29,9 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
   }, []);
 
   const { data: myListings = [], isLoading } = useQuery({
-    queryKey: ['myAvailableListings', currentUser?.email],
+    queryKey: ['myAvailableListings', currentUser?.id],
     queryFn: () => base44.entities.CardListing.filter({
-      created_by: currentUser.email,
+      created_by: currentUser.id,
       status: 'available'
     }),
     enabled: !!currentUser
@@ -82,17 +82,22 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     setSending(true);
 
     try {
-      // Generate unique 12-digit trade ID
-      const { data: tradeIdData } = await base44.functions.invoke('generateTradeId');
-      const tradeId = tradeIdData?.tradeId || String(Date.now()).slice(-12);
+      // Generate unique 12-digit trade ID (fallback when edge function is unavailable)
+      let tradeId = String(Date.now()).slice(-12);
+      try {
+        const { data: tradeIdData } = await base44.functions.invoke('generateTradeId');
+        tradeId = tradeIdData?.tradeId || tradeId;
+      } catch (tradeIdError) {
+        console.warn('generateTradeId unavailable, using local fallback:', tradeIdError);
+      }
       
       const offer = await base44.entities.TradeOffer.create({
         trade_id: tradeId,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
-        owner_email: targetCard.created_by,
+        owner_email: targetCard.created_by_id || targetCard.created_by,
         owner_name: targetCard.collector_name,
-        sender_email: currentUser.email,
+        sender_email: currentUser.id,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         offered_card_ids: selectedCards.map(c => c.id),
         offered_cards_info: selectedCards.map(c => ({
@@ -109,9 +114,9 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
 
       // Create conversation
       const conversation = await base44.entities.TradeConversation.create({
-        participant_1_email: currentUser.email,
+        participant_1_email: currentUser.id,
         participant_1_name: currentUser.full_name,
-        participant_2_email: targetCard.created_by,
+        participant_2_email: targetCard.created_by_id || targetCard.created_by,
         participant_2_name: targetCard.collector_name,
         trade_offer_id: offer.id,
         status: 'active',
@@ -129,10 +134,14 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         read: false
       });
 
-      // Increment trade count for current month
-      await base44.auth.updateMe({
-        trade_count_current_month: (currentUser.trade_count_current_month || 0) + 1
-      });
+      // Increment trade count for current month (best-effort)
+      try {
+        await base44.entities.User.update(currentUser.id, {
+          trade_count_current_month: (currentUser.trade_count_current_month || 0) + 1
+        });
+      } catch (tradeCountError) {
+        console.warn('Trade count update skipped:', tradeCountError);
+      }
 
       setSending(false);
       toast.success('Trade offer sent!');
