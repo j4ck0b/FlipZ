@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
@@ -61,6 +62,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -109,7 +111,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
 
   if (!listing) return null;
 
-  const isOwnListing = currentUser?.email === listing.created_by;
+  const isOwnListing = currentUser?.id === listing.created_by;
   const images = listing.image_urls || (listing.image_url ? [listing.image_url] : []);
 
   return (
@@ -221,9 +223,10 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               <div>
                 <p className="text-sm text-slate-500">Collector</p>
                 <button
-                    onClick={() => {
-                      window.location.href = `/profile/${listing.created_by_id}`;
-                    }}
+                  onClick={() => {
+                    onClose();
+                    navigate(`/profile/${listing.created_by_id}`);
+                  }}
                   className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group mt-1"
                 >
                   <User className="w-4 h-4" />
@@ -315,7 +318,9 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       />
 
       <Dialog open={!!fullScreenImage} onOpenChange={() => setFullScreenImage(null)}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95" aria-describedby={undefined}>
+          <DialogTitle className="sr-only">Full screen image preview</DialogTitle>
+          <DialogDescription className="sr-only">Preview of the selected listing image in full screen.</DialogDescription>
           <img 
             src={fullScreenImage} 
             alt="Full screen view"

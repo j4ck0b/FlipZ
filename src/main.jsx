@@ -5,6 +5,21 @@ import '@/index.css'
 
 document.documentElement.classList.add('dark');
 
+
+const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
+window.addEventListener('unhandledrejection', (event) => {
+  if (isAbortError(event.reason)) {
+    event.preventDefault();
+  }
+});
+
+window.addEventListener('error', (event) => {
+  if (isAbortError(event.error)) {
+    event.preventDefault();
+  }
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   // <React.StrictMode>
   <App />

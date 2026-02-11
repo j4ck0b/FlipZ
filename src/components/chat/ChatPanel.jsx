@@ -1,5 +1,3 @@
-// Znajdź w kodzie istniejący ChatPanel.jsx i ZASTĄP całą zawartość:
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/AuthContext';
@@ -16,7 +14,7 @@ export default function ChatPanel() {
         const { data, error } = await supabase
           .from('trade_conversations')
           .select('*')
-          .or(`owner_id.eq.${user.id},participant_id.eq.${user.id}`)
+          .or(`participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

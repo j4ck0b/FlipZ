@@ -31,23 +31,23 @@ export default function Home() {
           const { data: offersData } = await supabase
             .from('trade_offers')
             .select('id', { count: 'exact' })
-            .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+            .or(`sender_email.eq.${user.id},owner_email.eq.${user.id},sender_email.eq.${user.email},owner_email.eq.${user.email}`);
           
           const { data: conversationsData } = await supabase
             .from('trade_conversations')
             .select('id', { count: 'exact' })
-            .or(`owner_id.eq.${user.id},participant_id.eq.${user.id}`);
+            .or(`participant_1_email.eq.${user.id},participant_2_email.eq.${user.id},participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`);
           
-          const { data: tradesData } = await supabase
-            .from('trades')
+          const { data: completedOffersData } = await supabase
+            .from('trade_offers')
             .select('id', { count: 'exact' })
-            .eq('user_id', user.id)
+            .or(`sender_email.eq.${user.id},owner_email.eq.${user.id},sender_email.eq.${user.email},owner_email.eq.${user.email}`)
             .eq('status', 'completed');
           
           setStats({
             totalOffers: offersData?.length || 0,
             activeConversations: conversationsData?.length || 0,
-            completedTrades: tradesData?.length || 0
+            completedTrades: completedOffersData?.length || 0
           });
         } catch (dbError) {
           // Tabele mogą nie istnieć jeszcze - to OK
