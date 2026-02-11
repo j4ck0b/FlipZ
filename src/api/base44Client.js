@@ -1,7 +1,5 @@
 import { supabase } from '../lib/AuthContext';
 
-const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
-
 const applyFilters = (query, filters = {}) => {
   let nextQuery = query;
 
