@@ -20,6 +20,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 const AuthContext = createContext({});
 
+const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -49,7 +51,9 @@ export function AuthProvider({ children }) {
           setRole('user');
         }
       } catch (error) {
-        console.error('Auth error:', error);
+        if (!isAbortError(error)) {
+          console.error('Auth error:', error);
+        }
         setUser(null);
         setProfile(null);
       } finally {
@@ -118,7 +122,9 @@ export function AuthProvider({ children }) {
         setRole(profileData.role || 'user');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      if (!isAbortError(error)) {
+        console.error('Error loading profile:', error);
+      }
     }
   };
 

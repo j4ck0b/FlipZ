@@ -147,9 +147,16 @@ const createFunctionHelper = () => ({
 // Auth helper
 const createAuthHelper = () => ({
   async me() {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return user;
+    } catch (error) {
+      if (isAbortError(error)) {
+        return null;
+      }
+      throw error;
+    }
   },
 
   async signIn(email, password) {

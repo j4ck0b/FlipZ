@@ -8,6 +8,8 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
   useEffect(() => {
     const handleCallback = async () => {
       try {
@@ -68,6 +70,10 @@ export default function AuthCallback() {
 
         navigate('/login', { replace: true });
       } catch (error) {
+        if (isAbortError(error)) {
+          return;
+        }
+
         console.error('Critical auth callback error:', error);
         navigate('/login?error=critical_error', { replace: true });
       }
