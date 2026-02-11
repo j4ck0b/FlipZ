@@ -8,9 +8,17 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession?.user) {
+          navigate('/home', { replace: true });
+          return;
+        }
+
         const error = searchParams.get('error');
         if (error) {
           console.error('Google auth error:', error);
@@ -23,6 +31,13 @@ export default function AuthCallback() {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
+            const isPkceMissing = String(error?.message || '').includes('PKCE code verifier not found');
+            if (isPkceMissing) {
+              console.warn('Supabase session warning:', error.message);
+              navigate('/login?error=session_expired', { replace: true });
+              return;
+            }
+
             console.error('Supabase session error:', error.message);
             navigate('/login?error=session_failed', { replace: true });
             return;
@@ -43,6 +58,13 @@ export default function AuthCallback() {
           });
 
           if (error) {
+            const isPkceMissing = String(error?.message || '').includes('PKCE code verifier not found');
+            if (isPkceMissing) {
+              console.warn('Supabase session warning:', error.message);
+              navigate('/login?error=session_expired', { replace: true });
+              return;
+            }
+
             console.error('Supabase session error:', error.message);
             navigate('/login?error=session_failed', { replace: true });
             return;
@@ -52,8 +74,14 @@ export default function AuthCallback() {
           return;
         }
 
-        navigate('/login?error=no_code', { replace: true });
+        navigate('/login', { replace: true });
       } catch (error) {
+        if (isAbortError(error)) {
+          const { data: { session } } = await supabase.auth.getSession();
+          navigate(session?.user ? '/home' : '/login', { replace: true });
+          return;
+        }
+
         console.error('Critical auth callback error:', error);
         navigate('/login?error=critical_error', { replace: true });
       }
