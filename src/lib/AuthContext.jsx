@@ -47,6 +47,54 @@ export function AuthProvider({ children }) {
       setRole('user');
     };
 
+    const handleSession = async (session) => {
+      if (!isMounted) return;
+
+      if (session?.user) {
+        setUser(session.user);
+        await loadUserProfile(session.user);
+      } else {
+        applySignedOutState();
+      }
+
+      if (isMounted) {
+        setLoading(false);
+      }
+    };
+
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        await handleSession(data?.session);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          console.error('Auth error:', error);
+        }
+        if (isMounted) {
+          applySignedOutState();
+          setLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        await handleSession(session);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          console.error('Auth state change error:', error);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
