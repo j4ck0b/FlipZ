@@ -117,23 +117,38 @@ export default function MyListings() {
     }
   }, []);
 
+  const userIdentityValues = Array.from(new Set([
+    currentUser?.id,
+    currentUser?.email
+  ].filter(Boolean)));
+
   const { data: myListings = [], isLoading: loadingListings } = useQuery({
-    queryKey: ['myListings', currentUser?.email],
-    queryFn: () => base44.entities.CardListing.filter({ created_by: currentUser.email }, '-created_date'),
+    queryKey: ['myListings', currentUser?.id],
+    queryFn: () => base44.entities.CardListing.filter({ created_by: currentUser.id }, '-created_date'),
     enabled: !!currentUser
   });
 
   const { data: myOffers = [], isLoading: loadingOffers } = useQuery({
-    queryKey: ['myOffers', currentUser?.email],
-    queryFn: () => base44.entities.TradeOffer.filter({ sender_email: currentUser.email }, '-created_date'),
+    queryKey: ['myOffers', userIdentityValues.join('|')],
+    queryFn: async () => {
+      const grouped = await Promise.all(
+        userIdentityValues.map((value) => base44.entities.TradeOffer.filter({ sender_email: value }, '-created_date'))
+      );
+      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+    },
     enabled: !!currentUser,
     refetchInterval: 3000,
     refetchOnWindowFocus: true
   });
 
   const { data: incomingOffers = [], isLoading: loadingIncoming } = useQuery({
-    queryKey: ['incomingOffers', currentUser?.email],
-    queryFn: () => base44.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_date'),
+    queryKey: ['incomingOffers', userIdentityValues.join('|')],
+    queryFn: async () => {
+      const grouped = await Promise.all(
+        userIdentityValues.map((value) => base44.entities.TradeOffer.filter({ owner_email: value }, '-created_date'))
+      );
+      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+    },
     enabled: !!currentUser,
     refetchInterval: 3000,
     refetchOnWindowFocus: true

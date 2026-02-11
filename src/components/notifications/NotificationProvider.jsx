@@ -29,6 +29,11 @@ export default function NotificationProvider({ children }) {
   const prevOffersRef = useRef([]);
   const prevMessagesRef = useRef([]);
 
+  const identityValues = Array.from(new Set([
+    currentUser?.id,
+    currentUser?.email
+  ].filter(Boolean)));
+
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -43,26 +48,34 @@ export default function NotificationProvider({ children }) {
 
   // Poll for incoming offers
   const { data: incomingOffers = [] } = useQuery({
-    queryKey: ['notificationOffers', currentUser?.email],
-    queryFn: () => base44.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_date'),
+    queryKey: ['notificationOffers', identityValues.join('|')],
+    queryFn: async () => {
+      const grouped = await Promise.all(identityValues.map((value) => base44.entities.TradeOffer.filter({ owner_email: value }, '-created_date')));
+      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+    },
     enabled: !!currentUser,
     refetchInterval: 5000,
   });
 
   // Poll for sent offers (to track status changes)
   const { data: sentOffers = [] } = useQuery({
-    queryKey: ['notificationSentOffers', currentUser?.email],
-    queryFn: () => base44.entities.TradeOffer.filter({ sender_email: currentUser.email }, '-created_date'),
+    queryKey: ['notificationSentOffers', identityValues.join('|')],
+    queryFn: async () => {
+      const grouped = await Promise.all(identityValues.map((value) => base44.entities.TradeOffer.filter({ sender_email: value }, '-created_date')));
+      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+    },
     enabled: !!currentUser,
     refetchInterval: 5000,
   });
 
   // Poll for conversations (to track new messages)
   const { data: conversations = [] } = useQuery({
-    queryKey: ['notificationConversations', currentUser?.email],
+    queryKey: ['notificationConversations', identityValues.join('|')],
     queryFn: async () => {
       const convs = await base44.entities.TradeConversation.filter({
         $or: [
+          { participant_1_email: currentUser.id },
+          { participant_2_email: currentUser.id },
           { participant_1_email: currentUser.email },
           { participant_2_email: currentUser.email }
         ]
@@ -176,7 +189,7 @@ export default function NotificationProvider({ children }) {
     if (prevMessagesRef.current.length > 0) {
       conversations.forEach(conv => {
         const prevConv = prevMessagesRef.current.find(c => c.id === conv.id);
-        const isParticipant1 = currentUser?.email === conv.participant_1_email;
+        const isParticipant1 = [currentUser?.id, currentUser?.email].includes(conv.participant_1_email);
         const unreadCount = isParticipant1 ? conv.unread_count_p1 : conv.unread_count_p2;
         const prevUnreadCount = prevConv ? (isParticipant1 ? prevConv.unread_count_p1 : prevConv.unread_count_p2) : 0;
         
