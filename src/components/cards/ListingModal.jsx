@@ -166,6 +166,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     } catch (error) {
       console.error('Error saving listing:', error);
       toast.error(resolveUiErrorMessage(error, 'Could not save listing'));
+      toast.error(error?.message || 'Could not save listing');
     } finally {
       setLoading(false);
     }
