@@ -142,17 +142,32 @@ const createIntegrationsHelper = () => ({
   Core: {
     async UploadFile({ file }) {
       const fileName = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('uploads')
-        .upload(fileName, file);
-      
-      if (error) throw error;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('uploads')
-        .getPublicUrl(fileName);
-      
-      return { file_url: publicUrl };
+      const preferredBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'card-images';
+      const buckets = [...new Set([preferredBucket, 'card-images', 'uploads'])];
+
+      let lastError = null;
+
+      for (const bucket of buckets) {
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, file);
+
+        if (!error) {
+          const { data: { publicUrl } } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(fileName);
+
+          return { file_url: publicUrl };
+        }
+
+        lastError = error;
+
+        if (!String(error?.message || '').toLowerCase().includes('bucket')) {
+          throw error;
+        }
+      }
+
+      throw new Error('Storage bucket not found. Create bucket "card-images" (or set VITE_SUPABASE_STORAGE_BUCKET).');
     }
   }
 });
