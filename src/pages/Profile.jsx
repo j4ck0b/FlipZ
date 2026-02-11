@@ -113,7 +113,7 @@ export default function Profile() {
         const { data: tradesData } = await supabase
           .from('trade_offers')
           .select('id', { count: 'exact' })
-          .or(`sender_email.eq.${profileEmail || ''},owner_email.eq.${profileEmail || ''}`)
+          .or(`sender_email.eq.${profileUserId},owner_email.eq.${profileUserId},sender_email.eq.${profileEmail || ''},owner_email.eq.${profileEmail || ''}`)
           .eq('status', 'completed');
         
         setStats({

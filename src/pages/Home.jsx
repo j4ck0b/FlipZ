@@ -31,17 +31,17 @@ export default function Home() {
           const { data: offersData } = await supabase
             .from('trade_offers')
             .select('id', { count: 'exact' })
-            .or(`sender_email.eq.${user.email},owner_email.eq.${user.email}`);
+            .or(`sender_email.eq.${user.id},owner_email.eq.${user.id},sender_email.eq.${user.email},owner_email.eq.${user.email}`);
           
           const { data: conversationsData } = await supabase
             .from('trade_conversations')
             .select('id', { count: 'exact' })
-            .or(`participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`);
+            .or(`participant_1_email.eq.${user.id},participant_2_email.eq.${user.id},participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`);
           
           const { data: completedOffersData } = await supabase
             .from('trade_offers')
             .select('id', { count: 'exact' })
-            .or(`sender_email.eq.${user.email},owner_email.eq.${user.email}`)
+            .or(`sender_email.eq.${user.id},owner_email.eq.${user.id},sender_email.eq.${user.email},owner_email.eq.${user.email}`)
             .eq('status', 'completed');
           
           setStats({
