@@ -1,7 +1,32 @@
 import { supabase } from '../lib/AuthContext';
 
-const runOrderedQueryWithFallback = async (query, field, direction, limit) => {
-  const execute = async (orderField) => query
+const applyFilters = (query, filters = {}) => {
+  let nextQuery = query;
+
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (key === '$or' && Array.isArray(value)) {
+      const orClauses = value
+        .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
+
+      if (orClauses.length > 0) {
+        nextQuery = nextQuery.or(orClauses.join(','));
+      }
+      return;
+    }
+
+    if (value && typeof value === 'object' && Array.isArray(value.$in)) {
+      nextQuery = nextQuery.in(key, value.$in);
+      return;
+    }
+
+    nextQuery = nextQuery.eq(key, value);
+  });
+
+  return nextQuery;
+};
+
+const runOrderedQueryWithFallback = async (queryFactory, field, direction, limit) => {
+  const execute = async (orderField) => queryFactory()
     .order(orderField, { ascending: direction })
     .limit(limit);
 
@@ -23,6 +48,7 @@ const runOrderedQueryWithFallback = async (query, field, direction, limit) => {
 };
 
 // Helper functions for entity operations
+
 const createEntityHelper = (tableName) => ({
   async list(orderBy = '-created_at', limit = 1000) {
     const [field, direction] = orderBy.startsWith('-')
@@ -30,7 +56,7 @@ const createEntityHelper = (tableName) => ({
       : [orderBy, true];
 
     const { data, error } = await runOrderedQueryWithFallback(
-      supabase.from(tableName).select('*'),
+      () => supabase.from(tableName).select('*'),
       field,
       direction,
       limit
@@ -56,29 +82,8 @@ const createEntityHelper = (tableName) => ({
       ? [orderBy.slice(1), false]
       : [orderBy, true];
 
-    let query = supabase.from(tableName).select('*');
-
-    Object.entries(filters || {}).forEach(([key, value]) => {
-      if (key === '$or' && Array.isArray(value)) {
-        const orClauses = value
-          .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
-
-        if (orClauses.length > 0) {
-          query = query.or(orClauses.join(','));
-        }
-        return;
-      }
-
-      if (value && typeof value === 'object' && Array.isArray(value.$in)) {
-        query = query.in(key, value.$in);
-        return;
-      }
-
-      query = query.eq(key, value);
-    });
-
     const { data, error } = await runOrderedQueryWithFallback(
-      query,
+      () => applyFilters(supabase.from(tableName).select('*'), filters),
       field,
       direction,
       limit
