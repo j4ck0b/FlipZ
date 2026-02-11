@@ -47,38 +47,52 @@ export default function Profile() {
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
-    if (!user) return;
     fetchProfile();
-  }, [user, userId]);
+  }, [user, userId, currentUserProfile]);
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
+
       if (isOwnProfile) {
-        // Własny profil - użyj currentUserProfile
-        setViewingProfile(currentUserProfile);
-        setEditForm({
-          username: currentUserProfile?.username || '',
-          full_name: currentUserProfile?.full_name || '',
-          bio: currentUserProfile?.bio || '',
-          location: currentUserProfile?.location || ''
-        });
-      } else {
-        // Profil innego użytkownika
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-        if (error) {
-          console.error('Error fetching profile:', error);
-          navigate('/home');
+        // Własny profil wymaga aktywnej sesji i załadowanego currentUserProfile
+        if (!user) {
+          navigate('/login');
           return;
         }
-        setViewingProfile(data);
+
+        if (!currentUserProfile) {
+          setViewingProfile(null);
+          return;
+        }
+
+        setViewingProfile(currentUserProfile);
+        setEditForm({
+          username: currentUserProfile.username || '',
+          full_name: currentUserProfile.full_name || '',
+          bio: currentUserProfile.bio || '',
+          location: currentUserProfile.location || ''
+        });
+
+        await fetchStats(user.id, currentUserProfile.email);
+        return;
       }
-      // Fetch stats
-      await fetchStats(userId || user.id);
+
+      // Profil innego użytkownika - dostępny również bez aktywnej sesji
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        navigate('/home');
+        return;
+      }
+
+      setViewingProfile(data);
+      await fetchStats(userId, data?.email);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
     } finally {
@@ -86,7 +100,7 @@ export default function Profile() {
     }
   };
 
-  const fetchStats = async (profileUserId) => {
+  const fetchStats = async (profileUserId, profileEmail = null) => {
     try {
       // Try to get stats from database
       try {
@@ -99,7 +113,7 @@ export default function Profile() {
         const { data: tradesData } = await supabase
           .from('trade_offers')
           .select('id', { count: 'exact' })
-          .or(`sender_email.eq.${viewingProfile?.email},owner_email.eq.${viewingProfile?.email}`)
+          .or(`sender_email.eq.${profileUserId},owner_email.eq.${profileUserId},sender_email.eq.${profileEmail || ''},owner_email.eq.${profileEmail || ''}`)
           .eq('status', 'completed');
         
         setStats({
