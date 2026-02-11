@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -36,9 +36,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('user');
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     let isMounted = true;
+    isMountedRef.current = true;
 
     const applySignedOutState = () => {
       setUser(null);
@@ -186,12 +188,16 @@ export function AuthProvider({ children }) {
           .single();
 
         if (createError) throw createError;
+        if (!isMountedRef.current) return;
+
         setProfile(newProfile);
         setIsAdmin(newProfile.role === 'admin');
         setRole(newProfile.role || 'user');
       } else if (error) {
         throw error;
       } else {
+        if (!isMountedRef.current) return;
+
         setProfile(profileData);
         setIsAdmin(profileData.role === 'admin');
         setRole(profileData.role || 'user');
