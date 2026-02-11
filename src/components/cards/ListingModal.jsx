@@ -71,25 +71,31 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     
     setUploading(true);
     const uploadedUrls = [];
-    
-    for (const file of filesToUpload) {
-      // Upload original
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      
-      // Compress the image
-      const compressResult = await base44.functions.invoke('compressImage', { 
-        imageUrl: uploadResult.file_url 
-      });
-      
-      // Use compressed version
-      uploadedUrls.push(compressResult.data.compressedUrl);
+
+    try {
+      for (const file of filesToUpload) {
+        // Upload original
+        const uploadResult = await base44.integrations.Core.UploadFile({ file });
+
+        // Compress the image (fallback to original URL if function is unavailable)
+        const compressResult = await base44.functions.invoke('compressImage', {
+          imageUrl: uploadResult.file_url
+        }).catch(() => ({ data: { compressedUrl: uploadResult.file_url } }));
+
+        // Use compressed version if available
+        uploadedUrls.push(compressResult?.data?.compressedUrl || uploadResult.file_url);
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        image_urls: [...prev.image_urls, ...uploadedUrls]
+      }));
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error(error?.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
     }
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      image_urls: [...prev.image_urls, ...uploadedUrls] 
-    }));
-    setUploading(false);
   };
 
   const removeImage = (index) => {
