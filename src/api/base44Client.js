@@ -10,6 +10,14 @@ const applyFilters = (query, filters = {}) => {
       const orClauses = value
         .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
 
+const applyFilters = (query, filters = {}) => {
+  let nextQuery = query;
+
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (key === '$or' && Array.isArray(value)) {
+      const orClauses = value
+        .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
+
       if (orClauses.length > 0) {
         nextQuery = nextQuery.or(orClauses.join(','));
       }
