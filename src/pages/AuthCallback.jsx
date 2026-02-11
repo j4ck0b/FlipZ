@@ -13,6 +13,12 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession?.user) {
+          navigate('/home', { replace: true });
+          return;
+        }
+
         const error = searchParams.get('error');
         if (error) {
           console.error('Google auth error:', error);
@@ -71,6 +77,8 @@ export default function AuthCallback() {
         navigate('/login', { replace: true });
       } catch (error) {
         if (isAbortError(error)) {
+          const { data: { session } } = await supabase.auth.getSession();
+          navigate(session?.user ? '/home' : '/login', { replace: true });
           return;
         }
 
