@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
@@ -318,7 +318,9 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       />
 
       <Dialog open={!!fullScreenImage} onOpenChange={() => setFullScreenImage(null)}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95" aria-describedby={undefined}>
+          <DialogTitle className="sr-only">Full screen image preview</DialogTitle>
+          <DialogDescription className="sr-only">Preview of the selected listing image in full screen.</DialogDescription>
           <img 
             src={fullScreenImage} 
             alt="Full screen view"
