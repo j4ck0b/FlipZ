@@ -65,6 +65,8 @@ export function AuthProvider({ children }) {
         if (isMounted) {
           applySignedOutState();
         }
+        setUser(null);
+        setProfile(null);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -86,6 +88,17 @@ export function AuthProvider({ children }) {
         }
 
         if (isMounted) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            setUser(session.user);
+            await loadUserProfile(session.user);
+          } else {
+            setUser(null);
+            setProfile(null);
+            setIsAdmin(false);
+            setRole('user');
+          }
           setLoading(false);
         }
       }
