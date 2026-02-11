@@ -50,6 +50,14 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
     }
   }, [editListing, open, defaultCategory]);
 
+  const resolveUiErrorMessage = (error, fallback) => {
+    const rawMessage = error?.message;
+    if (!rawMessage) return fallback;
+
+    const localizedMessage = t(rawMessage);
+    return localizedMessage === rawMessage ? rawMessage : localizedMessage;
+  };
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -77,13 +85,8 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         // Upload original
         const uploadResult = await base44.integrations.Core.UploadFile({ file });
 
-        // Compress the image (fallback to original URL if function is unavailable)
-        const compressResult = await base44.functions.invoke('compressImage', {
-          imageUrl: uploadResult.file_url
-        }).catch(() => ({ data: { compressedUrl: uploadResult.file_url } }));
-
-        // Use compressed version if available
-        uploadedUrls.push(compressResult?.data?.compressedUrl || uploadResult.file_url);
+        // Keep original URL to avoid CORS issues on optional edge compression function
+        uploadedUrls.push(uploadResult.file_url);
       }
 
       setFormData(prev => ({
@@ -92,6 +95,7 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
       }));
     } catch (error) {
       console.error('Image upload error:', error);
+      toast.error(resolveUiErrorMessage(error, 'Failed to upload image'));
       toast.error(error?.message || 'Failed to upload image');
     } finally {
       setUploading(false);
