@@ -21,6 +21,40 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 const AuthContext = createContext({});
 
 const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+const isMissingColumnError = (error) => {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('column') && message.includes('does not exist');
+};
+
+const normalizeRole = (value) => {
+  if (typeof value !== 'string') return '';
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'administrator') return 'admin';
+  return normalized;
+};
+
+const resolveUserRole = (profileData, authUser = null) => {
+  const directRole = normalizeRole(profileData?.role);
+  if (directRole) return directRole;
+
+  const legacyRole = normalizeRole(profileData?.user_role);
+  if (legacyRole) return legacyRole;
+
+  if (profileData?.is_admin === true) return 'admin';
+
+  const metadataRole = normalizeRole(authUser?.app_metadata?.role)
+    || normalizeRole(authUser?.user_metadata?.role);
+  if (metadataRole) return metadataRole;
+
+  return 'user';
+};
+
+
+const EMPTY_PANEL_ACCESS = {
+  canManageUsers: false,
+  canAccessWarehouse: false,
+  loaded: false
+};
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
 const AUTH_LOADING_FALLBACK_MS = 15000;
@@ -52,6 +86,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('user');
+  const [panelAccess, setPanelAccess] = useState(EMPTY_PANEL_ACCESS);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -69,11 +104,15 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsAdmin(false);
       setRole('user');
+      setPanelAccess(EMPTY_PANEL_ACCESS);
     };
 
     const updateProfileState = async (authUser) => {
       if (!authUser || !isMounted) return;
-      await loadUserProfile(authUser);
+      await Promise.all([
+        loadUserProfile(authUser),
+        loadPanelAccess(authUser)
+      ]);
     };
 
     const handleSession = (session) => {
@@ -151,43 +190,125 @@ export function AuthProvider({ children }) {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabase
+        const baseProfilePayload = {
+          id: userId,
+          email: authUser?.email,
+          username: authUser?.email?.split('@')[0],
+          full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
+          created_at: new Date().toISOString()
+        };
+
+        let createResult = await supabase
           .from('profiles')
           .insert({
-            id: userId,
-            email: authUser?.email,
-            username: authUser?.email?.split('@')[0],
-            full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
+            ...baseProfilePayload,
             role: 'user',
             subscription_tier: 'free',
-            trade_count_current_month: 0,
-            created_at: new Date().toISOString()
+            trade_count_current_month: 0
           })
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createResult.error && isMissingColumnError(createResult.error)) {
+          createResult = await supabase
+            .from('profiles')
+            .insert(baseProfilePayload)
+            .select()
+            .single();
+        }
+
+        if (createResult.error && createResult.error.code === '23505') {
+          createResult = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        }
+
+        if (createResult.error) throw createResult.error;
         if (!isMountedRef.current) return;
 
-        setProfile(newProfile);
-        setIsAdmin(newProfile.role === 'admin');
-        setRole(newProfile.role || 'user');
+        const nextRole = resolveUserRole(createResult.data, authUser);
+
+        setProfile(createResult.data);
+        setIsAdmin(nextRole === 'admin');
+        setRole(nextRole);
       } else if (error) {
         throw error;
       } else {
         if (!isMountedRef.current) return;
 
+        const nextRole = resolveUserRole(profileData, authUser);
+
         setProfile(profileData);
-        setIsAdmin(profileData.role === 'admin');
-        setRole(profileData.role || 'user');
+        setIsAdmin(nextRole === 'admin');
+        setRole(nextRole);
       }
     } catch (error) {
       if (!isAbortError(error)) {
         console.error('Error loading profile:', error);
       }
+
+      if (!isMountedRef.current) return;
+
+      const fallbackRole = resolveUserRole(null, authUser);
+      setProfile({
+        id: userId,
+        email: authUser?.email || '',
+        username: authUser?.user_metadata?.preferred_username
+          || authUser?.user_metadata?.name
+          || authUser?.email?.split('@')[0]
+          || 'Użytkownik',
+        full_name: authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || '',
+        avatar_url: authUser?.user_metadata?.avatar_url || null,
+        role: fallbackRole,
+        subscription_tier: 'free',
+        created_at: new Date().toISOString(),
+        _fallbackProfile: true
+      });
+      setIsAdmin(fallbackRole === 'admin');
+      setRole(fallbackRole);
     }
   };
 
+
+  const loadPanelAccess = async (authUser) => {
+    const normalizedEmail = authUser?.email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      if (isMountedRef.current) {
+        setPanelAccess({ ...EMPTY_PANEL_ACCESS, loaded: true });
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('panel_access')
+        .select('can_manage_users, can_access_warehouse')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!isMountedRef.current) return;
+
+      const canManageUsersAccess = data?.can_manage_users === true;
+      const canAccessWarehouse = canManageUsersAccess || data?.can_access_warehouse === true;
+
+      setPanelAccess({
+        canManageUsers: canManageUsersAccess,
+        canAccessWarehouse,
+        loaded: true
+      });
+    } catch (error) {
+      if (!isAbortError(error)) {
+        console.error('Error loading panel access:', error);
+      }
+      if (!isMountedRef.current) return;
+
+      setPanelAccess({ ...EMPTY_PANEL_ACCESS, loaded: true });
+    }
+  };
   const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -250,7 +371,7 @@ export function AuthProvider({ children }) {
   };
 
   const changeUserRole = async (userId, newRole) => {
-    if (!isAdmin) return { error: 'Unauthorized' };
+    if (!canManageUsers) return { error: 'Unauthorized' };
     const validRoles = ['user', 'moderator', 'admin', 'employee'];
     if (!validRoles.includes(newRole)) {
       return { error: 'Invalid role' };
@@ -275,6 +396,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const isAdminByRole = isAdmin || role === 'admin';
+  const isWarehouseByRole = role === 'employee';
+
+  const canManageUsers = isAdminByRole && panelAccess.canManageUsers;
+  const canAccessWarehousePanel = (isAdminByRole || isWarehouseByRole)
+    && panelAccess.canAccessWarehouse;
+
+  const canAccessAdminPanel = canManageUsers || canAccessWarehousePanel;
+  const panelAccessLoading = Boolean(user) && !panelAccess.loaded;
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -282,6 +413,10 @@ export function AuthProvider({ children }) {
       loading,
       isAdmin,
       role,
+      canAccessAdminPanel,
+      canManageUsers,
+      canAccessWarehousePanel,
+      panelAccessLoading,
       signInWithGoogle,
       signInWithMagicLink,
       signOut,

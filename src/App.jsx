@@ -30,9 +30,9 @@ import './App.css';
 
 // Protected Route - wymaga logowania + Layout
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, panelAccessLoading } = useAuth();
   
-  if (loading) {
+  if (loading || panelAccessLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
         <div className="text-center">
@@ -53,9 +53,9 @@ function ProtectedRoute({ children }) {
 
 // Admin Route - wymaga admina
 function AdminRoute({ children }) {
-  const { user, isAdmin, role, loading } = useAuth();
+  const { user, canAccessAdminPanel, panelAccessLoading, loading } = useAuth();
   
-  if (loading) {
+  if (loading || panelAccessLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
         <div className="text-center">
@@ -66,7 +66,7 @@ function AdminRoute({ children }) {
     );
   }
 
-  if (!user || (!isAdmin && role !== 'employee')) {
+  if (!user || !canAccessAdminPanel) {
     return <Navigate to="/home" replace />;
   }
 
