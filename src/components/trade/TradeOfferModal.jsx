@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRightLeft, Plus, X, Loader2, AlertCircle } from "lucide-react";
@@ -52,9 +51,40 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     });
   };
 
+  const resolveTargetOwnerEmail = async () => {
+    if (targetCard?.owner_email) return targetCard.owner_email;
+
+    const ownerId = targetCard?.created_by_id || targetCard?.created_by;
+    if (!ownerId) return null;
+
+    try {
+      const profileRow = await base44.entities.User.get(ownerId);
+      return profileRow?.email || null;
+    } catch (error) {
+      console.warn('Could not resolve target owner email:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedCards.length) {
       toast.error('Select at least one card to trade');
+      return;
+    }
+
+    if (!currentUser?.email) {
+      toast.error('Nie można odczytać Twojego konta. Zaloguj się ponownie.');
+      return;
+    }
+
+    const ownerEmail = await resolveTargetOwnerEmail();
+    if (!ownerEmail) {
+      toast.error('Nie można ustalić właściciela ogłoszenia. Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
+
+    if (ownerEmail === currentUser.email) {
+      toast.error("Nie możesz rozpocząć wymiany ze swoim własnym ogłoszeniem.");
       return;
     }
 
@@ -95,9 +125,9 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         trade_id: tradeId,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
-        owner_email: targetCard.created_by_id || targetCard.created_by,
+        owner_email: ownerEmail,
         owner_name: targetCard.collector_name,
-        sender_email: currentUser.id,
+        sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         offered_card_ids: selectedCards.map(c => c.id),
         offered_cards_info: selectedCards.map(c => ({
@@ -112,27 +142,35 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         status: 'pending'
       });
 
-      // Create conversation
-      const conversation = await base44.entities.TradeConversation.create({
-        participant_1_email: currentUser.id,
-        participant_1_name: currentUser.full_name,
-        participant_2_email: targetCard.created_by_id || targetCard.created_by,
-        participant_2_name: targetCard.collector_name,
-        trade_offer_id: offer.id,
-        status: 'active',
-        last_message_at: new Date().toISOString(),
-        last_message_preview: 'Trade offer sent'
-      });
+      // Create conversation/message as best-effort (offer should still succeed)
+      let conversation = null;
+      try {
+        conversation = await base44.entities.Conversation.create({
+          user_id: currentUser.id,
+          partner_id: targetCard.created_by_id || targetCard.created_by,
+          trade_offer_id: offer.id,
+          last_message: 'Trade offer sent',
+          unread_count: 0,
+          updated_at: new Date().toISOString()
+        });
+      } catch (conversationError) {
+        console.warn('Conversation create skipped:', conversationError);
+      }
 
-      // Create system message
-      await base44.entities.Message.create({
-        conversation_id: conversation.id,
-        sender_email: 'system',
-        sender_name: 'System',
-        message_type: 'system',
-        content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
-        read: false
-      });
+      if (conversation?.id) {
+        try {
+          await base44.entities.Message.create({
+            conversation_id: conversation.id,
+            sender_email: 'system',
+            sender_name: 'System',
+            message_type: 'system',
+            content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
+            read: false
+          });
+        } catch (messageError) {
+          console.warn('System message create skipped:', messageError);
+        }
+      }
 
       // Increment trade count for current month (best-effort)
       try {
@@ -151,7 +189,12 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     } catch (error) {
       console.error('Trade offer error:', error);
       setSending(false);
-      toast.error(error.message || 'Failed to send trade offer. Please try again.');
+      const message = String(error?.message || '');
+      if (message.includes('row-level security')) {
+        toast.error('Brak uprawnień do utworzenia oferty. Sprawdź czy jesteś zalogowany poprawnym kontem i odśwież stronę.');
+      } else {
+        toast.error(error.message || 'Failed to send trade offer. Please try again.');
+      }
     }
   };
 
