@@ -70,9 +70,6 @@ export default function Layout({ children }) {
               <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <img src="/logo.svg" alt="FlipCardZ" className="w-7 h-7 drop-shadow" />
               </div>
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent hidden sm:inline">
-                <img src="/logo.svg" alt="FlipCardZ" className="w-6 h-6" />
-              </span>
               <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-300 to-pink-300 bg-clip-text text-transparent hidden sm:inline">
                 FlipCardZ
               </span>
