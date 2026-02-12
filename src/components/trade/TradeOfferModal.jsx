@@ -94,11 +94,13 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     }
 
     const { ownerEmail, ownerId, ownerName } = await resolveTargetOwnerDetails();
+    if (!ownerEmail && !ownerId) {
     if (!ownerEmail) {
       toast.error('Nie można ustalić właściciela ogłoszenia. Odśwież stronę i spróbuj ponownie.');
       return;
     }
 
+    if ((ownerEmail && ownerEmail === currentUser.email) || (ownerId && ownerId === currentUser.id)) {
     if (ownerEmail === currentUser.email || (ownerId && ownerId === currentUser.id)) {
       toast.error("Nie możesz rozpocząć wymiany ze swoim własnym ogłoszeniem.");
       return;
@@ -137,10 +139,12 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         console.warn('generateTradeId unavailable, using local fallback:', tradeIdError);
       }
       
-      const offer = await base44.entities.TradeOffer.create({
+      const baseOfferPayload = {
         trade_id: tradeId,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
+        owner_email: ownerEmail || null,
+        owner_name: ownerName || targetCard.collector_name || (ownerEmail ? ownerEmail.split('@')[0] : 'Collector'),
         owner_email: ownerEmail,
         owner_name: ownerName || targetCard.collector_name || ownerEmail.split('@')[0],
         sender_email: currentUser.email,
@@ -156,7 +160,22 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         value_note: valueNote,
         message: message,
         status: 'pending'
-      });
+      };
+
+      let offer;
+      try {
+        offer = await base44.entities.TradeOffer.create({
+          ...baseOfferPayload,
+          owner_id: ownerId || null,
+          sender_id: currentUser.id
+        });
+      } catch (offerError) {
+        const offerMessage = String(offerError?.message || '').toLowerCase();
+        if (!offerMessage.includes('column') || !offerMessage.includes('does not exist')) {
+          throw offerError;
+        }
+        offer = await base44.entities.TradeOffer.create(baseOfferPayload);
+      }
 
       // Create conversation/message as best-effort (offer should still succeed)
       let conversation = null;

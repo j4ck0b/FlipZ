@@ -131,10 +131,13 @@ export default function MyListings() {
   const { data: myOffers = [], isLoading: loadingOffers } = useQuery({
     queryKey: ['myOffers', userIdentityValues.join('|')],
     queryFn: async () => {
-      const grouped = await Promise.all(
-        userIdentityValues.map((value) => base44.entities.TradeOffer.filter({ sender_email: value }, '-created_date'))
-      );
-      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+      const email = currentUser?.email || null;
+      const userId = currentUser?.id || null;
+      const filters = [{ sender_email: email }];
+      if (userId) filters.push({ sender_id: userId });
+
+      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     refetchInterval: 3000,
@@ -144,10 +147,13 @@ export default function MyListings() {
   const { data: incomingOffers = [], isLoading: loadingIncoming } = useQuery({
     queryKey: ['incomingOffers', userIdentityValues.join('|')],
     queryFn: async () => {
-      const grouped = await Promise.all(
-        userIdentityValues.map((value) => base44.entities.TradeOffer.filter({ owner_email: value }, '-created_date'))
-      );
-      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+      const email = currentUser?.email || null;
+      const userId = currentUser?.id || null;
+      const filters = [{ owner_email: email }];
+      if (userId) filters.push({ owner_id: userId });
+
+      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     refetchInterval: 3000,
