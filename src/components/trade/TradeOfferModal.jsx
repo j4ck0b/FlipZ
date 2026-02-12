@@ -51,18 +51,43 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     });
   };
 
-  const resolveTargetOwnerEmail = async () => {
-    if (targetCard?.owner_email) return targetCard.owner_email;
+  const resolveTargetOwnerDetails = async () => {
+    const ownerId = targetCard?.created_by_id || targetCard?.created_by || null;
+    const ownerName = targetCard?.collector_name || targetCard?.owner_name || null;
 
-    const ownerId = targetCard?.created_by_id || targetCard?.created_by;
-    if (!ownerId) return null;
+    if (targetCard?.owner_email) {
+      return { ownerEmail: targetCard.owner_email, ownerId, ownerName };
+    }
+
+    if (targetCard?.id) {
+      try {
+        const freshListing = await base44.entities.CardListing.get(targetCard.id);
+        if (freshListing?.owner_email) {
+          return {
+            ownerEmail: freshListing.owner_email,
+            ownerId: ownerId || freshListing.created_by_id || freshListing.created_by || null,
+            ownerName: ownerName || freshListing.collector_name || freshListing.owner_name || null
+          };
+        }
+      } catch (listingError) {
+        console.warn('Could not refresh listing owner data:', listingError);
+      }
+    }
+
+    if (!ownerId) {
+      return { ownerEmail: null, ownerId: null, ownerName };
+    }
 
     try {
       const profileRow = await base44.entities.User.get(ownerId);
-      return profileRow?.email || null;
+      return {
+        ownerEmail: profileRow?.email || null,
+        ownerId,
+        ownerName: ownerName || profileRow?.full_name || null
+      };
     } catch (error) {
       console.warn('Could not resolve target owner email:', error);
-      return null;
+      return { ownerEmail: null, ownerId, ownerName };
     }
   };
 
@@ -77,13 +102,18 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
       return;
     }
 
-    const ownerEmail = await resolveTargetOwnerEmail();
+    if (!targetCard?.id) {
+      toast.error('Nie udało się odczytać ogłoszenia. Zamknij okno i spróbuj ponownie.');
+      return;
+    }
+
+    const { ownerEmail, ownerId, ownerName } = await resolveTargetOwnerDetails();
     if (!ownerEmail) {
       toast.error('Nie można ustalić właściciela ogłoszenia. Odśwież stronę i spróbuj ponownie.');
       return;
     }
 
-    if (ownerEmail === currentUser.email) {
+    if (ownerEmail === currentUser.email || (ownerId && ownerId === currentUser.id)) {
       toast.error("Nie możesz rozpocząć wymiany ze swoim własnym ogłoszeniem.");
       return;
     }
@@ -126,7 +156,7 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
         owner_email: ownerEmail,
-        owner_name: targetCard.collector_name,
+        owner_name: ownerName || targetCard.collector_name || ownerEmail.split('@')[0],
         sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         offered_card_ids: selectedCards.map(c => c.id),
@@ -147,7 +177,7 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
       try {
         conversation = await base44.entities.Conversation.create({
           user_id: currentUser.id,
-          partner_id: targetCard.created_by_id || targetCard.created_by,
+          partner_id: ownerId || targetCard.created_by_id || targetCard.created_by || null,
           trade_offer_id: offer.id,
           last_message: 'Trade offer sent',
           unread_count: 0,
