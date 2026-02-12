@@ -70,9 +70,6 @@ export default function Layout({ children }) {
               <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <img src="/logo.svg" alt="FlipCardZ" className="w-7 h-7 drop-shadow" />
               </div>
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent hidden sm:inline">
-                <img src="/logo.svg" alt="FlipCardZ" className="w-6 h-6" />
-              </div>
               <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-300 to-pink-300 bg-clip-text text-transparent hidden sm:inline">
                 FlipCardZ
               </span>
@@ -90,7 +87,6 @@ export default function Layout({ children }) {
                       className={`gap-2 ${
                         active
                           ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
-                          ? 'bg-gradient-to-r from-violet-300 to-pink-300 text-white accent-glow'
                           : 'text-slate-700 hover:text-violet-600'
                       }`}
                     >
@@ -129,7 +125,6 @@ export default function Layout({ children }) {
                       <p className="text-xs text-slate-500">{user?.email}</p>
                       {profile?.subscription_tier && profile?.subscription_tier !== 'free' && (
                         <Badge className="w-fit bg-gradient-to-r from-violet-500 to-pink-500">
-                        <Badge className="w-fit bg-gradient-to-r from-violet-300 to-pink-300">
                           <Crown className="w-3 h-3 mr-1" />
                           {profile.subscription_tier}
                         </Badge>
@@ -204,7 +199,6 @@ export default function Layout({ children }) {
                               className={`w-full justify-start gap-3 ${
                                 active
                                   ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
-                                  ? 'bg-gradient-to-r from-violet-300 to-pink-300 text-white accent-glow'
                                   : 'text-slate-700'
                               }`}
                             >
