@@ -95,11 +95,13 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
 
     const { ownerEmail, ownerId, ownerName } = await resolveTargetOwnerDetails();
     if (!ownerEmail && !ownerId) {
+    if (!ownerEmail) {
       toast.error('Nie można ustalić właściciela ogłoszenia. Odśwież stronę i spróbuj ponownie.');
       return;
     }
 
     if ((ownerEmail && ownerEmail === currentUser.email) || (ownerId && ownerId === currentUser.id)) {
+    if (ownerEmail === currentUser.email || (ownerId && ownerId === currentUser.id)) {
       toast.error("Nie możesz rozpocząć wymiany ze swoim własnym ogłoszeniem.");
       return;
     }
@@ -143,6 +145,8 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         requested_card_title: targetCard.title,
         owner_email: ownerEmail || null,
         owner_name: ownerName || targetCard.collector_name || (ownerEmail ? ownerEmail.split('@')[0] : 'Collector'),
+        owner_email: ownerEmail,
+        owner_name: ownerName || targetCard.collector_name || ownerEmail.split('@')[0],
         sender_email: currentUser.email,
         sender_name: currentUser.full_name || currentUser.email.split('@')[0],
         offered_card_ids: selectedCards.map(c => c.id),
