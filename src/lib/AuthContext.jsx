@@ -22,15 +22,20 @@ const AuthContext = createContext({});
 
 const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
 
-const PROFILE_LOAD_TIMEOUT_MS = 10;
-const AUTH_LOADING_FALLBACK_MS = 15;
+const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
 
-const withTimeout = async (promise, timeoutMs, timeoutMessage) => Promise.race([
-  promise,
-  new Promise((_, reject) => {
-    setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
-  })
-]);
+const withTimeout = (promise, timeoutMs, timeoutMessage) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+  promise
+    .then((result) => {
+      clearTimeout(timer);
+      resolve(result);
+    })
+    .catch((error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -76,11 +81,6 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         setUser(session.user);
         updateProfileState(session.user);
-        try {
-          await withTimeout(loadUserProfile(session.user), PROFILE_LOAD_TIMEOUT_MS, 'PROFILE_LOAD_TIMEOUT');
-        } catch (profileError) {
-          console.warn('Profile load timeout/error:', profileError?.message || profileError);
-        }
       } else {
         applySignedOutState();
       }
@@ -99,6 +99,19 @@ export function AuthProvider({ children }) {
       } catch (error) {
         if (String(error?.message) === 'AUTH_BOOTSTRAP_TIMEOUT') {
           console.warn('Auth bootstrap timeout - continuing without blocking UI');
+
+          supabase.auth.getSession()
+            .then(({ data }) => {
+              if (!isMounted) return;
+              if (data?.session?.user) {
+                handleSession(data.session);
+              }
+            })
+            .catch((lateSessionError) => {
+              if (!isAbortError(lateSessionError)) {
+                console.error('Late auth session fetch error:', lateSessionError);
+              }
+            });
         } else if (!isAbortError(error)) {
           console.error('Auth error:', error);
         }
@@ -120,7 +133,6 @@ export function AuthProvider({ children }) {
     return () => {
       isMounted = false;
       isMountedRef.current = false;
-      subscription?.unsubscribe();
       subscription?.unsubscribe();
       clearTimeout(loadingFallbackTimer);
     };
