@@ -76,6 +76,9 @@ export default function Layout({ children }) {
                 <img src="/logo.svg" alt="FlipCardZ" className="w-7 h-7 drop-shadow" />
               </div>
               <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent hidden sm:inline">
+                <img src="/logo.svg" alt="FlipCardZ" className="w-6 h-6" />
+              </div>
+              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-300 to-pink-300 bg-clip-text text-transparent hidden sm:inline">
                 FlipCardZ
               </span>
             </Link>
@@ -90,6 +93,12 @@ export default function Layout({ children }) {
                     <Button
                       variant={active ? "default" : "ghost"}
                       className={active ? activeNavDesktopClass : inactiveNavDesktopClass}
+                      className={`gap-2 ${
+                        active
+                          ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
+                          ? 'bg-gradient-to-r from-violet-300 to-pink-300 text-white accent-glow'
+                          : 'text-slate-700 hover:text-violet-600'
+                      }`}
                     >
                       <Icon className="w-4 h-4" />
                       <span className="hidden lg:inline">{item.name}</span>
