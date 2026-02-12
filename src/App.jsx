@@ -54,6 +54,7 @@ function ProtectedRoute({ children }) {
 // Admin Route - wymaga admina
 function AdminRoute({ children }) {
   const { user, canAccessAdminPanel, panelAccessLoading, loading } = useAuth();
+  const { user, canAccessAdminPanel, loading } = useAuth();
   
   if (loading || panelAccessLoading) {
     return (
