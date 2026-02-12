@@ -189,6 +189,47 @@ export default function MyListings() {
     toast.success(`Offer ${action}`);
   };
 
+  const handleCancelTrade = async (offer, reason) => {
+    try {
+      const { data } = await base44.functions.invoke('cancelTrade', {
+        tradeOfferId: offer.id,
+        reason
+      });
+
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+        queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+        queryClient.invalidateQueries({ queryKey: ['myListings'] });
+        toast.success('Trade cancelled successfully');
+        return;
+      }
+    } catch (error) {
+      const message = String(error?.message || error?.context?.status || '');
+      if (!message.includes('not deployed') && !message.includes('404')) {
+        toast.error(error.response?.data?.error || 'Failed to cancel trade');
+        return;
+      }
+    }
+
+    try {
+      await base44.entities.TradeOffer.update(offer.id, {
+        status: 'cancelled',
+        progress_step: 'cancelled'
+      });
+
+      if (offer?.requested_card_id && !offer?.both_paid) {
+        await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      toast.success('Trade cancelled successfully (fallback mode)');
+    } catch (fallbackError) {
+      toast.error('Nie udało się anulować wymiany. Spróbuj ponownie.');
+    }
+  };
+
   const handleEscrowSelect = async (escrowMode) => {
     try {
       await base44.entities.TradeOffer.update(escrowModalOffer.id, { 
@@ -560,21 +601,7 @@ export default function MyListings() {
                        {(offer.status === 'pending' || offer.status === 'accepted') && !offer.both_paid && (
                          <Button 
                            variant="outline"
-                           onClick={async () => {
-                             try {
-                               const { data } = await base44.functions.invoke('cancelTrade', {
-                                 tradeOfferId: offer.id,
-                                 reason: 'Cancelled by owner'
-                               });
-                               if (data.success) {
-                                 queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-                                 queryClient.invalidateQueries({ queryKey: ['myListings'] });
-                                 toast.success('Trade cancelled successfully');
-                               }
-                             } catch (error) {
-                               toast.error(error.response?.data?.error || 'Failed to cancel trade');
-                             }
-                           }}
+                           onClick={() => handleCancelTrade(offer, 'Cancelled by owner')}
                            className="flex-1 text-red-600 hover:bg-red-50"
                            disabled={offer.both_paid || (offer.sender_paid && offer.owner_paid)}
                          >
@@ -797,21 +824,7 @@ export default function MyListings() {
                         {(offer.status === 'pending' || offer.status === 'accepted') && !offer.both_paid && (
                           <Button 
                             variant="outline"
-                            onClick={async () => {
-                              try {
-                                const { data } = await base44.functions.invoke('cancelTrade', {
-                                  tradeOfferId: offer.id,
-                                  reason: 'Cancelled by sender'
-                                });
-                                if (data.success) {
-                                  queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                                  queryClient.invalidateQueries({ queryKey: ['myListings'] });
-                                  toast.success('Trade cancelled successfully');
-                                }
-                              } catch (error) {
-                                toast.error(error.response?.data?.error || 'Failed to cancel trade');
-                              }
-                            }}
+                            onClick={() => handleCancelTrade(offer, 'Cancelled by sender')}
                             className="flex-1 text-red-600 hover:bg-red-50"
                             disabled={offer.both_paid || (offer.sender_paid && offer.owner_paid)}
                           >
