@@ -23,6 +23,7 @@ import {
   Crown,
   Shield,
   CreditCard,
+  ArrowRightLeft,
   X
 } from 'lucide-react';
 import FloatingChat from './components/chat/FloatingChat';
@@ -46,10 +47,16 @@ export default function Layout({ children }) {
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
+    { name: 'Moje Wymiany', path: '/my-listings', icon: ArrowRightLeft },
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
     { name: 'Ulubione', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
   ];
+
+  const activeNavDesktopClass = 'gap-2 bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow';
+  const inactiveNavDesktopClass = 'gap-2 text-slate-700 hover:text-violet-600';
+  const activeNavMobileClass = 'w-full justify-start gap-3 bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow';
+  const inactiveNavMobileClass = 'w-full justify-start gap-3 text-slate-700';
 
   const isActivePath = (path) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -66,9 +73,9 @@ export default function Layout({ children }) {
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-3 group">
               <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-6 h-6" />
+                <img src="/logo.svg" alt="FlipCardZ" className="w-7 h-7 drop-shadow" />
               </div>
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">
+              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent hidden sm:inline">
                 FlipCardZ
               </span>
             </Link>
@@ -82,11 +89,7 @@ export default function Layout({ children }) {
                   <Link key={item.path} to={item.path}>
                     <Button
                       variant={active ? "default" : "ghost"}
-                      className={`gap-2 ${
-                        active
-                          ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white accent-glow'
-                          : 'text-slate-700 hover:text-violet-600'
-                      }`}
+                      className={active ? activeNavDesktopClass : inactiveNavDesktopClass}
                     >
                       <Icon className="w-4 h-4" />
                       <span className="hidden lg:inline">{item.name}</span>
@@ -122,7 +125,7 @@ export default function Layout({ children }) {
                       <p className="text-sm font-medium leading-none">{profile?.username || 'Użytkownik'}</p>
                       <p className="text-xs text-slate-500">{user?.email}</p>
                       {profile?.subscription_tier && profile?.subscription_tier !== 'free' && (
-                        <Badge className="w-fit bg-gradient-to-r from-violet-600 to-purple-600">
+                        <Badge className="w-fit bg-gradient-to-r from-violet-500 to-pink-500">
                           <Crown className="w-3 h-3 mr-1" />
                           {profile.subscription_tier}
                         </Badge>
@@ -194,11 +197,7 @@ export default function Layout({ children }) {
                           >
                             <Button
                               variant={active ? "default" : "ghost"}
-                              className={`w-full justify-start gap-3 ${
-                                active
-                                  ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white accent-glow'
-                                  : 'text-slate-700'
-                              }`}
+                              className={active ? activeNavMobileClass : inactiveNavMobileClass}
                             >
                               <Icon className="w-5 h-5" />
                               {item.name}
