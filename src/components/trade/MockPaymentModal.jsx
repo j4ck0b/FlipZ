@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,13 @@ import { toast } from 'sonner';
 export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess }) {
   const [processing, setProcessing] = useState(false);
   const [paid, setPaid] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setProcessing(false);
+      setPaid(false);
+    }
+  }, [open]);
 
   const completeMockPayment = () => {
     setPaid(true);
@@ -23,6 +30,11 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
   };
 
   const handlePay = async () => {
+    if (!tradeOffer?.id) {
+      toast.error('Brak danych oferty wymiany. Zamknij okno i spróbuj ponownie.');
+      return;
+    }
+
     setProcessing(true);
     
     try {

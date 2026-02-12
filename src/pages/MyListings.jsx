@@ -211,19 +211,23 @@ export default function MyListings() {
       }
     }
 
-    await base44.entities.TradeOffer.update(offer.id, {
-      status: 'cancelled',
-      progress_step: 'cancelled'
-    });
+    try {
+      await base44.entities.TradeOffer.update(offer.id, {
+        status: 'cancelled',
+        progress_step: 'cancelled'
+      });
 
-    if (offer?.requested_card_id && !offer?.both_paid) {
-      await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+      if (offer?.requested_card_id && !offer?.both_paid) {
+        await base44.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      toast.success('Trade cancelled successfully (fallback mode)');
+    } catch (fallbackError) {
+      toast.error('Nie udało się anulować wymiany. Spróbuj ponownie.');
     }
-
-    queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-    queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success('Trade cancelled successfully (fallback mode)');
   };
 
   const handleEscrowSelect = async (escrowMode) => {
