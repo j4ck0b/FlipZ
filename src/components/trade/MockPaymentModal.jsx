@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,30 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
   const [processing, setProcessing] = useState(false);
   const [paid, setPaid] = useState(false);
 
+  useEffect(() => {
+    if (!open) {
+      setProcessing(false);
+      setPaid(false);
+    }
+  }, [open]);
+
+  const completeMockPayment = () => {
+    setPaid(true);
+    toast.success('Płatność potwierdzona (tryb fallback).');
+
+    setTimeout(() => {
+      setProcessing(false);
+      onSuccess?.();
+      onClose();
+    }, 900);
+  };
+
   const handlePay = async () => {
+    if (!tradeOffer?.id) {
+      toast.error('Brak danych oferty wymiany. Zamknij okno i spróbuj ponownie.');
+      return;
+    }
+
     setProcessing(true);
     
     try {
@@ -21,11 +44,21 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
         amount: getAmount()
       });
 
-      if (data.url) {
+      if (data?.url) {
         window.location.href = data.url;
+        return;
       }
+
+      completeMockPayment();
     } catch (error) {
       console.error('Payment error:', error);
+      const message = String(error?.message || error?.context?.status || '');
+
+      if (message.includes('not deployed') || message.includes('404')) {
+        completeMockPayment();
+        return;
+      }
+
       toast.error('Błąd podczas tworzenia płatności');
       setProcessing(false);
     }

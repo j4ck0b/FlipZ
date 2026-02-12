@@ -34,7 +34,10 @@ const runOrderedQueryWithFallback = async (queryFactory, field, direction, limit
 
   let result = await execute(field);
 
-  if (result.error?.code === '42703') {
+  const shouldFallback = result.error?.code === '42703'
+    || (field === 'created_at' && String(result.error?.message || '').toLowerCase().includes('created_at'));
+
+  if (shouldFallback) {
     const fallbackField = field === 'created_at'
       ? 'created_date'
       : field === 'created_date'
@@ -235,7 +238,8 @@ export const base44 = {
     User: createEntityHelper('profiles'),
     SubscriptionPlan: createEntityHelper('subscription_plans'),
     Message: createEntityHelper('messages'),
-    Conversation: createEntityHelper('conversations')
+    Conversation: createEntityHelper('conversations'),
+    TradeConversation: createEntityHelper('trade_conversations')
   },
   functions: createFunctionHelper(),
   auth: createAuthHelper(),
