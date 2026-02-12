@@ -203,15 +203,6 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         }
       }
 
-      // Increment trade count for current month (best-effort)
-      try {
-        await base44.entities.User.update(currentUser.id, {
-          trade_count_current_month: (currentUser.trade_count_current_month || 0) + 1
-        });
-      } catch (tradeCountError) {
-        console.warn('Trade count update skipped:', tradeCountError);
-      }
-
       setSending(false);
       toast.success('Trade offer sent!');
       onSuccess?.();

@@ -118,25 +118,10 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
         throw new Error('You must be logged in to create a listing.');
       }
 
-      const fallbackCollectorName = user.user_metadata?.full_name
+      const collectorName = user.user_metadata?.full_name
         || user.user_metadata?.name
         || user.email?.split('@')[0]
         || 'Collector';
-
-      let collectorName = fallbackCollectorName;
-      try {
-        const profileRow = await base44.entities.User.get(user.id);
-        if (profileRow?.full_name?.trim()) {
-          collectorName = profileRow.full_name.trim();
-        } else {
-          await base44.entities.User.update(user.id, {
-            full_name: fallbackCollectorName,
-            username: profileRow?.username || user.email?.split('@')[0]
-          });
-        }
-      } catch (profileError) {
-        console.warn('Profile name sync skipped:', profileError);
-      }
 
       const data = {
         ...formData,
