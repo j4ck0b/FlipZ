@@ -137,7 +137,13 @@ const createFunctionHelper = () => ({
         body: data
       });
       
-      if (error) throw error;
+      if (error) {
+        const status = error?.context?.status;
+        if (status === 404) {
+          throw new Error(`Supabase function "${functionName}" is not deployed (404). Deploy it before using this feature.`);
+        }
+        throw error;
+      }
       return { data: result };
     } catch (error) {
       console.error(`Function ${functionName} error:`, error);
