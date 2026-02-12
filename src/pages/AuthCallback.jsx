@@ -4,7 +4,10 @@ import { supabase } from '../lib/AuthContext';
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
-const AUTH_TIMEOUT_MS = 12000;
+const SESSION_CHECK_ATTEMPTS = 8;
+const SESSION_CHECK_DELAY_MS = 400;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -21,12 +24,18 @@ export default function AuthCallback() {
       }
     };
 
-    const withTimeout = (promise, timeoutMs = AUTH_TIMEOUT_MS) => Promise.race([
-      promise,
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('AUTH_TIMEOUT')), timeoutMs);
-      })
-    ]);
+    const waitForSession = async () => {
+      for (let attempt = 0; attempt < SESSION_CHECK_ATTEMPTS; attempt += 1) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          return session;
+        }
+        await sleep(SESSION_CHECK_DELAY_MS);
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    };
 
     const handleCallback = async () => {
       try {
@@ -39,9 +48,7 @@ export default function AuthCallback() {
 
         const code = searchParams.get('code');
         if (code) {
-          const { error: exchangeError } = await withTimeout(
-            supabase.auth.exchangeCodeForSession(code)
-          );
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
           if (exchangeError) {
             const isPkceMissing = String(exchangeError?.message || '').includes('PKCE code verifier not found');
@@ -61,12 +68,10 @@ export default function AuthCallback() {
           const refreshToken = hashParams.get('refresh_token');
 
           if (accessToken && refreshToken) {
-            const { error: setSessionError } = await withTimeout(
-              supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken
-              })
-            );
+            const { error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
 
             if (setSessionError) {
               const isPkceMissing = String(setSessionError?.message || '').includes('PKCE code verifier not found');
@@ -85,12 +90,10 @@ export default function AuthCallback() {
             const type = searchParams.get('type');
 
             if (tokenHash && type) {
-              const { error: verifyError } = await withTimeout(
-                supabase.auth.verifyOtp({
-                  token_hash: tokenHash,
-                  type
-                })
-              );
+              const { error: verifyError } = await supabase.auth.verifyOtp({
+                token_hash: tokenHash,
+                type
+              });
 
               if (verifyError) {
                 console.error('Supabase verify OTP error:', verifyError.message);
@@ -101,22 +104,16 @@ export default function AuthCallback() {
           }
         }
 
-        const { data: { session } } = await withTimeout(supabase.auth.getSession());
+        const session = await waitForSession();
         safeNavigate(session?.user ? '/home' : '/login');
-      } catch (error) {
-        if (String(error?.message) === 'AUTH_TIMEOUT') {
-          console.error('Auth callback timeout');
-          safeNavigate('/login?error=callback_timeout');
-          return;
-        }
-
-        if (isAbortError(error)) {
+      } catch (callbackError) {
+        if (isAbortError(callbackError)) {
           const { data: { session } } = await supabase.auth.getSession();
           safeNavigate(session?.user ? '/home' : '/login');
           return;
         }
 
-        console.error('Critical auth callback error:', error);
+        console.error('Critical auth callback error:', callbackError);
         safeNavigate('/login?error=critical_error');
       }
     };
