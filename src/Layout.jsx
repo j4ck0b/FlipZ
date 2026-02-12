@@ -51,6 +51,7 @@ export default function Layout({ children }) {
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
     { name: 'Ulubione', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
+    ...(isAdmin ? [{ name: 'Panel Admina', path: '/admin', icon: Shield, isAdmin: true }] : []),
   ];
 
   const isActivePath = (path) => {
@@ -87,7 +88,9 @@ export default function Layout({ children }) {
                       className={`gap-2 ${
                         active
                           ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
-                          : 'text-slate-700 hover:text-violet-600'
+                          : item.isAdmin
+                            ? 'text-violet-700 hover:text-violet-800 border border-violet-200'
+                            : 'text-slate-700 hover:text-violet-600'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
