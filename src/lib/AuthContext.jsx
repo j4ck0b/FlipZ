@@ -57,6 +57,12 @@ export function AuthProvider({ children }) {
     let isMounted = true;
     isMountedRef.current = true;
 
+    const loadingFallbackTimer = setTimeout(() => {
+      if (!isMounted) return;
+      console.warn('Auth loading fallback triggered');
+      setLoading(false);
+    }, AUTH_LOADING_FALLBACK_MS);
+
     const applySignedOutState = () => {
       setUser(null);
       setProfile(null);
@@ -128,6 +134,7 @@ export function AuthProvider({ children }) {
       isMounted = false;
       isMountedRef.current = false;
       subscription?.unsubscribe();
+      clearTimeout(loadingFallbackTimer);
     };
   }, []);
 
