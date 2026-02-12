@@ -190,10 +190,12 @@ export default function Home() {
                 Wystaw swoje przedmioty i znajdź coś dla siebie
               </p>
             </div>
-            <Button size="lg" variant="secondary" className="gap-2 whitespace-nowrap bg-slate-900/80 text-white hover:bg-slate-900">
-              <TrendingUp className="w-5 h-5" />
-              Wystaw ogłoszenie
-            </Button>
+            <Link to="/my-listings">
+              <Button size="lg" variant="secondary" className="gap-2 whitespace-nowrap bg-slate-900/80 text-white hover:bg-slate-900">
+                <TrendingUp className="w-5 h-5" />
+                Wystaw ogłoszenie
+              </Button>
+            </Link>
           </div>
         </div>
         

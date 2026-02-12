@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import ListingModal from '../cards/ListingModal';
 import {
 Search,
 Filter,
@@ -28,6 +29,7 @@ export default function ExchangeView({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
+  const [showListingModal, setShowListingModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -96,6 +98,10 @@ export default function ExchangeView({
   const filteredListings = listings.filter(listing =>
     listing.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const defaultListingCategory = selectedSubcategory !== 'all'
+    ? selectedSubcategory
+    : (allowedCategories[0] || 'pokemon');
 
   return (
     <div className="min-h-screen py-8">
@@ -197,7 +203,11 @@ export default function ExchangeView({
               ))}
             </div>
           )}
-          <Button className={`gap-2 bg-gradient-to-r ${gradient}`}>
+          <Button
+            className={`gap-2 bg-gradient-to-r ${gradient}`}
+            onClick={() => setShowListingModal(true)}
+            disabled={!user}
+          >
             <Plus className="w-4 h-4" />
             Wystaw
           </Button>
@@ -219,7 +229,11 @@ export default function ExchangeView({
             <p className="text-slate-600 mb-6">
               {searchQuery ? 'Nie znaleziono pasujących przedmiotów' : 'Bądź pierwszy który wystawi przedmiot!'}
             </p>
-            <Button className={`gap-2 bg-gradient-to-r ${gradient}`}>
+            <Button
+            className={`gap-2 bg-gradient-to-r ${gradient}`}
+            onClick={() => setShowListingModal(true)}
+            disabled={!user}
+          >
               <Plus className="w-4 h-4" />
               Wystaw pierwszy przedmiot
             </Button>
@@ -267,11 +281,24 @@ export default function ExchangeView({
           </div>
         )}
         {/* Bottom CTA */}
+        <ListingModal
+          open={showListingModal}
+          onClose={() => setShowListingModal(false)}
+          onSuccess={fetchListings}
+          defaultCategory={defaultListingCategory}
+        />
+
         {!loading && filteredListings.length > 0 && (
           <div className={`mt-12 bg-gradient-to-r ${gradient} rounded-2xl p-8 text-white text-center`}>
             <h3 className="text-2xl font-bold mb-2">Nie znalazłeś czego szukasz?</h3>
             <p className="text-white/90 mb-4">Wystaw swoją ofertę i pozwól innym się z Tobą skontaktować</p>
-            <Button size="lg" variant="secondary" className="gap-2">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="gap-2"
+              onClick={() => setShowListingModal(true)}
+              disabled={!user}
+            >
               <Plus className="w-5 h-5" />
               Wystaw ogłoszenie
             </Button>
