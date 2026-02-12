@@ -23,6 +23,7 @@ const AuthContext = createContext({});
 const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
+const AUTH_LOADING_FALLBACK_MS = 15000;
 
 const withTimeout = (promise, timeoutMs, timeoutMessage) => new Promise((resolve, reject) => {
   const timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
