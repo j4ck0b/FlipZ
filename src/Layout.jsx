@@ -30,7 +30,7 @@ import FloatingChat from './components/chat/FloatingChat';
 import NotificationPanel from './components/notifications/NotificationPanel';
 
 export default function Layout({ children }) {
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, role, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,6 +51,7 @@ export default function Layout({ children }) {
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
     { name: 'Ulubione', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
+    ...((isAdmin || role === 'employee') ? [{ name: isAdmin ? 'Panel Admina' : 'Panel Magazynu', path: '/admin', icon: Shield, isAdmin: true }] : []),
   ];
 
   const isActivePath = (path) => {
@@ -87,7 +88,9 @@ export default function Layout({ children }) {
                       className={`gap-2 ${
                         active
                           ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
-                          : 'text-slate-700 hover:text-violet-600'
+                          : item.isAdmin
+                            ? 'text-violet-700 hover:text-violet-800 border border-violet-200'
+                            : 'text-slate-700 hover:text-violet-600'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -143,7 +146,7 @@ export default function Layout({ children }) {
                     Subskrypcja
                   </DropdownMenuItem>
 
-                  {isAdmin && (
+                  {(isAdmin || role === 'employee') && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
@@ -151,7 +154,7 @@ export default function Layout({ children }) {
                         className="text-violet-600 font-medium"
                       >
                         <Shield className="mr-2 h-4 w-4" />
-                        Panel Admina
+                        {isAdmin ? 'Panel Admina' : 'Panel Magazynu'}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -209,7 +212,7 @@ export default function Layout({ children }) {
                         );
                       })}
 
-                      {isAdmin && (
+                      {(isAdmin || role === 'employee') && (
                         <>
                           <div className="my-2 border-t border-slate-200" />
                           <Link
@@ -221,7 +224,7 @@ export default function Layout({ children }) {
                               className="w-full justify-start gap-3 text-violet-600 border-violet-200"
                             >
                               <Shield className="w-5 h-5" />
-                              Panel Admina
+                              {isAdmin ? 'Panel Admina' : 'Panel Magazynu'}
                             </Button>
                           </Link>
                         </>

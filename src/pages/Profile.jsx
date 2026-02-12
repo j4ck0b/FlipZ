@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, supabase } from '../lib/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +43,7 @@ export default function Profile() {
     completedTrades: 0,
     totalValue: 0
   });
+  const [profileError, setProfileError] = useState('');
 
   // Sprawdź czy to własny profil
   const isOwnProfile = !userId || userId === user?.id;
@@ -53,6 +55,8 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
+
+      setProfileError('');
 
       if (isOwnProfile) {
         // Własny profil wymaga aktywnej sesji i załadowanego currentUserProfile
@@ -87,7 +91,8 @@ export default function Profile() {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        navigate('/home');
+        setViewingProfile(null);
+        setProfileError('Nie udało się otworzyć tego profilu. Sprawdź polityki RLS w Supabase (odczyt publicznych profili).');
         return;
       }
 
@@ -165,6 +170,16 @@ export default function Profile() {
           <Loader2 className="w-12 h-12 animate-spin text-violet-600 mx-auto mb-4" />
           <p className="text-slate-600">Ładowanie profilu...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="max-w-3xl mx-auto py-10">
+        <Alert variant="destructive">
+          <AlertDescription>{profileError}</AlertDescription>
+        </Alert>
       </div>
     );
   }
