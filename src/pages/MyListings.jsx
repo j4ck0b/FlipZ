@@ -143,6 +143,8 @@ export default function MyListings() {
         console.warn('My offers query failed, returning empty list:', error);
         return [];
       }
+      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     retry: false,
@@ -165,6 +167,8 @@ export default function MyListings() {
         console.warn('Incoming offers query failed, returning empty list:', error);
         return [];
       }
+      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     retry: false,

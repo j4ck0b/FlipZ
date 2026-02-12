@@ -73,6 +73,15 @@ for insert with check (auth.uid() = id);
 -- panel_access: readable by authenticated users, writable only by service role/admin SQL scripts
 drop policy if exists "panel_access_select_authenticated" on public.panel_access;
 create policy "panel_access_select_authenticated" on public.panel_access
+create policy if not exists "profiles_select_own" on public.profiles
+for select using (auth.uid() = id);
+create policy if not exists "profiles_update_own" on public.profiles
+for update using (auth.uid() = id);
+create policy if not exists "profiles_insert_own" on public.profiles
+for insert with check (auth.uid() = id);
+
+-- panel_access: readable by authenticated users, writable only by service role/admin SQL scripts
+create policy if not exists "panel_access_select_authenticated" on public.panel_access
 for select using (auth.role() = 'authenticated');
 
 -- 5) Edge function helper SQL (RPC fallbacks)
