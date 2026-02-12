@@ -399,9 +399,9 @@ export function AuthProvider({ children }) {
   const isAdminByRole = isAdmin || role === 'admin';
   const isWarehouseByRole = role === 'employee';
 
-  const canManageUsers = isAdminByRole && panelAccess.canManageUsers;
+  const canManageUsers = isAdminByRole && (panelAccess.canManageUsers || role === 'admin');
   const canAccessWarehousePanel = (isAdminByRole || isWarehouseByRole)
-    && panelAccess.canAccessWarehouse;
+    && (panelAccess.canAccessWarehouse || isAdminByRole);
 
   const canAccessAdminPanel = canManageUsers || canAccessWarehousePanel;
   const panelAccessLoading = Boolean(user) && !panelAccess.loaded;
