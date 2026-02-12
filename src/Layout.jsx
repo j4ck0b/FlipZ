@@ -23,6 +23,7 @@ import {
   Crown,
   Shield,
   CreditCard,
+  ArrowRightLeft,
   X
 } from 'lucide-react';
 import FloatingChat from './components/chat/FloatingChat';
@@ -46,6 +47,7 @@ export default function Layout({ children }) {
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
+    { name: 'Moje Wymiany', path: '/my-listings', icon: ArrowRightLeft },
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
     { name: 'Ulubione', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
@@ -66,7 +68,7 @@ export default function Layout({ children }) {
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-3 group">
               <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <img src="/flipcardz-logo.svg" alt="FlipCardZ" className="w-6 h-6" />
+                <img src="/logo.svg" alt="FlipCardZ" className="w-6 h-6" />
               </div>
               <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">
                 FlipCardZ

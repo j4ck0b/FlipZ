@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="FlipCardZ favicon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#g)"/>
+  <path d="M94 82h74v20h-46v23h33v20h-33v37H94z" fill="#fff"/>
+  <path d="M130 167h48v20h-74v-16l41-47h-39v-20h69v15z" fill="#ddd6fe"/>
+</svg>

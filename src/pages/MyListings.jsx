@@ -109,11 +109,11 @@ export default function MyListings() {
         } catch (error) {
           console.error('Payment check error:', error);
         }
-        window.history.replaceState({}, '', '/MyListings');
+        window.history.replaceState({}, '', '/my-listings');
       })();
     } else if (paymentStatus === 'cancelled') {
       toast.error('Płatność anulowana');
-      window.history.replaceState({}, '', '/MyListings');
+      window.history.replaceState({}, '', '/my-listings');
     }
   }, []);
 
