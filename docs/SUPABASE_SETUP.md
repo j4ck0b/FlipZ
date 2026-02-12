@@ -156,3 +156,18 @@ using (auth.role() = 'authenticated');
 
 If you want profile pages publicly visible (without login), replace condition with `using (true)`.
 
+
+## Admin/warehouse panel visibility by email allowlist
+
+You can restrict panel visibility to explicit emails (in addition to role checks).
+Set frontend env variables:
+
+```bash
+VITE_ADMIN_PANEL_ALLOWED_EMAILS=admin1@example.com,admin2@example.com
+VITE_WAREHOUSE_PANEL_ALLOWED_EMAILS=admin1@example.com,warehouse1@example.com
+```
+
+Rules:
+- user with admin role sees **admin panel** only if email is in `VITE_ADMIN_PANEL_ALLOWED_EMAILS`
+- user with employee/admin role sees **warehouse panel** only if email is in `VITE_WAREHOUSE_PANEL_ALLOWED_EMAILS`
+- if a variable is empty or missing, that allowlist is treated as open (role-based only)
