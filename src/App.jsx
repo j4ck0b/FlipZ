@@ -24,6 +24,7 @@ import Favorites from './pages/Favorites';
 import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import AdminPanel from './pages/AdminPanel';
+import MyListings from './pages/MyListings';
 
 import './App.css';
 
@@ -155,6 +156,21 @@ function AppRoutes() {
               <Messages />
             </ProtectedRoute>
           } 
+        />
+        
+
+        <Route 
+          path="/my-listings" 
+          element={
+            <ProtectedRoute>
+              <MyListings />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/my-trades" 
+          element={<Navigate to="/my-listings" replace />} 
         />
         
         <Route 
