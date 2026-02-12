@@ -22,6 +22,16 @@ const AuthContext = createContext({});
 
 const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
 
+const PROFILE_LOAD_TIMEOUT_MS = 10000;
+const AUTH_LOADING_FALLBACK_MS = 15000;
+
+const withTimeout = async (promise, timeoutMs, timeoutMessage) => Promise.race([
+  promise,
+  new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+  })
+]);
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -42,6 +52,12 @@ export function AuthProvider({ children }) {
     let isMounted = true;
     isMountedRef.current = true;
 
+    const loadingFallbackTimer = setTimeout(() => {
+      if (!isMounted) return;
+      console.warn('Auth loading fallback triggered');
+      setLoading(false);
+    }, AUTH_LOADING_FALLBACK_MS);
+
     const applySignedOutState = () => {
       setUser(null);
       setProfile(null);
@@ -54,7 +70,11 @@ export function AuthProvider({ children }) {
 
       if (session?.user) {
         setUser(session.user);
-        await loadUserProfile(session.user);
+        try {
+          await withTimeout(loadUserProfile(session.user), PROFILE_LOAD_TIMEOUT_MS, 'PROFILE_LOAD_TIMEOUT');
+        } catch (profileError) {
+          console.warn('Profile load timeout/error:', profileError?.message || profileError);
+        }
       } else {
         applySignedOutState();
       }
@@ -96,6 +116,7 @@ export function AuthProvider({ children }) {
     return () => {
       isMounted = false;
       subscription?.unsubscribe();
+      clearTimeout(loadingFallbackTimer);
     };
   }, []);
 
