@@ -86,6 +86,20 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
       } catch (listingError) {
         console.warn('Could not refresh listing owner data:', listingError);
       }
+
+    if (targetCard?.id) {
+      try {
+        const freshListing = await base44.entities.CardListing.get(targetCard.id);
+        if (freshListing?.owner_email) {
+          return {
+            ownerEmail: freshListing.owner_email,
+            ownerId: ownerId || freshListing.created_by_id || freshListing.created_by || null,
+            ownerName: ownerName || freshListing.collector_name || freshListing.owner_name || null
+          };
+        }
+      } catch (listingError) {
+        console.warn('Could not refresh listing owner data:', listingError);
+      }
     }
 
     if (!ownerId) {
