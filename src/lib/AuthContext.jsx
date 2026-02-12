@@ -21,6 +21,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 const AuthContext = createContext({});
 
 const isAbortError = (error) => error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('signal is aborted');
+const isMissingColumnError = (error) => {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('column') && message.includes('does not exist');
+};
+
+const resolveUserRole = (profileData) => {
+  if (!profileData) return 'user';
+  if (typeof profileData.role === 'string' && profileData.role.length > 0) return profileData.role;
+  if (typeof profileData.user_role === 'string' && profileData.user_role.length > 0) return profileData.user_role;
+  if (profileData.is_admin === true) return 'admin';
+  return 'user';
+};
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
 const AUTH_LOADING_FALLBACK_MS = 15000;
@@ -151,35 +163,51 @@ export function AuthProvider({ children }) {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabase
+        const baseProfilePayload = {
+          id: userId,
+          email: authUser?.email,
+          username: authUser?.email?.split('@')[0],
+          full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
+          created_at: new Date().toISOString()
+        };
+
+        let createResult = await supabase
           .from('profiles')
           .insert({
-            id: userId,
-            email: authUser?.email,
-            username: authUser?.email?.split('@')[0],
-            full_name: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0],
+            ...baseProfilePayload,
             role: 'user',
             subscription_tier: 'free',
-            trade_count_current_month: 0,
-            created_at: new Date().toISOString()
+            trade_count_current_month: 0
           })
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createResult.error && isMissingColumnError(createResult.error)) {
+          createResult = await supabase
+            .from('profiles')
+            .insert(baseProfilePayload)
+            .select()
+            .single();
+        }
+
+        if (createResult.error) throw createResult.error;
         if (!isMountedRef.current) return;
 
-        setProfile(newProfile);
-        setIsAdmin(newProfile.role === 'admin');
-        setRole(newProfile.role || 'user');
+        const nextRole = resolveUserRole(createResult.data);
+
+        setProfile(createResult.data);
+        setIsAdmin(nextRole === 'admin');
+        setRole(nextRole);
       } else if (error) {
         throw error;
       } else {
         if (!isMountedRef.current) return;
 
+        const nextRole = resolveUserRole(profileData);
+
         setProfile(profileData);
-        setIsAdmin(profileData.role === 'admin');
-        setRole(profileData.role || 'user');
+        setIsAdmin(nextRole === 'admin');
+        setRole(nextRole);
       }
     } catch (error) {
       if (!isAbortError(error)) {
