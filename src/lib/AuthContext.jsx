@@ -50,28 +50,10 @@ const resolveUserRole = (profileData, authUser = null) => {
 };
 
 
-const parseAllowedEmails = (value) => {
-  if (!value || typeof value !== 'string') return [];
-  return value
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-};
-
-const ADMIN_PANEL_ALLOWED_EMAILS = parseAllowedEmails(
-  import.meta.env.VITE_ADMIN_PANEL_ALLOWED_EMAILS
-    || import.meta.env.ADMIN_PANEL_ALLOWED_EMAILS
-);
-
-const WAREHOUSE_PANEL_ALLOWED_EMAILS = parseAllowedEmails(
-  import.meta.env.VITE_WAREHOUSE_PANEL_ALLOWED_EMAILS
-    || import.meta.env.WAREHOUSE_PANEL_ALLOWED_EMAILS
-);
-
-const isEmailAllowed = (email, allowlist) => {
-  if (!Array.isArray(allowlist) || allowlist.length === 0) return true;
-  if (!email || typeof email !== 'string') return false;
-  return allowlist.includes(email.trim().toLowerCase());
+const EMPTY_PANEL_ACCESS = {
+  canManageUsers: false,
+  canAccessWarehouse: false,
+  loaded: false
 };
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
@@ -104,6 +86,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('user');
+  const [panelAccess, setPanelAccess] = useState(EMPTY_PANEL_ACCESS);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -121,11 +104,15 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsAdmin(false);
       setRole('user');
+      setPanelAccess(EMPTY_PANEL_ACCESS);
     };
 
     const updateProfileState = async (authUser) => {
       if (!authUser || !isMounted) return;
-      await loadUserProfile(authUser);
+      await Promise.all([
+        loadUserProfile(authUser),
+        loadPanelAccess(authUser)
+      ]);
     };
 
     const handleSession = (session) => {
@@ -284,6 +271,44 @@ export function AuthProvider({ children }) {
     }
   };
 
+
+  const loadPanelAccess = async (authUser) => {
+    const normalizedEmail = authUser?.email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      if (isMountedRef.current) {
+        setPanelAccess({ ...EMPTY_PANEL_ACCESS, loaded: true });
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('panel_access')
+        .select('can_manage_users, can_access_warehouse')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!isMountedRef.current) return;
+
+      const canManageUsersAccess = data?.can_manage_users === true;
+      const canAccessWarehouse = canManageUsersAccess || data?.can_access_warehouse === true;
+
+      setPanelAccess({
+        canManageUsers: canManageUsersAccess,
+        canAccessWarehouse,
+        loaded: true
+      });
+    } catch (error) {
+      if (!isAbortError(error)) {
+        console.error('Error loading panel access:', error);
+      }
+      if (!isMountedRef.current) return;
+
+      setPanelAccess({ ...EMPTY_PANEL_ACCESS, loaded: true });
+    }
+  };
   const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -371,17 +396,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const normalizedEmail = (user?.email || profile?.email || '').trim().toLowerCase();
   const isAdminByRole = isAdmin || role === 'admin';
   const isWarehouseByRole = role === 'employee';
 
-  const canManageUsers = isAdminByRole
-    && isEmailAllowed(normalizedEmail, ADMIN_PANEL_ALLOWED_EMAILS);
-
+  const canManageUsers = isAdminByRole && panelAccess.canManageUsers;
   const canAccessWarehousePanel = (isAdminByRole || isWarehouseByRole)
-    && isEmailAllowed(normalizedEmail, WAREHOUSE_PANEL_ALLOWED_EMAILS);
+    && panelAccess.canAccessWarehouse;
 
   const canAccessAdminPanel = canManageUsers || canAccessWarehousePanel;
+  const panelAccessLoading = Boolean(user) && !panelAccess.loaded;
 
   return (
     <AuthContext.Provider value={{
@@ -393,6 +416,7 @@ export function AuthProvider({ children }) {
       canAccessAdminPanel,
       canManageUsers,
       canAccessWarehousePanel,
+      panelAccessLoading,
       signInWithGoogle,
       signInWithMagicLink,
       signOut,
