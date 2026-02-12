@@ -26,11 +26,26 @@ const isMissingColumnError = (error) => {
   return message.includes('column') && message.includes('does not exist');
 };
 
-const resolveUserRole = (profileData) => {
-  if (!profileData) return 'user';
-  if (typeof profileData.role === 'string' && profileData.role.length > 0) return profileData.role;
-  if (typeof profileData.user_role === 'string' && profileData.user_role.length > 0) return profileData.user_role;
-  if (profileData.is_admin === true) return 'admin';
+const normalizeRole = (value) => {
+  if (typeof value !== 'string') return '';
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'administrator') return 'admin';
+  return normalized;
+};
+
+const resolveUserRole = (profileData, authUser = null) => {
+  const directRole = normalizeRole(profileData?.role);
+  if (directRole) return directRole;
+
+  const legacyRole = normalizeRole(profileData?.user_role);
+  if (legacyRole) return legacyRole;
+
+  if (profileData?.is_admin === true) return 'admin';
+
+  const metadataRole = normalizeRole(authUser?.app_metadata?.role)
+    || normalizeRole(authUser?.user_metadata?.role);
+  if (metadataRole) return metadataRole;
+
   return 'user';
 };
 
@@ -190,10 +205,18 @@ export function AuthProvider({ children }) {
             .single();
         }
 
+        if (createResult.error && createResult.error.code === '23505') {
+          createResult = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        }
+
         if (createResult.error) throw createResult.error;
         if (!isMountedRef.current) return;
 
-        const nextRole = resolveUserRole(createResult.data);
+        const nextRole = resolveUserRole(createResult.data, authUser);
 
         setProfile(createResult.data);
         setIsAdmin(nextRole === 'admin');
@@ -203,7 +226,7 @@ export function AuthProvider({ children }) {
       } else {
         if (!isMountedRef.current) return;
 
-        const nextRole = resolveUserRole(profileData);
+        const nextRole = resolveUserRole(profileData, authUser);
 
         setProfile(profileData);
         setIsAdmin(nextRole === 'admin');
@@ -213,6 +236,26 @@ export function AuthProvider({ children }) {
       if (!isAbortError(error)) {
         console.error('Error loading profile:', error);
       }
+
+      if (!isMountedRef.current) return;
+
+      const fallbackRole = resolveUserRole(null, authUser);
+      setProfile({
+        id: userId,
+        email: authUser?.email || '',
+        username: authUser?.user_metadata?.preferred_username
+          || authUser?.user_metadata?.name
+          || authUser?.email?.split('@')[0]
+          || 'Użytkownik',
+        full_name: authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || '',
+        avatar_url: authUser?.user_metadata?.avatar_url || null,
+        role: fallbackRole,
+        subscription_tier: 'free',
+        created_at: new Date().toISOString(),
+        _fallbackProfile: true
+      });
+      setIsAdmin(fallbackRole === 'admin');
+      setRole(fallbackRole);
     }
   };
 
