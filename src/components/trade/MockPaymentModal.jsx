@@ -11,6 +11,17 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
   const [processing, setProcessing] = useState(false);
   const [paid, setPaid] = useState(false);
 
+  const completeMockPayment = () => {
+    setPaid(true);
+    toast.success('Płatność potwierdzona (tryb fallback).');
+
+    setTimeout(() => {
+      setProcessing(false);
+      onSuccess?.();
+      onClose();
+    }, 900);
+  };
+
   const handlePay = async () => {
     setProcessing(true);
     
@@ -21,11 +32,21 @@ export default function MockPaymentModal({ open, onClose, tradeOffer, onSuccess 
         amount: getAmount()
       });
 
-      if (data.url) {
+      if (data?.url) {
         window.location.href = data.url;
+        return;
       }
+
+      completeMockPayment();
     } catch (error) {
       console.error('Payment error:', error);
+      const message = String(error?.message || error?.context?.status || '');
+
+      if (message.includes('not deployed') || message.includes('404')) {
+        completeMockPayment();
+        return;
+      }
+
       toast.error('Błąd podczas tworzenia płatności');
       setProcessing(false);
     }
