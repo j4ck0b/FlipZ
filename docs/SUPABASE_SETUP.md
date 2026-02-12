@@ -156,3 +156,47 @@ using (auth.role() = 'authenticated');
 
 If you want profile pages publicly visible (without login), replace condition with `using (true)`.
 
+
+## Admin/warehouse panel visibility by Supabase (no Vite env)
+
+Panel access is now controlled from a Supabase table named `public.panel_access`.
+Create the table and RLS policies:
+
+```sql
+create table if not exists public.panel_access (
+  email text primary key,
+  can_manage_users boolean not null default false,
+  can_access_warehouse boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.panel_access enable row level security;
+
+drop policy if exists "panel_access_select_own" on public.panel_access;
+create policy "panel_access_select_own"
+on public.panel_access for select
+using (lower(email) = lower(auth.email()));
+
+-- manage rows from SQL editor/service role only
+```
+
+Add allowed emails:
+
+```sql
+insert into public.panel_access (email, can_manage_users, can_access_warehouse)
+values
+  ('twojadmin1@mail.com', true, true),
+  ('twojadmin2@mail.com', true, true),
+  ('magazyn1@mail.com', false, true)
+on conflict (email) do update
+set
+  can_manage_users = excluded.can_manage_users,
+  can_access_warehouse = excluded.can_access_warehouse,
+  updated_at = now();
+```
+
+Rules:
+- admin role + `can_manage_users = true` => full admin panel
+- employee/admin role + `can_access_warehouse = true` => warehouse panel
+- without a row in `panel_access`, panel access is denied

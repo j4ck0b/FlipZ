@@ -25,7 +25,7 @@ import { createPageUrl } from '../utils';
 const ORDER_STATUS_FLOW = ['pending', 'accepted', 'in_transit', 'inspecting', 'completed'];
 
 export default function AdminPanel() {
-  const { user, isAdmin, role, changeUserRole } = useAuth();
+  const { user, canManageUsers, canAccessAdminPanel, changeUserRole } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [trades, setTrades] = useState([]);
@@ -39,18 +39,17 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
-  const canManageUsers = isAdmin;
-  const canProcessOrders = isAdmin || role === 'employee';
+  const canProcessOrders = canAccessAdminPanel;
   const defaultTab = canManageUsers ? 'admin' : 'warehouse';
 
   useEffect(() => {
-    if (!user || (!isAdmin && role !== 'employee')) {
+    if (!user || !canAccessAdminPanel) {
       navigate(createPageUrl('Home'));
       return;
     }
 
     fetchAdminData();
-  }, [user, isAdmin, role, navigate]);
+  }, [user, canAccessAdminPanel, navigate]);
 
   const fetchAdminData = async () => {
     setLoading(true);

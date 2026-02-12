@@ -28,19 +28,23 @@ import MyListings from './pages/MyListings';
 
 import './App.css';
 
+function FullscreenLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
+        <p className="text-gray-600">Ładowanie...</p>
+      </div>
+    </div>
+  );
+}
+
 // Protected Route - wymaga logowania + Layout
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, panelAccessLoading } = useAuth();
   
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
-          <p className="text-gray-600">Ładowanie...</p>
-        </div>
-      </div>
-    );
+  if (loading || panelAccessLoading) {
+    return <FullscreenLoader />;
   }
 
   if (!user) {
@@ -53,20 +57,13 @@ function ProtectedRoute({ children }) {
 
 // Admin Route - wymaga admina
 function AdminRoute({ children }) {
-  const { user, isAdmin, role, loading } = useAuth();
+  const { user, canAccessAdminPanel, panelAccessLoading, loading } = useAuth();
   
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600 mb-4"></div>
-          <p className="text-gray-600">Ładowanie...</p>
-        </div>
-      </div>
-    );
+  if (loading || panelAccessLoading) {
+    return <FullscreenLoader />;
   }
 
-  if (!user || (!isAdmin && role !== 'employee')) {
+  if (!user || !canAccessAdminPanel) {
     return <Navigate to="/home" replace />;
   }
 
