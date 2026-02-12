@@ -23,6 +23,7 @@ import {
   Crown,
   Shield,
   CreditCard,
+  ArrowRightLeft,
   X
 } from 'lucide-react';
 import FloatingChat from './components/chat/FloatingChat';
@@ -46,6 +47,7 @@ export default function Layout({ children }) {
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
+    { name: 'Moje Wymiany', path: '/my-listings', icon: ArrowRightLeft },
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
     { name: 'Ulubione', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
