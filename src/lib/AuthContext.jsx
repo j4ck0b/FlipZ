@@ -49,6 +49,31 @@ const resolveUserRole = (profileData, authUser = null) => {
   return 'user';
 };
 
+
+const parseAllowedEmails = (value) => {
+  if (!value || typeof value !== 'string') return [];
+  return value
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+};
+
+const ADMIN_PANEL_ALLOWED_EMAILS = parseAllowedEmails(
+  import.meta.env.VITE_ADMIN_PANEL_ALLOWED_EMAILS
+    || import.meta.env.ADMIN_PANEL_ALLOWED_EMAILS
+);
+
+const WAREHOUSE_PANEL_ALLOWED_EMAILS = parseAllowedEmails(
+  import.meta.env.VITE_WAREHOUSE_PANEL_ALLOWED_EMAILS
+    || import.meta.env.WAREHOUSE_PANEL_ALLOWED_EMAILS
+);
+
+const isEmailAllowed = (email, allowlist) => {
+  if (!Array.isArray(allowlist) || allowlist.length === 0) return true;
+  if (!email || typeof email !== 'string') return false;
+  return allowlist.includes(email.trim().toLowerCase());
+};
+
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10000;
 const AUTH_LOADING_FALLBACK_MS = 15000;
 
@@ -321,7 +346,7 @@ export function AuthProvider({ children }) {
   };
 
   const changeUserRole = async (userId, newRole) => {
-    if (!isAdmin) return { error: 'Unauthorized' };
+    if (!canManageUsers) return { error: 'Unauthorized' };
     const validRoles = ['user', 'moderator', 'admin', 'employee'];
     if (!validRoles.includes(newRole)) {
       return { error: 'Invalid role' };
@@ -346,6 +371,18 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const normalizedEmail = (user?.email || profile?.email || '').trim().toLowerCase();
+  const isAdminByRole = isAdmin || role === 'admin';
+  const isWarehouseByRole = role === 'employee';
+
+  const canManageUsers = isAdminByRole
+    && isEmailAllowed(normalizedEmail, ADMIN_PANEL_ALLOWED_EMAILS);
+
+  const canAccessWarehousePanel = (isAdminByRole || isWarehouseByRole)
+    && isEmailAllowed(normalizedEmail, WAREHOUSE_PANEL_ALLOWED_EMAILS);
+
+  const canAccessAdminPanel = canManageUsers || canAccessWarehousePanel;
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -353,6 +390,9 @@ export function AuthProvider({ children }) {
       loading,
       isAdmin,
       role,
+      canAccessAdminPanel,
+      canManageUsers,
+      canAccessWarehousePanel,
       signInWithGoogle,
       signInWithMagicLink,
       signOut,
