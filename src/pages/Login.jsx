@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, Loader2, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -120,6 +120,15 @@ export default function Login() {
             >
               Wyślij ponownie
             </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-slate-300 hover:text-white"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Wróć na stronę główną
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -143,6 +152,15 @@ export default function Login() {
               Zaloguj się aby rozpocząć wymianę kart
             </CardDescription>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            className="mx-auto text-slate-300 hover:text-white"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Wróć na stronę główną
+          </Button>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 👇 NOWY KOD Z BŁĘDAMI Z URL 👇 */}
