@@ -138,3 +138,21 @@ begin
   end loop;
 end $$;
 ```
+
+
+## Profile visibility fix (other user profiles)
+
+If opening `/profile/:userId` for other users fails, your `profiles` RLS is likely too strict.
+The frontend loads other user profiles directly from `public.profiles`, so add read policy for authenticated users:
+
+```sql
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_select_own_or_admin" on public.profiles;
+
+create policy "profiles_select_authenticated"
+on public.profiles for select
+using (auth.role() = 'authenticated');
+```
+
+If you want profile pages publicly visible (without login), replace condition with `using (true)`.
+

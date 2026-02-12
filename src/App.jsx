@@ -53,7 +53,7 @@ function ProtectedRoute({ children }) {
 
 // Admin Route - wymaga admina
 function AdminRoute({ children }) {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, role, loading } = useAuth();
   
   if (loading) {
     return (
@@ -66,7 +66,7 @@ function AdminRoute({ children }) {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user || (!isAdmin && role !== 'employee')) {
     return <Navigate to="/home" replace />;
   }
 
