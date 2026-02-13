@@ -136,11 +136,19 @@ export default function MyListings() {
       const filters = [{ sender_email: email }];
       if (userId) filters.push({ sender_id: userId });
 
+      try {
+        const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+        return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
+      } catch (error) {
+        console.warn('My offers query failed, returning empty list:', error);
+        return [];
+      }
       const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
       return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
-    refetchInterval: 3000,
+    retry: false,
+    refetchInterval: (query) => (query.state.error ? false : 3000),
     refetchOnWindowFocus: true
   });
 
@@ -152,11 +160,19 @@ export default function MyListings() {
       const filters = [{ owner_email: email }];
       if (userId) filters.push({ owner_id: userId });
 
+      try {
+        const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+        return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
+      } catch (error) {
+        console.warn('Incoming offers query failed, returning empty list:', error);
+        return [];
+      }
       const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
       return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
-    refetchInterval: 3000,
+    retry: false,
+    refetchInterval: (query) => (query.state.error ? false : 3000),
     refetchOnWindowFocus: true
   });
 

@@ -60,6 +60,19 @@ alter table public.profiles enable row level security;
 alter table public.panel_access enable row level security;
 
 -- profiles: user can read/update own row
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_update_own" on public.profiles;
+drop policy if exists "profiles_insert_own" on public.profiles;
+create policy "profiles_select_own" on public.profiles
+for select using (auth.uid() = id);
+create policy "profiles_update_own" on public.profiles
+for update using (auth.uid() = id);
+create policy "profiles_insert_own" on public.profiles
+for insert with check (auth.uid() = id);
+
+-- panel_access: readable by authenticated users, writable only by service role/admin SQL scripts
+drop policy if exists "panel_access_select_authenticated" on public.panel_access;
+create policy "panel_access_select_authenticated" on public.panel_access
 create policy if not exists "profiles_select_own" on public.profiles
 for select using (auth.uid() = id);
 create policy if not exists "profiles_update_own" on public.profiles
@@ -83,3 +96,77 @@ begin
   return v;
 end;
 $$;
+
+
+-- 6) Policy reset to avoid recursive RLS checks
+alter table if exists public.trade_offers enable row level security;
+alter table if exists public.trade_conversations enable row level security;
+
+-- Drop potentially recursive/legacy policies (safe if they don't exist)
+drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_update_own" on public.profiles;
+drop policy if exists "profiles_insert_own" on public.profiles;
+drop policy if exists "profiles_recursive_select" on public.profiles;
+drop policy if exists "profiles_recursive_update" on public.profiles;
+
+drop policy if exists "trade_offers_select_participants" on public.trade_offers;
+drop policy if exists "trade_offers_insert_sender" on public.trade_offers;
+drop policy if exists "trade_offers_update_participants" on public.trade_offers;
+
+drop policy if exists "trade_conversations_select_participants" on public.trade_conversations;
+drop policy if exists "trade_conversations_insert_participants" on public.trade_conversations;
+drop policy if exists "trade_conversations_update_participants" on public.trade_conversations;
+
+-- Recreate minimal non-recursive policies
+create policy "profiles_select_own" on public.profiles
+for select using (auth.uid() = id);
+create policy "profiles_update_own" on public.profiles
+for update using (auth.uid() = id);
+create policy "profiles_insert_own" on public.profiles
+for insert with check (auth.uid() = id);
+
+create policy "trade_offers_select_participants" on public.trade_offers
+for select using (
+  sender_email = auth.jwt()->>'email'
+  or owner_email = auth.jwt()->>'email'
+  or sender_id = auth.uid()
+  or owner_id = auth.uid()
+);
+
+create policy "trade_offers_insert_sender" on public.trade_offers
+for insert with check (
+  sender_email = auth.jwt()->>'email'
+  or sender_id = auth.uid()
+);
+
+create policy "trade_offers_update_participants" on public.trade_offers
+for update using (
+  sender_email = auth.jwt()->>'email'
+  or owner_email = auth.jwt()->>'email'
+  or sender_id = auth.uid()
+  or owner_id = auth.uid()
+);
+
+create policy "trade_conversations_select_participants" on public.trade_conversations
+for select using (
+  participant_1_email = auth.jwt()->>'email'
+  or participant_2_email = auth.jwt()->>'email'
+  or participant_1_email = auth.uid()::text
+  or participant_2_email = auth.uid()::text
+);
+
+create policy "trade_conversations_insert_participants" on public.trade_conversations
+for insert with check (
+  participant_1_email = auth.jwt()->>'email'
+  or participant_2_email = auth.jwt()->>'email'
+  or participant_1_email = auth.uid()::text
+  or participant_2_email = auth.uid()::text
+);
+
+create policy "trade_conversations_update_participants" on public.trade_conversations
+for update using (
+  participant_1_email = auth.jwt()->>'email'
+  or participant_2_email = auth.jwt()->>'email'
+  or participant_1_email = auth.uid()::text
+  or participant_2_email = auth.uid()::text
+);

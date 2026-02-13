@@ -128,14 +128,8 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     setSending(true);
 
     try {
-      // Generate unique 12-digit trade ID (fallback when edge function is unavailable)
-      let tradeId = String(Date.now()).slice(-12);
-      try {
-        const { data: tradeIdData } = await base44.functions.invoke('generateTradeId');
-        tradeId = tradeIdData?.tradeId || tradeId;
-      } catch (tradeIdError) {
-        console.warn('generateTradeId unavailable, using local fallback:', tradeIdError);
-      }
+      // Generate unique 12-digit trade ID locally (edge function may be unavailable/CORS-blocked)
+      const tradeId = `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-12);
       
       const baseOfferPayload = {
         trade_id: tradeId,
