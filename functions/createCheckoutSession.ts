@@ -3,7 +3,23 @@ import Stripe from 'npm:stripe@17.5.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+};
+
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
   console.log('=== createCheckoutSession START ===');
   try {
     console.log('1. Creating base44 client...');
@@ -15,7 +31,7 @@ Deno.serve(async (req) => {
 
     if (!user) {
       console.error('No user authenticated');
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     console.log('3. Parsing request body...');
@@ -25,12 +41,12 @@ Deno.serve(async (req) => {
 
     if (!tier) {
       console.error('Missing tier');
-      return Response.json({ error: 'Missing tier' }, { status: 400 });
+      return Response.json({ error: 'Missing tier' }, { status: 400, headers: corsHeaders });
     }
 
     if (!amount) {
       console.error('Missing amount');
-      return Response.json({ error: 'Missing amount' }, { status: 400 });
+      return Response.json({ error: 'Missing amount' }, { status: 400, headers: corsHeaders });
     }
 
     console.log('4. Getting/creating Stripe customer...');
@@ -94,13 +110,13 @@ Deno.serve(async (req) => {
     console.log('Session URL:', session.url);
     console.log('=== createCheckoutSession END ===');
     
-    return Response.json({ url: session.url });
+    return Response.json({ url: session.url }, { headers: corsHeaders });
   } catch (error) {
     console.error('=== ERROR in createCheckoutSession ===');
     console.error('Error message:', error.message);
     console.error('Error name:', error.name);
     console.error('Error stack:', error.stack);
     console.error('Full error:', JSON.stringify(error, null, 2));
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 });

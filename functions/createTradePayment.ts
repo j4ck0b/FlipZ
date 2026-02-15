@@ -3,19 +3,35 @@ import Stripe from 'npm:stripe@17.5.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+};
+
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     const { tradeOfferId, escrowMode, amount } = await req.json();
 
     if (!tradeOfferId || !escrowMode || !amount) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+      return Response.json({ error: 'Missing required fields' }, { status: 400, headers: corsHeaders });
     }
 
     // Get or create Stripe customer
@@ -64,9 +80,9 @@ Deno.serve(async (req) => {
       }
     });
 
-    return Response.json({ url: session.url });
+    return Response.json({ url: session.url }, { headers: corsHeaders });
   } catch (error) {
     console.error('Payment error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 });
