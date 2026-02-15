@@ -56,6 +56,7 @@ import MockShippingLabel from '../components/trade/MockShippingLabel';
 import FinalAcceptanceModal from '../components/trade/FinalAcceptanceModal';
 import HubInspectionSimulator from '../components/trade/HubInspectionSimulator';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
+import { useAuth } from '../lib/AuthContext';
 
 const statusConfig = {
   available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
@@ -66,6 +67,7 @@ const statusConfig = {
 
 export default function MyListings() {
   const { t } = useLanguage();
+  const { canAccessWarehousePanel } = useAuth();
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
   const [showListingModal, setShowListingModal] = useState(false);
@@ -679,7 +681,7 @@ export default function MyListings() {
                            )}
                          </>
                        )}
-                       {(offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
+                       {canAccessWarehousePanel && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_owner_package && (
                          <Button
                            onClick={() => setHubInspectionOffer(offer)}
                            className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -902,7 +904,7 @@ export default function MyListings() {
                             )}
                           </>
                         )}
-                        {(offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
+                        {canAccessWarehousePanel && (offer.progress_step === 'preparing_shipment' || offer.progress_step === 'payment') && !offer.hub_photos_sender_package && (
                           <Button
                             onClick={() => setHubInspectionOffer(offer)}
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -1069,7 +1071,7 @@ export default function MyListings() {
 
       {/* Hub Inspection Simulator */}
       <HubInspectionSimulator
-        open={!!hubInspectionOffer}
+        open={canAccessWarehousePanel && !!hubInspectionOffer}
         onClose={() => setHubInspectionOffer(null)}
         tradeOffer={hubInspectionOffer}
         onSuccess={() => {
