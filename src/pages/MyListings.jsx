@@ -131,10 +131,13 @@ export default function MyListings() {
   const { data: myOffers = [], isLoading: loadingOffers } = useQuery({
     queryKey: ['myOffers', userIdentityValues.join('|')],
     queryFn: async () => {
-      const email = currentUser?.email || null;
-      const userId = currentUser?.id || null;
-      const filters = [{ sender_email: email }];
+      const email = currentUser?.email;
+      const userId = currentUser?.id;
+      const filters = [];
+
+      if (email) filters.push({ sender_email: email });
       if (userId) filters.push({ sender_id: userId });
+      if (filters.length === 0) return [];
 
       try {
         const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
@@ -143,8 +146,6 @@ export default function MyListings() {
         console.warn('My offers query failed, returning empty list:', error);
         return [];
       }
-      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
-      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     retry: false,
@@ -155,10 +156,13 @@ export default function MyListings() {
   const { data: incomingOffers = [], isLoading: loadingIncoming } = useQuery({
     queryKey: ['incomingOffers', userIdentityValues.join('|')],
     queryFn: async () => {
-      const email = currentUser?.email || null;
-      const userId = currentUser?.id || null;
-      const filters = [{ owner_email: email }];
+      const email = currentUser?.email;
+      const userId = currentUser?.id;
+      const filters = [];
+
+      if (email) filters.push({ owner_email: email });
       if (userId) filters.push({ owner_id: userId });
+      if (filters.length === 0) return [];
 
       try {
         const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
@@ -167,8 +171,6 @@ export default function MyListings() {
         console.warn('Incoming offers query failed, returning empty list:', error);
         return [];
       }
-      const offers = await base44.entities.TradeOffer.filter({ $or: filters }, '-created_date');
-      return Array.from(new Map(offers.map(item => [item.id, item])).values());
     },
     enabled: !!currentUser,
     retry: false,
