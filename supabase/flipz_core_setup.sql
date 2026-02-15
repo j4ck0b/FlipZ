@@ -59,30 +59,42 @@ create index if not exists idx_panel_access_email on public.panel_access(email);
 alter table public.profiles enable row level security;
 alter table public.panel_access enable row level security;
 
--- profiles: user can read/update own row
-drop policy if exists "profiles_select_own" on public.profiles;
+-- Reset policies to a known-good state (prevents recursive legacy policies)
+do $$
+declare
+  p record;
+begin
+  for p in
+    select policyname
+    from pg_policies
+    where schemaname = 'public' and tablename = 'profiles'
+  loop
+    execute format('drop policy if exists %I on public.profiles', p.policyname);
+  end loop;
+
+  for p in
+    select policyname
+    from pg_policies
+    where schemaname = 'public' and tablename = 'panel_access'
+  loop
+    execute format('drop policy if exists %I on public.panel_access', p.policyname);
+  end loop;
+end $$;
+
+-- profiles: readable for marketplace/profile pages, writable only by owner
+-- NOTE: keep statements single-line for maximum SQL editor compatibility.
+drop policy if exists "profiles_select_public" on public.profiles;
+create policy "profiles_select_public" on public.profiles for select using (true);
+
 drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own" on public.profiles for update using (auth.uid() = id) with check (auth.uid() = id);
+
 drop policy if exists "profiles_insert_own" on public.profiles;
-create policy "profiles_select_own" on public.profiles
-for select using (auth.uid() = id);
-create policy "profiles_update_own" on public.profiles
-for update using (auth.uid() = id);
-create policy "profiles_insert_own" on public.profiles
-for insert with check (auth.uid() = id);
+create policy "profiles_insert_own" on public.profiles for insert with check (auth.uid() = id);
 
--- panel_access: readable by authenticated users, writable only by service role/admin SQL scripts
+-- panel_access: readable by authenticated users
 drop policy if exists "panel_access_select_authenticated" on public.panel_access;
-create policy "panel_access_select_authenticated" on public.panel_access
-create policy if not exists "profiles_select_own" on public.profiles
-for select using (auth.uid() = id);
-create policy if not exists "profiles_update_own" on public.profiles
-for update using (auth.uid() = id);
-create policy if not exists "profiles_insert_own" on public.profiles
-for insert with check (auth.uid() = id);
-
--- panel_access: readable by authenticated users, writable only by service role/admin SQL scripts
-create policy if not exists "panel_access_select_authenticated" on public.panel_access
-for select using (auth.role() = 'authenticated');
+create policy "panel_access_select_authenticated" on public.panel_access for select using (auth.role() = 'authenticated');
 
 -- 5) Edge function helper SQL (RPC fallbacks)
 create or replace function public.generate_trade_id()
@@ -98,16 +110,9 @@ end;
 $$;
 
 
--- 6) Policy reset to avoid recursive RLS checks
+-- 6) Trade policies reset (profiles/panel_access already reset above)
 alter table if exists public.trade_offers enable row level security;
 alter table if exists public.trade_conversations enable row level security;
-
--- Drop potentially recursive/legacy policies (safe if they don't exist)
-drop policy if exists "profiles_select_own" on public.profiles;
-drop policy if exists "profiles_update_own" on public.profiles;
-drop policy if exists "profiles_insert_own" on public.profiles;
-drop policy if exists "profiles_recursive_select" on public.profiles;
-drop policy if exists "profiles_recursive_update" on public.profiles;
 
 drop policy if exists "trade_offers_select_participants" on public.trade_offers;
 drop policy if exists "trade_offers_insert_sender" on public.trade_offers;
@@ -117,14 +122,7 @@ drop policy if exists "trade_conversations_select_participants" on public.trade_
 drop policy if exists "trade_conversations_insert_participants" on public.trade_conversations;
 drop policy if exists "trade_conversations_update_participants" on public.trade_conversations;
 
--- Recreate minimal non-recursive policies
-create policy "profiles_select_own" on public.profiles
-for select using (auth.uid() = id);
-create policy "profiles_update_own" on public.profiles
-for update using (auth.uid() = id);
-create policy "profiles_insert_own" on public.profiles
-for insert with check (auth.uid() = id);
-
+-- Recreate minimal non-recursive trade policies
 create policy "trade_offers_select_participants" on public.trade_offers
 for select using (
   sender_email = auth.jwt()->>'email'
