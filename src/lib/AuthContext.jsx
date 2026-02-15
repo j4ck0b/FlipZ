@@ -33,7 +33,7 @@ const normalizeRole = (value) => {
   return normalized;
 };
 
-const resolveUserRole = (profileData, authUser = null) => {
+const resolveUserRole = (profileData) => {
   const directRole = normalizeRole(profileData?.role);
   if (directRole) return directRole;
 
@@ -42,10 +42,8 @@ const resolveUserRole = (profileData, authUser = null) => {
 
   if (profileData?.is_admin === true) return 'admin';
 
-  const metadataRole = normalizeRole(authUser?.app_metadata?.role)
-    || normalizeRole(authUser?.user_metadata?.role);
-  if (metadataRole) return metadataRole;
-
+  // Security: never infer privileged roles from auth metadata on the client.
+  // Only DB profile fields are trusted for role elevation.
   return 'user';
 };
 
@@ -238,7 +236,7 @@ export function AuthProvider({ children }) {
       } else {
         if (!isMountedRef.current) return;
 
-        const nextRole = resolveUserRole(profileData, authUser);
+        const nextRole = resolveUserRole(profileData);
 
         setProfile(profileData);
         setIsAdmin(nextRole === 'admin');
@@ -251,7 +249,7 @@ export function AuthProvider({ children }) {
 
       if (!isMountedRef.current) return;
 
-      const fallbackRole = resolveUserRole(null, authUser);
+      const fallbackRole = resolveUserRole(null);
       setProfile({
         id: userId,
         email: authUser?.email || '',
