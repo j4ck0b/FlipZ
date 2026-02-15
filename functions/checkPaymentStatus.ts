@@ -3,19 +3,35 @@ import Stripe from 'npm:stripe@17.5.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+};
+
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     const { sessionId } = await req.json();
 
     if (!sessionId) {
-      return Response.json({ error: 'Missing sessionId' }, { status: 400 });
+      return Response.json({ error: 'Missing sessionId' }, { status: 400, headers: corsHeaders });
     }
 
     // Retrieve the session from Stripe
@@ -73,14 +89,14 @@ Deno.serve(async (req) => {
             success: true, 
             paid: true,
             bothPaid: bothPaid
-          });
+          }, { headers: corsHeaders });
         }
       }
     }
 
-    return Response.json({ success: false, paid: false });
+    return Response.json({ success: false, paid: false }, { headers: corsHeaders });
   } catch (error) {
     console.error('Check payment error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 });
