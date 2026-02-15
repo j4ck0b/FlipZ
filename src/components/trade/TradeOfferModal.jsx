@@ -29,10 +29,19 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
 
   const { data: myListings = [], isLoading } = useQuery({
     queryKey: ['myAvailableListings', currentUser?.id],
-    queryFn: () => base44.entities.CardListing.filter({
-      created_by: currentUser.id,
-      status: 'available'
-    }),
+    queryFn: async () => {
+      const filters = [
+        { created_by: currentUser.id, status: 'available' },
+        { created_by_id: currentUser.id, status: 'available' }
+      ];
+
+      if (currentUser?.email) {
+        filters.push({ owner_email: currentUser.email, status: 'available' });
+      }
+
+      const listings = await base44.entities.CardListing.filter({ $or: filters });
+      return Array.from(new Map((listings || []).map((item) => [item.id, item])).values());
+    },
     enabled: !!currentUser
   });
 
@@ -52,29 +61,22 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
   };
 
   const resolveTargetOwnerDetails = async () => {
-    const ownerId = targetCard?.created_by_id || targetCard?.created_by || null;
-    const ownerName = targetCard?.collector_name || targetCard?.owner_name || null;
-
-    if (targetCard?.owner_email) {
-      return { ownerEmail: targetCard.owner_email, ownerId, ownerName };
-    }
+    let ownerId = targetCard?.created_by_id || targetCard?.created_by || null;
+    let ownerName = targetCard?.collector_name || targetCard?.owner_name || null;
+    let ownerEmail = targetCard?.owner_email || null;
 
     if (targetCard?.id) {
       try {
         const freshListing = await base44.entities.CardListing.get(targetCard.id);
-        if (freshListing?.owner_email) {
-          return {
-            ownerEmail: freshListing.owner_email,
-            ownerId: ownerId || freshListing.created_by_id || freshListing.created_by || null,
-            ownerName: ownerName || freshListing.collector_name || freshListing.owner_name || null
-          };
-        }
+        ownerId = ownerId || freshListing?.created_by_id || freshListing?.created_by || null;
+        ownerName = ownerName || freshListing?.collector_name || freshListing?.owner_name || null;
+        ownerEmail = ownerEmail || freshListing?.owner_email || null;
       } catch (listingError) {
         console.warn('Could not refresh listing owner data:', listingError);
       }
     }
 
-    return { ownerEmail: null, ownerId, ownerName };
+    return { ownerEmail, ownerId, ownerName };
   };
 
   const handleSubmit = async () => {
