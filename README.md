@@ -1,5 +1,11 @@
 # Base44 App
 
+## Dokumentacja dla developerów
+
+- Pełna mapa plików i opis platform: `docs/DEVELOPER_DOCUMENTATION.md`
+- Setup Supabase i RLS: `docs/SUPABASE_SETUP.md`
+- Raport spójności architektury: `docs/ARCHITECTURE_CONSISTENCY_CHECK.md`
+
 ## Stripe (subskrypcje)
 
 Aplikacja ma wdrożoną bramkę Stripe dla planów subskrypcyjnych.
