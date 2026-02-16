@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Check, 
   Crown, 
@@ -17,7 +16,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '../components/LanguageProvider';
 
 export default function SubscriptionPage() {
-  const { t } = useLanguage();
+  useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(null);
 
@@ -34,10 +33,10 @@ export default function SubscriptionPage() {
     
     if (paymentStatus === 'success') {
       toast.success('Subskrypcja aktywowana pomyślnie! 🎉');
-      window.history.replaceState({}, '', '/Subscription');
+      window.history.replaceState({}, '', '/subscription');
     } else if (paymentStatus === 'cancelled') {
       toast.error('Płatność anulowana');
-      window.history.replaceState({}, '', '/Subscription');
+      window.history.replaceState({}, '', '/subscription');
     }
   }, []);
 
