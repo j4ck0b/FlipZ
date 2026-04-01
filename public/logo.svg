@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="FlipCardZ logo">
+  <rect x="14" y="14" width="228" height="228" rx="52" fill="#0b1220"/>
+  <rect x="14" y="14" width="228" height="228" rx="52" fill="none" stroke="#ffffff" stroke-width="10"/>
+  <path d="M82 74h94v24h-58v28h42v24h-42v42H82z" fill="#ffffff"/>
+  <path d="M128 172h60v24h-95v-20l52-58h-50V94h88v19z" fill="#ffffff"/>
+</svg>
