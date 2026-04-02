@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { createPageUrl } from '../utils';
 
-const ORDER_STATUS_FLOW = ['pending', 'accepted', 'in_transit', 'inspecting', 'completed'];
+const ORDER_STATUS_FLOW = ['payment', 'preparing_shipment', 'hub_verification', 'completed'];
 
 export default function AdminPanel() {
   const { user, canManageUsers, canAccessAdminPanel, changeUserRole } = useAuth();
@@ -63,9 +63,9 @@ export default function AdminPanel() {
       setUsers(usersData || []);
 
       const { data: tradesData, error: tradesError } = await supabase
-        .from('trades')
+        .from('trade_offers')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('created_date', { ascending: false })
         .limit(100);
 
       if (tradesError) throw tradesError;
@@ -145,12 +145,17 @@ export default function AdminPanel() {
     setActionLoading(null);
   };
 
-  const handleUpdateTradeStatus = async (tradeId, nextStatus) => {
+  const handleUpdateTradeStatus = async (tradeId, nextStep) => {
     setActionLoading(tradeId);
     try {
+      const updates = { progress_step: nextStep };
+      if (nextStep === 'completed') {
+        updates.status = 'completed';
+      }
+      
       const { error } = await supabase
-        .from('trades')
-        .update({ status: nextStatus })
+        .from('trade_offers')
+        .update(updates)
         .eq('id', tradeId);
 
       if (error) throw error;
@@ -166,23 +171,23 @@ export default function AdminPanel() {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const warehouseOrders = trades.filter((trade) => ['pending', 'accepted', 'in_transit', 'inspecting'].includes(trade.status));
+  const warehouseOrders = trades.filter((trade) => ['accepted', 'completed'].includes(trade.status));
 
-  const getNextStatus = (status) => {
-    const currentIndex = ORDER_STATUS_FLOW.indexOf(status);
+  const getNextStatus = (progressStep) => {
+    const currentIndex = ORDER_STATUS_FLOW.indexOf(progressStep || 'payment');
     if (currentIndex === -1 || currentIndex >= ORDER_STATUS_FLOW.length - 1) return null;
     return ORDER_STATUS_FLOW[currentIndex + 1];
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (step) => {
     const labels = {
-      pending: 'Nowe',
-      accepted: 'Przyjęte',
-      in_transit: 'W drodze',
-      inspecting: 'Kontrola',
+      negotiating: 'Negocjacje',
+      payment: 'Oczekuje na płatność',
+      preparing_shipment: 'W trakcie wysyłki',
+      hub_verification: 'Weryfikacja w Hubie',
       completed: 'Zakończone'
     };
-    return labels[status] || status;
+    return labels[step] || step || 'Nieznany';
   };
 
   if (loading) {
@@ -426,14 +431,15 @@ export default function AdminPanel() {
                       <p className="text-sm text-slate-500">Brak zadań magazynowych do obsłużenia.</p>
                     )}
                     {warehouseOrders.map((trade) => {
-                      const nextStatus = getNextStatus(trade.status);
+                      const nextStatus = getNextStatus(trade.progress_step);
                       return (
                         <div key={trade.id} className="p-4 rounded-lg border bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3">
                           <div>
-                            <p className="font-semibold text-slate-900">Wymiana #{String(trade.id).slice(0, 8)}</p>
+                            <p className="font-semibold text-slate-900">Wymiana #{String(trade.trade_id || trade.id).slice(0, 8)}</p>
+                            <p className="text-sm text-slate-600 truncate max-w-sm">Od: {trade.sender_email} <br/> Do: {trade.owner_email}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1">
-                              <Badge variant="outline">{getStatusLabel(trade.status)}</Badge>
-                              <span className="text-xs text-slate-500">Utworzono: {new Date(trade.created_at).toLocaleString('pl-PL')}</span>
+                              <Badge variant="outline">{getStatusLabel(trade.progress_step)}</Badge>
+                              <span className="text-xs text-slate-500">Utworzono: {new Date(trade.created_date || trade.updated_date).toLocaleString('pl-PL')}</span>
                             </div>
                           </div>
                           <div className="flex gap-2">
