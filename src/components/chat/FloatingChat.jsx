@@ -28,13 +28,33 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
     loadUser();
   }, []);
 
-  const { data: conversation } = useQuery({
+  const { data: tradeOffer } = useQuery({
+    queryKey: ['tradeOffer', tradeOfferId],
+    queryFn: async () => {
+      const offers = await flipzApi.entities.TradeOffer.filter({ id: tradeOfferId });
+      return offers[0];
+    },
+    enabled: !!tradeOfferId && open
+  });
+
+  const { data: conversation, refetch: refetchConversation } = useQuery({
     queryKey: ['tradeConversation', tradeOfferId],
     queryFn: async () => {
       const convs = await flipzApi.entities.TradeConversation.filter({ trade_offer_id: tradeOfferId });
+      
+      if (!convs || convs.length === 0) {
+        if (!currentUser || !tradeOffer) return null;
+        
+        const newConv = await flipzApi.entities.TradeConversation.create({
+          trade_offer_id: tradeOfferId,
+          participant_1_email: tradeOffer.owner_email,
+          participant_2_email: tradeOffer.sender_email
+        });
+        return newConv;
+      }
       return convs[0];
     },
-    enabled: !!tradeOfferId && open
+    enabled: !!tradeOfferId && open && !!currentUser && !!tradeOffer
   });
 
   const { data: messages = [], refetch } = useQuery({
@@ -54,15 +74,6 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
     }
     prevMessageCount.current = messages.length;
   }, [messages.length, currentUser?.email]);
-
-  const { data: tradeOffer } = useQuery({
-    queryKey: ['tradeOffer', tradeOfferId],
-    queryFn: async () => {
-      const offers = await flipzApi.entities.TradeOffer.filter({ id: tradeOfferId });
-      return offers[0];
-    },
-    enabled: !!tradeOfferId && open
-  });
 
   useEffect(() => {
     if (scrollRef.current) {
