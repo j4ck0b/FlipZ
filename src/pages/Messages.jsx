@@ -37,24 +37,46 @@ export default function Messages() {
     try {
       setLoading(true);
 
-      // Try to fetch from database
+      // Fetch from database using explicit email schema
       try {
-        const { data, error } = await supabase
+        const { data: convData, error: convError } = await supabase
           .from('conversations')
-          .select(`
-            *,
-            partner:profiles!conversations_partner_id_fkey(*)
-          `)
-          .or(`user_id.eq.${user.id},partner_id.eq.${user.id}`)
-          .order('updated_at', { ascending: false });
+          .select('*')
+          .or(`participant1_email.eq.${user.email},participant2_email.eq.${user.email}`)
+          .order('last_message_at', { ascending: false });
 
-        if (error && error.code !== 'PGRST116') {
-          throw error;
+        if (convError && convError.code !== 'PGRST116') {
+          throw convError;
         }
 
-        setConversations(data || []);
+        const validConvs = convData || [];
+
+        // Fetch partner profiles
+        const partnerEmails = validConvs.map(c => 
+          c.participant1_email === user.email ? c.participant2_email : c.participant1_email
+        );
+        
+        let allProfiles = [];
+        if (partnerEmails.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('email, username, avatar_url')
+            .in('email', partnerEmails);
+          allProfiles = profiles || [];
+        }
+
+        const enrichedConversations = validConvs.map(conv => {
+          const pEmail = conv.participant1_email === user.email ? conv.participant2_email : conv.participant1_email;
+          const pProfile = allProfiles.find(p => p.email === pEmail) || { username: pEmail, email: pEmail };
+          return {
+            ...conv,
+            partner: pProfile
+          };
+        });
+
+        setConversations(enrichedConversations);
       } catch (dbError) {
-        console.log('Brak tabel - używam mock data');
+        console.log('Brak tabel lub błąd rls - używam mock data', dbError);
         setConversations(generateMockConversations());
       }
     } catch (error) {
@@ -70,7 +92,7 @@ export default function Messages() {
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_date', { ascending: true });
 
       if (!error) {
         setMessages(data || []);
@@ -91,7 +113,7 @@ export default function Messages() {
           email: 'jan@example.com'
         },
         last_message: 'Czy karta jest w dobrym stanie?',
-        updated_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
         unread_count: 2
       },
       {
@@ -102,7 +124,7 @@ export default function Messages() {
           email: 'anna@example.com'
         },
         last_message: 'Dziękuję za wymianę!',
-        updated_at: new Date(Date.now() - 86400000).toISOString(),
+        last_message_at: new Date(Date.now() - 86400000).toISOString(),
         unread_count: 0
       }
     ];
@@ -113,16 +135,16 @@ export default function Messages() {
       {
         id: '1',
         conversation_id: conversationId,
-        sender_id: user.id,
+        sender_email: user.email,
         content: 'Cześć! Interesuje mnie ta karta.',
-        created_at: new Date(Date.now() - 3600000).toISOString()
+        created_date: new Date(Date.now() - 3600000).toISOString()
       },
       {
         id: '2',
         conversation_id: conversationId,
-        sender_id: 'other',
+        sender_email: 'anna@example.com',
         content: 'Czy karta jest w dobrym stanie?',
-        created_at: new Date(Date.now() - 1800000).toISOString()
+        created_date: new Date(Date.now() - 1800000).toISOString()
       }
     ];
   };
@@ -135,7 +157,8 @@ export default function Messages() {
         .from('messages')
         .insert({
           conversation_id: selectedConversation.id,
-          sender_id: user.id,
+          sender_email: user.email,
+          sender_name: user.user_metadata?.full_name || user.email.split('@')[0],
           content: newMessage
         })
         .select()
@@ -144,15 +167,21 @@ export default function Messages() {
       if (!error) {
         setMessages([...messages, data]);
         setNewMessage('');
+        
+        // Aktualizuj last_message_at w konwersacji
+        await supabase.from('conversations').update({
+          last_message: newMessage,
+          last_message_at: new Date().toISOString()
+        }).eq('id', selectedConversation.id);
       }
     } catch (error) {
       console.log('Mock send - adding locally');
       const mockMessage = {
         id: Date.now().toString(),
         conversation_id: selectedConversation.id,
-        sender_id: user.id,
+        sender_email: user.email,
         content: newMessage,
-        created_at: new Date().toISOString()
+        created_date: new Date().toISOString()
       };
       setMessages([...messages, mockMessage]);
       setNewMessage('');
@@ -275,7 +304,7 @@ export default function Messages() {
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((msg) => {
-                      const isOwn = msg.sender_id === user.id;
+                      const isOwn = msg.sender_email === user.email;
                       return (
                         <div
                           key={msg.id}
@@ -290,7 +319,7 @@ export default function Messages() {
                           >
                             <p>{msg.content}</p>
                             <p className={`text-xs mt-1 ${isOwn ? 'text-white/70' : 'text-slate-500'}`}>
-                              {new Date(msg.created_at).toLocaleTimeString('pl-PL', {
+                              {new Date(msg.created_date || msg.created_at || Date.now()).toLocaleTimeString('pl-PL', {
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })}
