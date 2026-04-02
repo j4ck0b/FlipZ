@@ -281,6 +281,11 @@ export default function MyListings() {
 
       if (offer?.requested_card_id && !offer?.both_paid) {
         await flipzApi.entities.CardListing.update(offer.requested_card_id, { status: 'available' });
+        if (Array.isArray(offer.offered_card_ids)) {
+          for (const cid of offer.offered_card_ids) {
+            await flipzApi.entities.CardListing.update(cid, { status: 'available' });
+          }
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
