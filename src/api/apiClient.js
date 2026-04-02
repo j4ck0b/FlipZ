@@ -183,7 +183,20 @@ const createAuthHelper = () => ({
 const createStorageHelper = () => ({
   Core: {
     async UploadFile({ file }) {
-      const fileName = `${Date.now()}-${file.name}`;
+      // Walidacja rozmiaru (max 10 MB)
+      const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        throw new Error(`Plik jest za duży (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksymalny rozmiar to 10 MB.`);
+      }
+
+      // Walidacja formatu — tylko obrazy
+      const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error(`Niedozwolony format pliku: ${file.type}. Akceptowane formaty: JPG, PNG, WebP, GIF.`);
+      }
+
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const preferredBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'card-images';
       const buckets = [...new Set([preferredBucket, 'card-images', 'uploads'])];
 

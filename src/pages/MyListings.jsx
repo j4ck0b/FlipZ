@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { flipzApi } from '@/api/apiClient';
+import { flipzApi, supabase } from '@/api/apiClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -151,7 +151,6 @@ export default function MyListings() {
     },
     enabled: !!currentUser,
     retry: false,
-    refetchInterval: (query) => (query.state.error ? false : 3000),
     refetchOnWindowFocus: true
   });
 
@@ -176,9 +175,44 @@ export default function MyListings() {
     },
     enabled: !!currentUser,
     retry: false,
-    refetchInterval: (query) => (query.state.error ? false : 3000),
     refetchOnWindowFocus: true
   });
+
+  // Supabase Realtime — zamiana pollingu na WebSocket
+  useEffect(() => {
+    if (!currentUser?.email && !currentUser?.id) return;
+
+    const channel = supabase
+      .channel(`trade-offers-${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trade_offers' },
+        (payload) => {
+          const record = payload.new || payload.old || {};
+          const userEmail = currentUser.email;
+          const userId = currentUser.id;
+
+          const isSender =
+            record.sender_email === userEmail ||
+            record.sender_id === userId;
+          const isOwner =
+            record.owner_email === userEmail ||
+            record.owner_id === userId;
+
+          if (isSender) {
+            queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+          }
+          if (isOwner) {
+            queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     if (incomingOffers.length > prevOffersCount.current && prevOffersCount.current > 0) {
@@ -230,8 +264,10 @@ export default function MyListings() {
         return;
       }
     } catch (error) {
-      const message = String(error?.message || error?.context?.status || '');
-      if (!message.includes('not deployed') && !message.includes('404')) {
+      console.error('Błąd anulowania:', error);
+      const message = String(error?.message || error?.name || error?.context?.status || '');
+
+      if (!message.includes('not deployed') && !message.includes('404') && !message.includes('FunctionsFetchError') && !message.includes('Failed to send')) {
         toast.error(error.response?.data?.error || 'Failed to cancel trade');
         return;
       }

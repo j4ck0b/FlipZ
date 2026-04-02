@@ -95,13 +95,18 @@ Deno.serve(async (req) => {
     }
 
     const isSender = tradeOffer.sender_email === userEmail;
-    const updateData: Record<string, unknown> = { escrow_mode: escrowMode };
+    const updateData: Record<string, unknown> = {};
 
-    if (isSender) {
+    if (escrowMode) {
+      updateData.escrow_mode = escrowMode;
+    }
+
+    // Aktualizuj tylko jeśli pole jeszcze nie ustawione (guard przed race condition)
+    if (isSender && !tradeOffer.sender_paid) {
       updateData.sender_paid = true;
       updateData.sender_payment_id = session.payment_intent;
       updateData.sender_payment_date = new Date().toISOString();
-    } else {
+    } else if (!isSender && !tradeOffer.owner_paid) {
       updateData.owner_paid = true;
       updateData.owner_payment_id = session.payment_intent;
       updateData.owner_payment_date = new Date().toISOString();
@@ -111,7 +116,11 @@ Deno.serve(async (req) => {
       (isSender && tradeOffer.owner_paid) ||
       (!isSender && tradeOffer.sender_paid);
 
-    if (bothPaid) {
+    // Stadia które są 'bardziej zaawansowane' niż payment — nie cofaj postępu
+    const laterStages = ['preparing_shipment', 'hub_verification', 'shipping_to_users', 'packages_delivered', 'completed'];
+    const alreadyPastPayment = laterStages.includes(tradeOffer.progress_step ?? '');
+
+    if (bothPaid && !alreadyPastPayment && !tradeOffer.both_paid) {
       updateData.both_paid = true;
       updateData.status = 'active';
       updateData.addresses_unlocked = true;

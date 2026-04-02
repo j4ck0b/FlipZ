@@ -111,8 +111,46 @@ export const translations = {
     send: "Wyślij",
     typeMessage: "Napisz wiadomość...",
     uploadImages: "Dodaj zdjęcia",
-    setDisplayNameFirst: "Ustaw najpierw nazwę wyświetlaną w profilu."
+    setDisplayNameFirst: "Ustaw najpierw nazwę wyświetlaną w profilu.",
+
+    // Dashboard / MyListings
+    myDashboard: "Mój panel",
+    manageListing: "Zarządzaj ogłoszeniami i wymianami",
+    newListing: "Nowe ogłoszenie",
+    listings: "Ogłoszenia",
+    noListingsYet: "Brak ogłoszeń",
+    startByListing: "Zacznij od wystawienia swojej pierwszej karty",
+    incomingOffers: "Przychodzące oferty",
+    myOffers: "Moje oferty",
+    noOffersYet: "Brak przychodzących ofert",
+    tradeOffersAppear: "Oferty wymiany pojawią się tutaj",
+    noOffersMade: "Nie złożyłeś jeszcze żadnych ofert",
+    yourOffersAppear: "Twoje wysłane oferty pojawią się tutaj",
+    edit: "Edytuj",
+    delete: "Usuń",
+    markAsSold: "Oznacz jako sprzedaną",
+    markAsTraded: "Oznacz jako wymienioną",
+    tradeOnly: "Tylko wymiana",
+
+    // Trade flow
+    wants: "Chce",
+    to: "Do",
+    for: "Za",
+    theirOffer: "Ich oferta",
+    accept: "Akceptuj",
+    decline: "Odrzuć",
+    completePayment: "Zapłać",
+    bothPaidReady: "Obie strony zapłaciły ✓",
+    waitingFor: "Oczekiwanie na",
+    viewShippingLabel: "Pokaż etykietę",
+    iHaveSentPackage: "Wysłałem paczkę",
+    packageSent: "Paczka wysłana ✓",
+    skipToHubInspection: "Symuluj inspekcję hubu",
+    everythingOK: "Wszystko OK",
+    viewDetails: "Szczegóły",
+    inspectionAccepted: "Inspekcja zaakceptowana ✓",
   }
+
 };
 
 export const LanguageProvider = ({ children }) => {

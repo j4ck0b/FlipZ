@@ -71,12 +71,24 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { tradeOfferId, escrowMode, amount } = await req.json();
+    const { tradeOfferId, escrowMode } = await req.json();
 
-    const parsedAmount = Number(amount);
-    if (!tradeOfferId || !escrowMode || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return Response.json({ error: 'Missing or invalid required fields' }, { status: 400, headers: corsHeaders });
+    if (!tradeOfferId || !escrowMode) {
+      return Response.json({ error: 'Missing required fields: tradeOfferId, escrowMode' }, { status: 400, headers: corsHeaders });
     }
+
+    // Ceny escrow walidowane po stronie serwera — klient nie może manipulować kwotą
+    const ESCROW_PRICES: Record<string, number> = {
+      eco: 24,
+      light: 39,
+      full: 59
+    };
+
+    const serverAmount = ESCROW_PRICES[escrowMode];
+    if (serverAmount === undefined) {
+      return Response.json({ error: `Invalid escrow mode: ${escrowMode}. Allowed: eco, light, full` }, { status: 400, headers: corsHeaders });
+    }
+
 
     // Pobierz profil użytkownika
     const { data: profile } = await supabaseAdmin
@@ -118,7 +130,7 @@ Deno.serve(async (req) => {
               name: `Escrow Protection - ${escrowMode} Mode`,
               description: 'Secure trade verification and protection'
             },
-            unit_amount: Math.round(parsedAmount * 100)
+            unit_amount: Math.round(serverAmount * 100)
           },
           quantity: 1
         }
