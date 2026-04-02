@@ -62,6 +62,8 @@ create table if not exists public.liked_listings (
   created_at timestamptz default now(),
   unique(user_id, listing_id)
 );
+alter table if exists public.liked_listings add column if not exists user_id uuid references public.profiles(id) on delete cascade;
+alter table if exists public.liked_listings add column if not exists listing_id uuid references public.card_listings(id) on delete cascade;
 
 create table if not exists public.subscription_plans (
   id uuid primary key default uuid_generate_v4(),
@@ -97,6 +99,19 @@ create table if not exists public.trade_offers (
   created_at timestamptz default now(),
   created_date timestamptz default now()
 );
+alter table if exists public.trade_offers add column if not exists escrow_mode text;
+alter table if exists public.trade_offers add column if not exists progress_step text;
+alter table if exists public.trade_offers add column if not exists both_paid boolean default false;
+alter table if exists public.trade_offers add column if not exists owner_paid boolean default false;
+alter table if exists public.trade_offers add column if not exists sender_paid boolean default false;
+alter table if exists public.trade_offers add column if not exists owner_package_sent boolean default false;
+alter table if exists public.trade_offers add column if not exists sender_package_sent boolean default false;
+alter table if exists public.trade_offers add column if not exists owner_inspection_accepted boolean default false;
+alter table if exists public.trade_offers add column if not exists sender_inspection_accepted boolean default false;
+alter table if exists public.trade_offers add column if not exists owner_delivered boolean default false;
+alter table if exists public.trade_offers add column if not exists sender_delivered boolean default false;
+alter table if exists public.trade_offers add column if not exists owner_id uuid;
+alter table if exists public.trade_offers add column if not exists sender_id uuid;
 
 create table if not exists public.trade_payments (
   id uuid primary key default uuid_generate_v4(),
@@ -107,6 +122,8 @@ create table if not exists public.trade_payments (
   status text default 'pending',
   created_at timestamptz default now()
 );
+alter table if exists public.trade_payments add column if not exists user_id uuid references public.profiles(id);
+alter table if exists public.trade_payments add column if not exists trade_offer_id uuid references public.trade_offers(id) on delete cascade;
 
 create table if not exists public.shipping_labels (
   id uuid primary key default uuid_generate_v4(),
@@ -143,6 +160,8 @@ create table if not exists public.conversations (
   updated_at timestamptz default now(),
   created_at timestamptz default now()
 );
+alter table if exists public.conversations add column if not exists user_id uuid references public.profiles(id) on delete cascade;
+alter table if exists public.conversations add column if not exists partner_id uuid references public.profiles(id) on delete cascade;
 
 create table if not exists public.trade_conversations (
   id uuid primary key default uuid_generate_v4(),
@@ -166,6 +185,11 @@ create table if not exists public.messages (
   created_at timestamptz default now(),
   created_date timestamptz default now()
 );
+alter table if exists public.messages add column if not exists message_type text default 'text';
+alter table if exists public.messages add column if not exists sender_name text;
+alter table if exists public.messages add column if not exists sender_email text;
+alter table if exists public.messages add column if not exists is_read boolean default false;
+alter table if exists public.messages add column if not exists created_date timestamptz default now();
 
 -- ==========================================
 -- 5. INDEXES (Performance)
