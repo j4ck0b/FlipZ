@@ -52,33 +52,72 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.supabase_user_id;
-        const tier = session.metadata?.subscription_tier;
+        const metadata = session.metadata || {};
+        
+        // --- SCENARIUSZ A: SUBSKRYPCJA ---
+        if (metadata.subscription_tier) {
+          const userId = metadata.supabase_user_id;
+          const tier = metadata.subscription_tier;
 
-        if (!userId || !tier) {
-          console.error('Missing metadata in session:', session.id);
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + 31);
+
+          await supabaseAdmin
+            .from('profiles')
+            .update({
+              subscription_tier: tier,
+              subscription_expiry_date: expiryDate.toISOString(),
+              stripe_customer_id: session.customer as string
+            })
+            .eq('id', userId);
+
+          console.log(`Updated subscription for user ${userId} to ${tier}`);
           break;
         }
 
-        // Ustawiamy datę wygaśnięcia na za 31 dni (bufor)
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 31);
+        // --- SCENARIUSZ B: PŁATNOŚĆ ZA WYMIANĘ (ESCROW) ---
+        if (metadata.trade_offer_id) {
+          const tradeOfferId = metadata.trade_offer_id;
+          const userId = metadata.supabase_user_id;
 
-        const { error } = await supabaseAdmin
-          .from('profiles')
-          .update({
-            subscription_tier: tier,
-            subscription_expiry_date: expiryDate.toISOString(),
-            stripe_customer_id: session.customer as string
-          })
-          .eq('id', userId);
+          // Pobierz aktualną ofertę
+          const { data: offer } = await supabaseAdmin
+            .from('trade_offers')
+            .select('*')
+            .eq('id', tradeOfferId)
+            .single();
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          throw error;
+          if (!offer) {
+            console.error('Trade offer not found for webhook:', tradeOfferId);
+            break;
+          }
+
+          // Sprawdź czy płacący to nadawca czy właściciel
+          const isSender = offer.sender_id === userId || offer.sender_email === metadata.user_email;
+          const isOwner = offer.owner_id === userId || offer.owner_email === metadata.user_email;
+
+          const updates: any = {};
+          if (isSender) updates.sender_paid = true;
+          if (isOwner) updates.owner_paid = true;
+
+          // Jeśli obie strony zapłaciły (lub ta właśnie dopłaciła jako druga)
+          const willBothBePaid = (isSender && offer.owner_paid) || (isOwner && offer.sender_paid);
+          
+          if (willBothBePaid) {
+            updates.both_paid = true;
+            updates.progress_step = 'preparing_shipment';
+          }
+
+          await supabaseAdmin
+            .from('trade_offers')
+            .update(updates)
+            .eq('id', tradeOfferId);
+
+          console.log(`Updated trade ${tradeOfferId}: ${isSender ? 'sender' : 'owner'} paid. Both paid? ${willBothBePaid}`);
+          break;
         }
 
-        console.log(`Successfully updated subscription for user ${userId} to ${tier}`);
+        console.warn('Unhandled checkout session metadata:', metadata);
         break;
       }
 
