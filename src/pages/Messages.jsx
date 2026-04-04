@@ -40,9 +40,9 @@ export default function Messages() {
       // Fetch from database using explicit email schema
       try {
         const { data: convData, error: convError } = await supabase
-          .from('conversations')
+          .from('trade_conversations')
           .select('*')
-          .or(`participant1_email.eq.${user.email},participant2_email.eq.${user.email}`)
+          .or(`participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`)
           .order('last_message_at', { ascending: false });
 
         if (convError && convError.code !== 'PGRST116') {
@@ -53,7 +53,7 @@ export default function Messages() {
 
         // Fetch partner profiles
         const partnerEmails = validConvs.map(c => 
-          c.participant1_email === user.email ? c.participant2_email : c.participant1_email
+          c.participant_1_email === user.email ? c.participant_2_email : c.participant_1_email
         );
         
         let allProfiles = [];
@@ -66,7 +66,7 @@ export default function Messages() {
         }
 
         const enrichedConversations = validConvs.map(conv => {
-          const pEmail = conv.participant1_email === user.email ? conv.participant2_email : conv.participant1_email;
+          const pEmail = conv.participant_1_email === user.email ? conv.participant_2_email : conv.participant_1_email;
           const pProfile = allProfiles.find(p => p.email === pEmail) || { username: pEmail, email: pEmail };
           return {
             ...conv,
@@ -169,8 +169,8 @@ export default function Messages() {
         setNewMessage('');
         
         // Aktualizuj last_message_at w konwersacji
-        await supabase.from('conversations').update({
-          last_message: newMessage,
+        await supabase.from('trade_conversations').update({
+          last_message_preview: newMessage,
           last_message_at: new Date().toISOString()
         }).eq('id', selectedConversation.id);
       }

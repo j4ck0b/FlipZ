@@ -67,9 +67,8 @@ const statusConfig = {
 
 export default function MyListings() {
   const { t } = useLanguage();
-  const { canAccessWarehousePanel } = useAuth();
+  const { user: currentUser, canAccessWarehousePanel } = useAuth();
   const queryClient = useQueryClient();
-  const [currentUser, setCurrentUser] = useState(null);
   const [showListingModal, setShowListingModal] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -88,12 +87,6 @@ export default function MyListings() {
   const prevOffersCount = useRef(0);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const user = await flipzApi.auth.me();
-      setCurrentUser(user);
-    };
-    loadUser();
-
     // Check for payment success
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
@@ -142,7 +135,7 @@ export default function MyListings() {
       if (filters.length === 0) return [];
 
       try {
-        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_at');
         return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
       } catch (error) {
         console.warn('My offers query failed, returning empty list:', error);
@@ -166,7 +159,7 @@ export default function MyListings() {
       if (filters.length === 0) return [];
 
       try {
-        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_date');
+        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_at');
         return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
       } catch (error) {
         console.warn('Incoming offers query failed, returning empty list:', error);

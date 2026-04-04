@@ -28,20 +28,38 @@ export default function Home() {
         setLoading(true);
         // Spróbuj pobrać statystyki (może nie będzie tabel, wtedy skip)
         try {
+          const email = user?.email;
+          const userId = user?.id;
+          const orFilter = [];
+          if (email) {
+            orFilter.push(`sender_email.eq.${email}`, `owner_email.eq.${email}`);
+          }
+          if (userId) {
+            orFilter.push(`sender_id.eq.${userId}`, `owner_id.eq.${userId}`);
+          }
+
           const { data: offersData } = await supabase
             .from('trade_offers')
-            .select('id', { count: 'exact' })
-            .or(`sender_email.eq.${user.email},owner_email.eq.${user.email}`);
+            .select('id')
+            .or(orFilter.join(','));
           
+          const convOrFilter = [];
+          if (email) {
+            convOrFilter.push(`participant_1_email.eq.${email}`, `participant_2_email.eq.${email}`);
+          }
+          if (userId) {
+            convOrFilter.push(`participant_1_id.eq.${userId}`, `participant_2_id.eq.${userId}`);
+          }
+
           const { data: conversationsData } = await supabase
             .from('trade_conversations')
-            .select('id', { count: 'exact' })
-            .or(`participant_1_email.eq.${user.email},participant_2_email.eq.${user.email}`);
+            .select('id')
+            .or(convOrFilter.length > 0 ? convOrFilter.join(',') : 'id.neq.0');
           
           const { data: completedOffersData } = await supabase
             .from('trade_offers')
-            .select('id', { count: 'exact' })
-            .or(`sender_email.eq.${user.email},owner_email.eq.${user.email}`)
+            .select('id')
+            .or(orFilter.join(','))
             .eq('status', 'completed');
           
           setStats({
