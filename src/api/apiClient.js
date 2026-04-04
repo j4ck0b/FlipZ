@@ -6,9 +6,14 @@ const applyFilters = (query, filters = {}) => {
   let nextQuery = query;
 
   Object.entries(filters || {}).forEach(([key, value]) => {
+    const isEmailField = key.endsWith('_email') || key === 'email';
+    
     if (key === '$or' && Array.isArray(value)) {
       const orClauses = value
-        .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => `${clauseKey}.eq.${clauseValue}`));
+        .flatMap((clause) => Object.entries(clause || {}).map(([clauseKey, clauseValue]) => {
+          const operator = (clauseKey.endsWith('_email') || clauseKey === 'email') ? 'ilike' : 'eq';
+          return `${clauseKey}.${operator}.${clauseValue}`;
+        }));
 
       if (orClauses.length > 0) {
         nextQuery = nextQuery.or(orClauses.join(','));
@@ -21,7 +26,11 @@ const applyFilters = (query, filters = {}) => {
       return;
     }
 
-    nextQuery = nextQuery.eq(key, value);
+    if (isEmailField && typeof value === 'string') {
+      nextQuery = nextQuery.ilike(key, value);
+    } else {
+      nextQuery = nextQuery.eq(key, value);
+    }
   });
 
   return nextQuery;
@@ -34,18 +43,23 @@ const runOrderedQueryWithFallback = async (queryFactory, field, direction, limit
 
   let result = await execute(field);
 
-  const shouldFallback = result.error?.code === '42703'
-    || (field === 'created_at' && String(result.error?.message || '').toLowerCase().includes('created_at'));
+  // Fallback map for common schema changes
+  const fallbackRules = {
+    'created_at': 'created_date',
+    'created_date': 'created_at',
+    // Add more field fallbacks here if necessary
+  };
 
-  if (shouldFallback) {
-    const fallbackField = field === 'created_at'
-      ? 'created_date'
-      : field === 'created_date'
-        ? 'created_at'
-        : null;
+  const errorMessage = String(result.error?.message || '').toLowerCase();
+  const isMissingColumn = result.error?.code === '42703' || errorMessage.includes('column') || errorMessage.includes('does not exist');
 
+  if (isMissingColumn) {
+    const fallbackField = fallbackRules[field];
     if (fallbackField) {
       result = await execute(fallbackField);
+    } else {
+      // If we don't have a specific rule, try without ordering at all
+      result = await queryFactory().limit(limit);
     }
   }
 

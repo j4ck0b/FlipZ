@@ -130,13 +130,17 @@ export default function MyListings() {
       const userId = currentUser?.id;
       const filters = [];
 
-      if (email) filters.push({ sender_email: email });
-      if (userId) filters.push({ sender_id: userId });
-      if (filters.length === 0) return [];
-
       try {
-        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_at');
-        return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
+        const results = await Promise.all([
+          email ? flipzApi.entities.TradeOffer.filter({ sender_email: email }, '-created_at') : Promise.resolve([]),
+          userId ? flipzApi.entities.TradeOffer.filter({ sender_id: userId }, '-created_at') : Promise.resolve([])
+        ].map(p => p.catch(e => {
+          console.warn('Individual offer query failed (this is expected if columns are missing):', e.message);
+          return [];
+        })));
+        
+        const offers = results.flat();
+        return Array.from(new Map(offers.map(item => [item.id, item])).values());
       } catch (error) {
         console.warn('My offers query failed, returning empty list:', error);
         return [];
@@ -154,13 +158,17 @@ export default function MyListings() {
       const userId = currentUser?.id;
       const filters = [];
 
-      if (email) filters.push({ owner_email: email });
-      if (userId) filters.push({ owner_id: userId });
-      if (filters.length === 0) return [];
-
       try {
-        const offers = await flipzApi.entities.TradeOffer.filter({ $or: filters }, '-created_at');
-        return Array.from(new Map((offers || []).map(item => [item.id, item])).values());
+        const results = await Promise.all([
+          email ? flipzApi.entities.TradeOffer.filter({ owner_email: email }, '-created_at') : Promise.resolve([]),
+          userId ? flipzApi.entities.TradeOffer.filter({ owner_id: userId }, '-created_at') : Promise.resolve([])
+        ].map(p => p.catch(e => {
+          console.warn('Individual incoming offer query failed:', e.message);
+          return [];
+        })));
+
+        const offers = results.flat();
+        return Array.from(new Map(offers.map(item => [item.id, item])).values());
       } catch (error) {
         console.warn('Incoming offers query failed, returning empty list:', error);
         return [];

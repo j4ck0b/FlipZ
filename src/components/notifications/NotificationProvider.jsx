@@ -50,12 +50,18 @@ export default function NotificationProvider({ children }) {
   const { data: incomingOffers = [] } = useQuery({
     queryKey: ['notificationOffers', identityValues.join('|')],
     queryFn: async () => {
-      const filters = [];
-      if (currentUser?.email) filters.push({ owner_email: currentUser.email });
-      if (currentUser?.id) filters.push({ owner_id: currentUser.id });
-      if (filters.length === 0) return [];
-      const grouped = await Promise.all(filters.map((f) => flipzApi.entities.TradeOffer.filter(f, '-created_date')));
-      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+      try {
+        const results = await Promise.all([
+          currentUser?.email ? flipzApi.entities.TradeOffer.filter({ owner_email: currentUser.email }, '-created_at') : Promise.resolve([]),
+          currentUser?.id ? flipzApi.entities.TradeOffer.filter({ owner_id: currentUser.id }, '-created_at') : Promise.resolve([])
+        ].map(p => p.catch(() => [])));
+        
+        const offers = results.flat();
+        return Array.from(new Map(offers.map(item => [item.id, item])).values());
+      } catch (error) {
+        console.warn('Notification incoming offers query failed:', error);
+        return [];
+      }
     },
     enabled: !!currentUser,
     refetchInterval: 5000,
@@ -65,12 +71,18 @@ export default function NotificationProvider({ children }) {
   const { data: sentOffers = [] } = useQuery({
     queryKey: ['notificationSentOffers', identityValues.join('|')],
     queryFn: async () => {
-      const filters = [];
-      if (currentUser?.email) filters.push({ sender_email: currentUser.email });
-      if (currentUser?.id) filters.push({ sender_id: currentUser.id });
-      if (filters.length === 0) return [];
-      const grouped = await Promise.all(filters.map((f) => flipzApi.entities.TradeOffer.filter(f, '-created_date')));
-      return Array.from(new Map(grouped.flat().map(item => [item.id, item])).values());
+      try {
+        const results = await Promise.all([
+          currentUser?.email ? flipzApi.entities.TradeOffer.filter({ sender_email: currentUser.email }, '-created_at') : Promise.resolve([]),
+          currentUser?.id ? flipzApi.entities.TradeOffer.filter({ sender_id: currentUser.id }, '-created_at') : Promise.resolve([])
+        ].map(p => p.catch(() => [])));
+        
+        const offers = results.flat();
+        return Array.from(new Map(offers.map(item => [item.id, item])).values());
+      } catch (error) {
+        console.warn('Notification sent offers query failed:', error);
+        return [];
+      }
     },
     enabled: !!currentUser,
     refetchInterval: 5000,
