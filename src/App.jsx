@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from './lib/AuthContext';
 import NotificationProvider from './components/notifications/NotificationProvider';
 import { LanguageProvider } from './components/LanguageProvider';
 import Layout from './Layout';
+import { initGA, trackPageView } from './lib/analytics';
+import { useEffect } from 'react';
 
 // Pages
 import Landing from './pages/Landing';
@@ -73,6 +75,10 @@ function AdminRoute({ children }) {
 function AppRoutes() {
   const { user } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
 
   return (
     <div className="page-transition" key={location.pathname}>
@@ -215,6 +221,10 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    initGA();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
