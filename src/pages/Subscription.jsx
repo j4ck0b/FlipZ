@@ -19,6 +19,7 @@ export default function SubscriptionPage() {
   useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -74,6 +75,24 @@ export default function SubscriptionPage() {
       console.error('Subscription error:', error);
       toast.error(error.response?.data?.error || 'Błąd podczas tworzenia sesji płatności');
       setLoading(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setPortalLoading(true);
+    try {
+      const response = await flipzApi.functions.invoke('createPortalSession');
+      
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error('Błąd podczas przekierowywania do panelu płatności');
+        setPortalLoading(false);
+      }
+    } catch (error) {
+      console.error('Portal session error:', error);
+      toast.error('Błąd podczas ładowania panelu płatności');
+      setPortalLoading(false);
     }
   };
 
@@ -141,7 +160,19 @@ export default function SubscriptionPage() {
                     Wymiany w tym miesiącu: {user.trade_count_current_month || 0}
                   </p>
                 </div>
-                <Crown className="w-12 h-12 text-violet-600" />
+                <div className="flex flex-col items-end gap-3">
+                  <Crown className="w-12 h-12 text-violet-600" />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleManageBilling}
+                    disabled={portalLoading}
+                    className="border-violet-200 text-violet-700 hover:bg-violet-100 font-medium"
+                  >
+                    {portalLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
+                    Zarządzaj płatnościami
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
