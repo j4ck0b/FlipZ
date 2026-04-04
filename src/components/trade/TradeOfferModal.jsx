@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { flipzApi } from '@/api/apiClient';
+import { flipzApi, supabase } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -130,10 +130,10 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
     setSending(true);
 
     try {
-      // Generate unique 12-digit trade ID locally (edge function may be unavailable/CORS-blocked)
+      // Generate unique 12-digit trade ID locally
       const tradeId = `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-12);
       
-      const baseOfferPayload = {
+      const payload = {
         trade_id: tradeId,
         requested_card_id: targetCard.id,
         requested_card_title: targetCard.title,
@@ -151,51 +151,37 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
         })),
         value_note: valueNote,
         message: message,
-        status: 'pending'
+        status: 'pending',
+        owner_id: ownerId || null,
+        sender_id: currentUser.id
       };
 
-      let offer;
-      try {
-        offer = await flipzApi.entities.TradeOffer.create({
-          ...baseOfferPayload,
-          owner_id: ownerId || null,
-          sender_id: currentUser.id
-        });
-      } catch (offerError) {
-        const offerMessage = String(offerError?.message || '').toLowerCase();
-        if (!offerMessage.includes('column') || !offerMessage.includes('does not exist')) {
-          throw offerError;
-        }
-        offer = await flipzApi.entities.TradeOffer.create(baseOfferPayload);
-      }
+      console.log('Sending trade offer payload:', payload);
+      
+      const { data: offer, error: createError } = await supabase
+        .from('trade_offers')
+        .insert(payload)
+        .select()
+        .single();
 
-      // Create conversation/message as best-effort (offer should still succeed)
-      let conversation = null;
-      try {
-        conversation = await flipzApi.entities.Conversation.create({
-          user_id: currentUser.id,
-          partner_id: ownerId || targetCard.created_by_id || targetCard.created_by || null,
-          trade_offer_id: offer.id,
-          last_message: 'Trade offer sent',
-          unread_count: 0,
-          updated_at: new Date().toISOString()
-        });
-      } catch (conversationError) {
-        console.warn('Conversation create skipped:', conversationError);
-      }
-
-      if (conversation?.id) {
-        try {
-          await flipzApi.entities.Message.create({
-            conversation_id: conversation.id,
-            sender_email: 'system',
-            sender_name: 'System',
-            message_type: 'system',
-            content: `${currentUser.full_name || 'Collector'} sent a trade offer`,
-            read: false
-          });
-        } catch (messageError) {
-          console.warn('System message create skipped:', messageError);
+      if (createError) {
+        // Fallback for missing columns
+        if (createError.message?.includes('column') && createError.message?.includes('does not exist')) {
+          console.warn('Retrying without experimental columns...');
+          const fallbackPayload = { ...payload };
+          delete fallbackPayload.owner_id;
+          delete fallbackPayload.sender_id;
+          
+          const { data: retryOffer, error: retryError } = await supabase
+            .from('trade_offers')
+            .insert(fallbackPayload)
+            .select()
+            .single();
+            
+          if (retryError) throw retryError;
+          // success on retry
+        } else {
+          throw createError;
         }
       }
 
@@ -205,13 +191,16 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
       onClose();
       resetForm();
     } catch (error) {
-      console.error('Trade offer error:', error);
+      console.error('Detailed trade offer error:', error);
       setSending(false);
-      const message = String(error?.message || '');
-      if (message.includes('row-level security')) {
-        toast.error('Brak uprawnień do utworzenia oferty. Sprawdź czy jesteś zalogowany poprawnym kontem i odśwież stronę.');
+      
+      const errorMsg = error.message || 'Unknown database error';
+      if (errorMsg.includes('infinite recursion')) {
+        toast.error('Błąd bazy danych (infinite recursion). Uruchom skrypt SQL naprawiający uprawnienia (RLS).');
+      } else if (errorMsg.includes('row-level security')) {
+        toast.error('Brak uprawnień RLS. Sprawdź tabelę trade_offers w Supabase.');
       } else {
-        toast.error(error.message || 'Failed to send trade offer. Please try again.');
+        toast.error(`Błąd: ${errorMsg}`);
       }
     }
   };
