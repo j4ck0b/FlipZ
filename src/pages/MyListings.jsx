@@ -59,10 +59,40 @@ import { useNotificationSound } from '../components/notifications/NotificationSo
 import { useAuth } from '../lib/AuthContext';
 
 const statusConfig = {
-  available: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Eye },
-  pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: Clock },
-  sold: { label: 'Sold', color: 'bg-blue-100 text-blue-700', icon: CheckCircle2 },
-  traded: { label: 'Traded', color: 'bg-violet-100 text-violet-700', icon: ArrowRightLeft }
+  available: { label: 'Aktywne', cssClass: 'status-available', icon: Eye },
+  pending: { label: 'Oczekuje', cssClass: 'status-pending', icon: Clock },
+  sold: { label: 'Sprzedane', cssClass: 'status-sold', icon: CheckCircle2 },
+  traded: { label: 'Wymienione', cssClass: 'status-traded', icon: ArrowRightLeft }
+};
+
+const offerStatusLabels = {
+  pending: 'Oczekuje',
+  accepted: 'Zaakceptowana',
+  rejected: 'Odrzucona',
+  cancelled: 'Anulowana',
+  completed: 'Zakończona',
+};
+
+const offerStatusClasses = {
+  pending: 'status-pending',
+  accepted: 'status-accepted',
+  rejected: 'status-rejected',
+  cancelled: 'status-cancelled',
+  completed: 'status-completed',
+};
+
+const categoryLabels = {
+  pokemon_cards: 'Karty Pokémon',
+  lego: 'LEGO',
+  lego_bricks: 'Klocki LEGO',
+  hot_wheels: 'Hot Wheels',
+  diecast: 'Modele Aut',
+  action_figures: 'Figurki',
+  funko_pop: 'Funko Pop',
+  collectibles: 'Kolekcje',
+  retro_games: 'Retro Games',
+  trading_cards: 'Karty kolekcjonerskie',
+  sports_cards: 'Karty sportowe',
 };
 
 export default function MyListings() {
@@ -389,21 +419,21 @@ export default function MyListings() {
   const pendingIncoming = incomingOffers.filter(o => o.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen py-6">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="mb-6">
+        <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{t('myDashboard')}</h1>
-              <p className="text-slate-500 mt-1">{t('manageListing')}</p>
+              <h1 className="text-2xl font-bold section-heading">{t('myDashboard')}</h1>
+              <p className="text-slate-400 mt-1 text-sm">{t('manageListing')}</p>
             </div>
-            <Button 
+            <Button
               onClick={() => {
                 setEditingListing(null);
                 setShowListingModal(true);
               }}
-              className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto"
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/20 transition-all w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               {t('newListing')}
@@ -413,49 +443,52 @@ export default function MyListings() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
-            <TabsTrigger value="listings" className="gap-2">
+          <TabsList className="panel-elevated mb-6 grid grid-cols-3 p-1 rounded-xl border-0">
+            <TabsTrigger value="listings" className="gap-2 rounded-lg data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-slate-400">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">{t('myListings')}</span>
-              <span className="sm:hidden">{t('listings')}</span>
-              <Badge variant="secondary" className="ml-1">{myListings.length}</Badge>
+              <span className="sm:hidden">Ogłoszenia</span>
+              {myListings.length > 0 && <Badge className="ml-1 bg-white/20 text-inherit border-0 text-xs">{myListings.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="incoming" className="gap-2">
+            <TabsTrigger value="incoming" className="gap-2 rounded-lg data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-slate-400">
               <ArrowRightLeft className="w-4 h-4" />
               <span className="hidden sm:inline">{t('incomingOffers')}</span>
-              <span className="sm:hidden">{t('incomingOffers')}</span>
+              <span className="sm:hidden">Przychodzące</span>
               {pendingIncoming > 0 && (
-                <Badge className="ml-1 bg-rose-500">{pendingIncoming}</Badge>
+                <Badge className="ml-1 bg-red-500 text-white border-0 text-xs">{pendingIncoming}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="sent" className="gap-2">
+            <TabsTrigger value="sent" className="gap-2 rounded-lg data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-slate-400">
               <ArrowRightLeft className="w-4 h-4" />
               <span className="hidden sm:inline">{t('myOffers')}</span>
-              <span className="sm:hidden">{t('myOffers')}</span>
-              <Badge variant="secondary" className="ml-1">{myOffers.length}</Badge>
+              <span className="sm:hidden">Wysłane</span>
+              {myOffers.length > 0 && <Badge className="ml-1 bg-white/20 text-inherit border-0 text-xs">{myOffers.length}</Badge>}
             </TabsTrigger>
           </TabsList>
 
           {/* My Listings Tab */}
           <TabsContent value="listings">
             {loadingListings ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              <div className="flex justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
               </div>
             ) : myListings.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <Package className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">{t('noListingsYet')}</h3>
-                  <p className="text-slate-500 mb-4">{t('startByListing')}</p>
-                  <Button onClick={() => setShowListingModal(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('createListing')}
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="panel-elevated rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Package className="w-8 h-8 text-violet-400" />
+                </div>
+                <h3 className="font-semibold text-slate-200 mb-2">{t('noListingsYet')}</h3>
+                <p className="text-slate-400 mb-6 text-sm">{t('startByListing')}</p>
+                <Button
+                  onClick={() => setShowListingModal(true)}
+                  className="bg-gradient-to-r from-violet-600 to-purple-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('createListing')}
+                </Button>
+              </div>
             ) : (
               <div className="grid gap-4">
                 <AnimatePresence>
@@ -470,83 +503,83 @@ export default function MyListings() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                       >
-                        <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                          <CardContent className="p-0">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4">
-                              {/* Image */}
-                              <div 
-                                className="w-20 h-28 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 cursor-pointer"
-                                onClick={() => setSelectedCard(listing)}
-                              >
-                                {(listing.image_urls && listing.image_urls.length > 0) || listing.image_url ? (
-                                  <img 
-                                    src={listing.image_urls?.[0] || listing.image_url} 
-                                    alt={listing.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-3xl">
-                                    🃏
-                                  </div>
+                        <div className="listing-card overflow-hidden">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4">
+                            {/* Image */}
+                            <div
+                              className="w-20 h-28 rounded-xl bg-white/5 overflow-hidden flex-shrink-0 cursor-pointer border border-white/10"
+                              onClick={() => setSelectedCard(listing)}
+                            >
+                              {(listing.image_urls && listing.image_urls.length > 0) || listing.image_url ? (
+                                <img
+                                  src={listing.image_urls?.[0] || listing.image_url}
+                                  alt={listing.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-3xl">
+                                  🃏
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-slate-200 truncate">{listing.title}</h3>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className={`status-badge ${status.cssClass}`}>
+                                  <StatusIcon className="w-3 h-3" />
+                                  {status.label}
+                                </span>
+                                {listing.category && (
+                                  <span className="text-xs text-slate-400">
+                                    {categoryLabels[listing.category] || listing.category.replace(/_/g, ' ')}
+                                  </span>
                                 )}
                               </div>
-
-                              {/* Info */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-slate-900 truncate">{listing.title}</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge className={`${status.color} border-0`}>
-                                    <StatusIcon className="w-3 h-3 mr-1" />
-                                    {status.label}
-                                  </Badge>
-                                  <span className="text-sm text-slate-500">
-                                    {listing.category?.replace('_', ' ')}
-                                  </span>
-                                </div>
-                                <p className="text-lg font-bold text-slate-900 mt-2">
-                                  {listing.trade_only || !listing.price ? t('tradeOnly') : `${listing.price} zł`}
-                                </p>
-                              </div>
-
-                              {/* Actions */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="sm:ml-auto">
-                                    <MoreVertical className="w-5 h-5" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => {
-                                    setEditingListing(listing);
-                                    setShowListingModal(true);
-                                  }}>
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    {t('edit')}
-                                  </DropdownMenuItem>
-                                  {listing.status === 'available' && (
-                                    <>
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing, 'sold')}>
-                                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                                        {t('markAsSold')}
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing, 'traded')}>
-                                        <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                        {t('markAsTraded')}
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                  <DropdownMenuItem 
-                                    onClick={() => setDeleteConfirm(listing)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    {t('delete')}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <p className="text-lg font-bold text-slate-100 mt-2">
+                                {listing.trade_only || !listing.price ? t('tradeOnly') : `${listing.price} zł`}
+                              </p>
                             </div>
-                          </CardContent>
-                        </Card>
+
+                            {/* Actions */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="sm:ml-auto text-slate-400 hover:text-slate-200 hover:bg-white/10">
+                                  <MoreVertical className="w-5 h-5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => {
+                                  setEditingListing(listing);
+                                  setShowListingModal(true);
+                                }}>
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  {t('edit')}
+                                </DropdownMenuItem>
+                                {listing.status === 'available' && (
+                                  <>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(listing, 'sold')}>
+                                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                                      {t('markAsSold')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(listing, 'traded')}>
+                                      <ArrowRightLeft className="w-4 h-4 mr-2" />
+                                      {t('markAsTraded')}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteConfirm(listing)}
+                                  className="text-red-400"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  {t('delete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
                       </motion.div>
                     );
                   })}
@@ -558,45 +591,40 @@ export default function MyListings() {
           {/* Incoming Offers Tab */}
           <TabsContent value="incoming">
             {loadingIncoming ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              <div className="flex justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
               </div>
             ) : incomingOffers.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">{t('noOffersYet')}</h3>
-                  <p className="text-slate-500">{t('tradeOffersAppear')}</p>
-                </CardContent>
-              </Card>
+              <div className="panel-elevated rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+                  <ArrowRightLeft className="w-8 h-8 text-violet-400" />
+                </div>
+                <h3 className="font-semibold text-slate-200 mb-2">{t('noOffersYet')}</h3>
+                <p className="text-slate-400 text-sm">{t('tradeOffersAppear')}</p>
+              </div>
             ) : (
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 {incomingOffers.map((offer) => (
-                  <Card key={offer.id} className="overflow-hidden border-l-4 border-l-violet-500">
-                    <CardContent className="p-0">
+                  <div key={offer.id} className="offer-card overflow-hidden">
+                    <div>
                       {/* Header */}
-                      <div className="bg-gradient-to-r from-violet-50 to-white p-4 border-b">
+                      <div className="p-4 border-b border-white/10">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
                               {offer.sender_name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-900 text-lg">{offer.sender_name}</p>
-                              <p className="text-sm text-slate-600">
-                                {t('wants')}: <span className="font-semibold text-violet-700">{offer.requested_card_title}</span>
+                              <p className="font-bold text-slate-200">{offer.sender_name}</p>
+                              <p className="text-sm text-slate-400">
+                                Chce: <span className="font-semibold text-violet-300">{offer.requested_card_title}</span>
                               </p>
                             </div>
                           </div>
-                          
-                          <Badge className={`text-xs font-semibold ${
-                            offer.status === 'pending' ? 'bg-amber-500 text-white' :
-                            offer.status === 'accepted' ? 'bg-emerald-500 text-white' :
-                            offer.status === 'rejected' ? 'bg-red-500 text-white' :
-                            'bg-slate-500 text-white'
-                          }`}>
-                            {offer.status}
-                          </Badge>
+
+                          <span className={`status-badge ${offerStatusClasses[offer.status] || 'status-cancelled'}`}>
+                            {offerStatusLabels[offer.status] || offer.status}
+                          </span>
                         </div>
                       </div>
 
@@ -605,17 +633,17 @@ export default function MyListings() {
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-1 h-4 bg-violet-500 rounded-full"></div>
-                            <p className="text-sm font-semibold text-slate-700">{t('theirOffer')}</p>
+                            <p className="text-sm font-semibold text-slate-300">{t('theirOffer')}</p>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
-                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
+                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl hover:border-violet-500/30 transition-colors">
                                 {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
-                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
-                                  <Badge variant="outline" className="text-xs mt-1">{card.condition}</Badge>
+                                  <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
+                                  <span className="text-xs text-slate-400 mt-1 block">{card.condition}</span>
                                 </div>
                               </div>
                             ))}
@@ -623,8 +651,8 @@ export default function MyListings() {
                         </div>
 
                         {offer.message && (
-                          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r-lg">
-                            <p className="text-sm text-blue-900 italic">💬 "{offer.message}"</p>
+                          <div className="bg-violet-500/10 border border-violet-500/20 p-3 rounded-xl">
+                            <p className="text-sm text-violet-200 italic">💬 "{offer.message}"</p>
                           </div>
                         )}
 
@@ -634,7 +662,7 @@ export default function MyListings() {
                          </div>
                         )}
 
-                        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-white/10">
                        <Button 
                          variant="outline"
                          onClick={() => setChatOpen({
@@ -788,16 +816,16 @@ export default function MyListings() {
                            Otrzymałem paczkę
                          </Button>
                        )}
-                       {(offer.progress_step === 'shipping_to_users' || offer.progress_step === 'packages_delivered') && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.owner_delivered && (
-                         <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
-                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                           Paczka odebrana ✓
-                         </Badge>
-                           )}
-                           </div>
-                           </div>
-                           </CardContent>
-                           </Card>
+                        {(offer.progress_step === 'shipping_to_users' || offer.progress_step === 'packages_delivered') && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.owner_delivered && (
+                          <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Paczka odebrana ✓
+                          </Badge>
+                        )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -806,45 +834,40 @@ export default function MyListings() {
           {/* My Offers Tab */}
           <TabsContent value="sent">
             {loadingOffers ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              <div className="flex justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
               </div>
             ) : myOffers.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <ArrowRightLeft className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="font-semibold text-slate-900 mb-2">{t('noOffersMade')}</h3>
-                  <p className="text-slate-500">{t('yourOffersAppear')}</p>
-                </CardContent>
-              </Card>
+              <div className="panel-elevated rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+                  <ArrowRightLeft className="w-8 h-8 text-violet-400" />
+                </div>
+                <h3 className="font-semibold text-slate-200 mb-2">{t('noOffersMade')}</h3>
+                <p className="text-slate-400 text-sm">{t('yourOffersAppear')}</p>
+              </div>
             ) : (
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 {myOffers.map((offer) => (
-                  <Card key={offer.id} className="overflow-hidden border-l-4 border-l-indigo-500">
-                    <CardContent className="p-0">
+                  <div key={offer.id} className="offer-card" style={{ borderLeftColor: '#6366f1' }}>
+                    <div>
                       {/* Header */}
-                      <div className="bg-gradient-to-r from-indigo-50 to-white p-4 border-b">
+                      <div className="p-4 border-b border-white/10">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg">
                               {offer.owner_name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-900 text-lg">{t('to')} {offer.owner_name}</p>
-                              <p className="text-sm text-slate-600">
-                                {t('for')}: <span className="font-semibold text-indigo-700">{offer.requested_card_title}</span>
+                              <p className="font-bold text-slate-200">{t('to')} {offer.owner_name}</p>
+                              <p className="text-sm text-slate-400">
+                                Za: <span className="font-semibold text-indigo-300">{offer.requested_card_title}</span>
                               </p>
                             </div>
                           </div>
-                          
-                          <Badge className={`text-xs font-semibold ${
-                            offer.status === 'pending' ? 'bg-amber-500 text-white' :
-                            offer.status === 'accepted' ? 'bg-emerald-500 text-white' :
-                            offer.status === 'rejected' ? 'bg-red-500 text-white' :
-                            'bg-slate-500 text-white'
-                          }`}>
-                            {offer.status}
-                          </Badge>
+
+                          <span className={`status-badge ${offerStatusClasses[offer.status] || 'status-cancelled'}`}>
+                            {offerStatusLabels[offer.status] || offer.status}
+                          </span>
                         </div>
                       </div>
 
@@ -853,17 +876,17 @@ export default function MyListings() {
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
-                            <p className="text-sm font-semibold text-slate-700">{t('yourOffer')}</p>
+                            <p className="text-sm font-semibold text-slate-300">{t('yourOffer')}</p>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {offer.offered_cards_info?.map((card) => (
-                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
+                              <div key={card.id} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl hover:border-indigo-500/30 transition-colors">
                                 {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
-                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg shadow-sm" />
+                                  <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-slate-900 text-sm truncate">{card.title}</p>
-                                  <Badge variant="outline" className="text-xs mt-1">{card.condition}</Badge>
+                                  <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
+                                  <span className="text-xs text-slate-400 mt-1 block">{card.condition}</span>
                                 </div>
                               </div>
                             ))}
@@ -876,7 +899,7 @@ export default function MyListings() {
                           </div>
                         )}
 
-                      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-white/10">
                         <Button 
                           variant="outline"
                           onClick={() => setChatOpen({
@@ -910,12 +933,12 @@ export default function MyListings() {
                               {t('completePayment')}
                             </Button>
                           ) : offer.owner_paid ? (
-                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700 pointer-events-none">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
                               {t('bothPaidReady')}
                             </Badge>
                           ) : (
-                            <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700">
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-amber-100 text-amber-700 pointer-events-none">
                               <Clock className="w-4 h-4 mr-2" />
                               {t('waitingFor')} {offer.owner_name}
                             </Badge>
@@ -939,7 +962,7 @@ export default function MyListings() {
                                 {t('iHaveSentPackage')}
                               </Button>
                             ) : (
-                              <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                              <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700 pointer-events-none">
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
                                 {t('packageSent')}
                               </Badge>
@@ -985,45 +1008,45 @@ export default function MyListings() {
                               </Button>
                             </>
                           ) : (
-                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
+                            <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700 pointer-events-none">
                               <CheckCircle2 className="w-4 h-4 mr-2" />
                               {t('inspectionAccepted')}
                             </Badge>
                           )
                         )}
                         {offer.progress_step === 'shipping_to_users' && offer.owner_inspection_accepted && offer.sender_inspection_accepted && !offer.sender_delivered && (
-                         <Button
-                           onClick={async () => {
-                             const field = 'sender_delivered';
-                             const otherField = 'owner_delivered';
-                             const updates = { [field]: true };
-                             if (offer[otherField]) {
-                               updates.progress_step = 'packages_delivered';
-                             }
-                             await flipzApi.entities.TradeOffer.update(offer.id, updates);
-                             queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
-                             queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                             toast.success(updates.progress_step === 'packages_delivered' ? 'Obie paczki dostarczone! 🎉' : 'Potwierdzono odbiór paczki');
-                           }}
-                           className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                         >
-                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                           Otrzymałem paczkę
-                         </Button>
+                          <Button
+                            onClick={async () => {
+                              const field = 'sender_delivered';
+                              const otherField = 'owner_delivered';
+                              const updates = { [field]: true };
+                              if (offer[otherField]) {
+                                updates.progress_step = 'packages_delivered';
+                              }
+                              await flipzApi.entities.TradeOffer.update(offer.id, updates);
+                              queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
+                              queryClient.invalidateQueries({ queryKey: ['myOffers'] });
+                              toast.success(updates.progress_step === 'packages_delivered' ? 'Obie paczki dostarczone! 🎉' : 'Potwierdzono odbiór paczki');
+                            }}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Otrzymałem paczkę
+                          </Button>
                         )}
                         {(offer.progress_step === 'shipping_to_users' || offer.progress_step === 'packages_delivered') && offer.owner_inspection_accepted && offer.sender_inspection_accepted && offer.sender_delivered && (
-                         <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700">
-                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                           Paczka odebrana ✓
-                         </Badge>
-                           )}
-                            </div>
-                            </div>
-                            </CardContent>
-                            </Card>
-                            ))}
-                            </div>
-            )}
+                          <Badge className="flex-1 h-10 flex items-center justify-center bg-green-100 text-green-700 pointer-events-none">
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Paczka odebrana ✓
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           </TabsContent>
         </Tabs>
       </div>

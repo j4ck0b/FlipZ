@@ -29,6 +29,19 @@ import {
 import FloatingChat from './components/chat/FloatingChat';
 import NotificationPanel from './components/notifications/NotificationPanel';
 
+const tierLabels = {
+  free: 'Free',
+  basic: 'Basic',
+  premium: 'Premium',
+  pro: 'Pro',
+};
+
+const tierBadgeColor = {
+  basic:   'bg-gradient-to-r from-blue-500 to-indigo-500',
+  premium: 'bg-gradient-to-r from-violet-500 to-pink-500',
+  pro:     'bg-gradient-to-r from-amber-500 to-orange-500',
+};
+
 export default function Layout({ children }) {
   const { user, profile, canManageUsers, canAccessAdminPanel, signOut } = useAuth();
   const navigate = useNavigate();
@@ -127,9 +140,9 @@ export default function Layout({ children }) {
                       <p className="text-sm font-medium leading-none">{profile?.username || 'Użytkownik'}</p>
                       <p className="text-xs text-slate-500">{user?.email}</p>
                       {profile?.subscription_tier && profile?.subscription_tier !== 'free' && (
-                        <Badge className="w-fit bg-gradient-to-r from-violet-500 to-pink-500">
+                        <Badge className={`w-fit ${tierBadgeColor[profile.subscription_tier] || 'bg-gradient-to-r from-violet-500 to-pink-500'}`}>
                           <Crown className="w-3 h-3 mr-1" />
-                          {profile.subscription_tier}
+                          {tierLabels[profile.subscription_tier] || profile.subscription_tier}
                         </Badge>
                       )}
                     </div>

@@ -130,7 +130,7 @@ export const translations = {
     delete: "Usuń",
     markAsSold: "Oznacz jako sprzedaną",
     markAsTraded: "Oznacz jako wymienioną",
-    tradeOnly: "Tylko wymiana",
+
 
     // Trade flow
     wants: "Chce",
