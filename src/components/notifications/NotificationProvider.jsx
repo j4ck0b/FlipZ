@@ -92,13 +92,19 @@ export default function NotificationProvider({ children }) {
   const { data: conversations = [] } = useQuery({
     queryKey: ['notificationConversations', identityValues.join('|')],
     queryFn: async () => {
-      const convs = await flipzApi.entities.TradeConversation.filter({
-        $or: [
-          { participant_1_email: currentUser.email },
-          { participant_2_email: currentUser.email }
-        ]
-      }, '-last_message_at');
-      return convs;
+      try {
+        const results = await Promise.all([
+          currentUser?.email ? flipzApi.entities.TradeConversation.filter({ participant_1_email: currentUser.email }, '-last_message_at') : Promise.resolve([]),
+          currentUser?.email ? flipzApi.entities.TradeConversation.filter({ participant_2_email: currentUser.email }, '-last_message_at') : Promise.resolve([]),
+          currentUser?.id ? flipzApi.entities.TradeConversation.filter({ participant_1_id: currentUser.id }, '-last_message_at') : Promise.resolve([]),
+          currentUser?.id ? flipzApi.entities.TradeConversation.filter({ participant_2_id: currentUser.id }, '-last_message_at') : Promise.resolve([])
+        ].map(p => p.catch(() => [])));
+        
+        const convs = results.flat();
+        return Array.from(new Map(convs.map(item => [item.id, item])).values());
+      } catch (error) {
+        return [];
+      }
     },
     enabled: !!currentUser,
     refetchInterval: 5000,

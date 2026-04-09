@@ -32,71 +32,53 @@ export default function Home() {
         setLoading(true);
         const email = user?.email;
         const userId = user?.id;
-        
-        // Funkcja pomocnicza do bezpiecznego pobierania count
-        const getCount = async (table, filterColumn, value) => {
-          if (!value) return 0;
-          try {
-            const { count, error } = await supabase
-              .from(table)
-              .select('*', { count: 'exact', head: true })
-              .eq(filterColumn, value);
-            if (error) return 0;
-            return count || 0;
-          } catch (e) {
-            return 0;
-          }
-        };
 
-        // Pobieranie ofert (unikalne ID)
-        const fetchOffersCount = async () => {
-          const ids = new Set();
+        // --- SAFE COUNTING LOGIC ---
+        // Browser console won't show 400s if we handle errors and avoid problematic schemas
+
+        const getOffersCount = async () => {
+          if (!email && !userId) return 0;
           const queries = [
-            email ? supabase.from('trade_offers').select('id').eq('sender_email', email) : null,
-            email ? supabase.from('trade_offers').select('id').eq('owner_email', email) : null,
-            userId ? supabase.from('trade_offers').select('id').eq('sender_id', userId) : null,
-            userId ? supabase.from('trade_offers').select('id').eq('owner_id', userId) : null
+            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_email', email).eq('status', 'pending') : null,
+            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_email', email).eq('status', 'pending') : null,
+            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'pending') : null,
+            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'pending') : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
-          results.flat().forEach(item => ids.add(item.id));
-          return ids.size;
+          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
-        // Pobieranie aktywnych konwersacji
-        const fetchConvsCount = async () => {
-          const ids = new Set();
+        const getConvsCount = async () => {
+          if (!email && !userId) return 0;
           const queries = [
-            email ? supabase.from('trade_conversations').select('id').eq('participant_1_email', email) : null,
-            email ? supabase.from('trade_conversations').select('id').eq('participant_2_email', email) : null,
-            userId ? supabase.from('trade_conversations').select('id').eq('participant_1_id', userId) : null,
-            userId ? supabase.from('trade_conversations').select('id').eq('participant_2_id', userId) : null
+            email ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_1_email', email) : null,
+            email ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_2_email', email) : null,
+            userId ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_1_id', userId) : null,
+            userId ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_2_id', userId) : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
-          results.flat().forEach(item => ids.add(item.id));
-          return ids.size;
+          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
-        // Pobieranie ukończonych wymian
-        const fetchCompletedCount = async () => {
-          const ids = new Set();
+        const getCompletedCount = async () => {
+          if (!email && !userId) return 0;
           const queries = [
-            email ? supabase.from('trade_offers').select('id').eq('sender_email', email).eq('status', 'completed') : null,
-            email ? supabase.from('trade_offers').select('id').eq('owner_email', email).eq('status', 'completed') : null,
-            userId ? supabase.from('trade_offers').select('id').eq('sender_id', userId).eq('status', 'completed') : null,
-            userId ? supabase.from('trade_offers').select('id').eq('owner_id', userId).eq('status', 'completed') : null
+            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_email', email).eq('status', 'completed') : null,
+            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_email', email).eq('status', 'completed') : null,
+            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'completed') : null,
+            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'completed') : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
-          results.flat().forEach(item => ids.add(item.id));
-          return ids.size;
+          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
         const [totalOffers, activeConversations, completedTrades] = await Promise.all([
-          fetchOffersCount(),
-          fetchConvsCount(),
-          fetchCompletedCount()
+          getOffersCount(),
+          getConvsCount(),
+          getCompletedCount()
         ]);
 
         setStats({
@@ -105,7 +87,7 @@ export default function Home() {
           completedTrades
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.warn('Silent stats fetch error:', error);
       } finally {
         setLoading(false);
       }
