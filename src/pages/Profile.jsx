@@ -24,6 +24,8 @@ import {
   X,
   Save
 } from "lucide-react";
+import CardItem from '../components/cards/CardItem';
+import CardDetailSheet from '../components/cards/CardDetailSheet';
 
 export default function Profile() {
   const { userId } = useParams();
@@ -32,12 +34,15 @@ export default function Profile() {
   const [viewingProfile, setViewingProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     username: '',
     full_name: '',
     bio: '',
     location: ''
   });
+  const [userListings, setUserListings] = useState([]);
   const [stats, setStats] = useState({
     activeListings: 0,
     completedTrades: 0,
@@ -107,33 +112,47 @@ export default function Profile() {
 
   const fetchStats = async (profileUserId, profileEmail = null) => {
     try {
-      // Try to get stats from database
-      try {
-        const { data: listingsData } = await supabase
-          .from('card_listings')
-          .select('id', { count: 'exact' })
-          .eq('created_by', profileUserId)
-          .eq('status', 'available');
-        
-        const { data: tradesData } = await supabase
-          .from('trade_offers')
-          .select('id', { count: 'exact' })
-          .or(`sender_email.eq.${profileUserId},owner_email.eq.${profileUserId},sender_email.eq.${profileEmail || ''},owner_email.eq.${profileEmail || ''}`)
-          .eq('status', 'completed');
-        
-        setStats({
-          activeListings: listingsData?.length || 0,
-          completedTrades: tradesData?.length || 0,
-          totalValue: 0
-        });
-      } catch (dbError) {
-        // Tables don't exist yet - use mock data
-        setStats({
-          activeListings: 5,
-          completedTrades: 12,
-          totalValue: 2500
-        });
+      console.log('Fetching stats for:', { profileUserId, profileEmail });
+      
+      // 1. Fetch active listings
+      // Use .or to cover both old (email/created_by as string) and new (created_by_id as UUID) columns
+      let query = supabase
+        .from('card_listings')
+        .select('*')
+        .eq('status', 'available');
+      
+      if (profileEmail) {
+        query = query.or(`created_by_id.eq.${profileUserId},created_by.eq.${profileUserId},owner_email.eq.${profileEmail}`);
+      } else {
+        query = query.or(`created_by_id.eq.${profileUserId},created_by.eq.${profileUserId}`);
       }
+
+      // Try ordering by created_date first (observed in CardExchange.jsx)
+      const { data: listingsData, error: listingsError } = await query
+        .order('created_date', { ascending: false });
+
+      if (listingsError) {
+        console.error('Error fetching user listings, trying without order:', listingsError);
+        // Fallback: try without order if created_date fails
+        const { data: retryData } = await query;
+        setUserListings(retryData || []);
+      } else {
+        setUserListings(listingsData || []);
+      }
+
+      // 2. Fetch completed trades count
+      const { count: tradesCount, error: tradesError } = await supabase
+        .from('trade_offers')
+        .select('*', { count: 'exact', head: true })
+        .or(`sender_id.eq.${profileUserId},owner_id.eq.${profileUserId}${profileEmail ? `,sender_email.eq.${profileEmail},owner_email.eq.${profileEmail}` : ''}`)
+        .eq('status', 'completed');
+
+      setStats({
+        activeListings: listingsData?.length || 0,
+        completedTrades: tradesCount || 0,
+        totalValue: listingsData?.reduce((sum, item) => sum + (Number(item.price) || 0), 0) || 0
+      });
+
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -378,22 +397,40 @@ export default function Profile() {
           <TabsTrigger value="reviews">Opinie</TabsTrigger>
           <TabsTrigger value="favorites">Ulubione</TabsTrigger>
         </TabsList>
-        <TabsContent value="listings" className="space-y-4">
-          <Card className="p-12 text-center">
-            <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              {isOwnProfile ? 'Nie masz jeszcze ogłoszeń' : 'Brak ogłoszeń'}
-            </h3>
-            <p className="text-slate-600 mb-6">
-              {isOwnProfile ? 'Wystaw swój pierwszy przedmiot!' : 'Ten użytkownik nie ma jeszcze ogłoszeń'}
-            </p>
-            {isOwnProfile && (
-              <Button className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600">
-                <Package className="w-4 h-4" />
-                Wystaw ogłoszenie
-              </Button>
-            )}
-          </Card>
+        <TabsContent value="listings" className="space-y-6">
+          {userListings.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userListings.map((listing) => (
+                <CardItem 
+                  key={listing.id} 
+                  listing={listing} 
+                  onClick={() => {
+                    setSelectedCard(listing);
+                    setIsDetailOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-12 text-center border-dashed border-2">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                {isOwnProfile ? 'Nie masz jeszcze ogłoszeń' : 'Brak ogłoszeń'}
+              </h3>
+              <p className="text-slate-600 mb-6">
+                {isOwnProfile ? 'Wystaw swój pierwszy przedmiot!' : 'Ten użytkownik nie ma jeszcze ogłoszeń'}
+              </p>
+              {isOwnProfile && (
+                <Button 
+                  onClick={() => navigate('/home')} // Or where you list new cards
+                  className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600"
+                >
+                  <Package className="w-4 h-4" />
+                  Wystaw ogłoszenie
+                </Button>
+              )}
+            </Card>
+          )}
         </TabsContent>
         <TabsContent value="reviews">
           <Card className="p-12 text-center">
@@ -414,6 +451,15 @@ export default function Profile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <CardDetailSheet 
+        card={selectedCard}
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedCard(null);
+        }}
+      />
     </div>
   );
 }

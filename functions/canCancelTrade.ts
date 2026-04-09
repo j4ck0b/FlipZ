@@ -24,30 +24,30 @@ Deno.serve(async (req) => {
     const offer = offers[0];
 
     // Check if user is part of this trade
-    const isParticipant = 
-      offer.sender_email === user.email || 
+    const isParticipant =
+      offer.sender_email === user.email ||
       offer.owner_email === user.email;
 
     if (!isParticipant) {
-      return Response.json({ 
-        canCancel: false, 
-        reason: 'You are not a participant in this trade' 
+      return Response.json({
+        canCancel: false,
+        reason: 'You are not a participant in this trade'
       });
     }
 
     // Cannot cancel if both parties have paid
     if (offer.both_paid || (offer.sender_paid && offer.owner_paid)) {
-      return Response.json({ 
-        canCancel: false, 
-        reason: 'Cannot cancel - both parties have paid for shipping' 
+      return Response.json({
+        canCancel: false,
+        reason: 'Cannot cancel - both parties have paid for shipping'
       });
     }
 
     // Cannot cancel if already completed or cancelled
     if (['completed', 'cancelled', 'failed'].includes(offer.status)) {
-      return Response.json({ 
-        canCancel: false, 
-        reason: `Trade is already ${offer.status}` 
+      return Response.json({
+        canCancel: false,
+        reason: `Trade is already ${offer.status}`
       });
     }
 
@@ -55,16 +55,16 @@ Deno.serve(async (req) => {
     // - Status is pending or accepted
     // - At least one party hasn't paid yet
     if (['pending', 'accepted'].includes(offer.status)) {
-      return Response.json({ 
-        canCancel: true, 
-        reason: 'Trade can be cancelled' 
+      return Response.json({
+        canCancel: true,
+        reason: 'Trade can be cancelled'
       });
     }
 
     // Default: cannot cancel
-    return Response.json({ 
-      canCancel: false, 
-      reason: 'Trade cannot be cancelled at this stage' 
+    return Response.json({
+      canCancel: false,
+      reason: 'Trade cannot be cancelled at this stage'
     });
 
   } catch (error) {
