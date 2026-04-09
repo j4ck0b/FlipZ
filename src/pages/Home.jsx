@@ -33,9 +33,6 @@ export default function Home() {
         const email = user?.email;
         const userId = user?.id;
 
-        // --- SAFE COUNTING LOGIC ---
-        // Browser console won't show 400s if we handle errors and avoid problematic schemas
-
         const getOffersCount = async () => {
           if (!email && !userId) return 0;
           const queries = [
@@ -45,7 +42,10 @@ export default function Home() {
             userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'pending') : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          const results = await Promise.all(queries.map(q => q.catch((err) => {
+            console.error('DEBUG - Offers query error details:', err);
+            return { count: 0 };
+          })));
           return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
@@ -58,7 +58,10 @@ export default function Home() {
             userId ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_2_id', userId) : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          const results = await Promise.all(queries.map(q => q.catch((err) => {
+            console.error('DEBUG - Convs query error details:', err);
+            return { count: 0 };
+          })));
           return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
@@ -71,7 +74,10 @@ export default function Home() {
             userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'completed') : null
           ].filter(Boolean);
 
-          const results = await Promise.all(queries.map(q => q.catch(() => ({ count: 0 }))));
+          const results = await Promise.all(queries.map(q => q.catch((err) => {
+            console.error('DEBUG - Completed query error details:', err);
+            return { count: 0 };
+          })));
           return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
         };
 
@@ -87,7 +93,7 @@ export default function Home() {
           completedTrades
         });
       } catch (error) {
-        console.warn('Silent stats fetch error:', error);
+        console.error('DEBUG - Global stats error:', error);
       } finally {
         setLoading(false);
       }
