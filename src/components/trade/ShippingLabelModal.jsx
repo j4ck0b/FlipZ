@@ -13,7 +13,7 @@ function generateTrackingNumber(tradeOfferId, role) {
   return `FZ-${base}-${suffix}`;
 }
 
-export default function MockShippingLabel({ open, onClose, tradeOffer, userRole }) {
+export default function ShippingLabelModal({ open, onClose, tradeOffer, userRole }) {
   const offer = tradeOffer?.offer ?? tradeOffer;
   const role = tradeOffer?.role ?? userRole;
 

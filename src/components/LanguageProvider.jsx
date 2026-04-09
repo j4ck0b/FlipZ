@@ -148,9 +148,37 @@ export const translations = {
     skipToHubInspection: "Symuluj inspekcję hubu",
     everythingOK: "Wszystko OK",
     viewDetails: "Szczegóły",
-    inspectionAccepted: "Inspekcja zaakceptowana ✓",
-  }
+    // Categories
+    cat_pokemon: "Pokémon",
+    cat_magic_the_gathering: "Magic: The Gathering",
+    cat_yugioh: "Yu-Gi-Oh!",
+    cat_sports: "Karty sportowe",
+    cat_lego_minifigures: "LEGO Minifigurki",
+    cat_funko_pop: "Funko Pop",
+    cat_anime_figures: "Figurki Anime",
+    cat_figures: "Figurki",
+    cat_designer_toys: "Designer Toys",
+    cat_hot_wheels: "Hot Wheels",
+    cat_retro_games: "Retro Games",
+    cat_vinyl_records: "Płyty winylowe",
+    cat_sneakers: "Sneakersy",
+    cat_other: "Inne",
 
+    // Conditions
+    cond_mint: "Stan idealny (Mint)",
+    cond_near_mint: "Prawie idealny (Near Mint)",
+    cond_excellent: "Doskonały (Excellent)",
+    cond_good: "Dobry (Good)",
+    cond_fair: "Przeciętny (Fair)",
+    cond_poor: "Słaby (Poor)",
+
+    // Rarities
+    rar_common: "Pospolita (Common)",
+    rar_uncommon: "Niepospolita (Uncommon)",
+    rar_rare: "Rzadka (Rare)",
+    rar_ultra_rare: "Ultra Rzadka (Ultra Rare)",
+    rar_legendary: "Legendarna (Legendary)",
+  }
 };
 
 export const LanguageProvider = ({ children }) => {

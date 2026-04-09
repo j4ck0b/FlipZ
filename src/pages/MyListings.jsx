@@ -51,8 +51,8 @@ import EscrowModeSelector from '../components/trade/EscrowModeSelector';
 import TradeProgressTracker from '../components/trade/TradeProgressTracker';
 import PackagePhotoUpload from '../components/trade/PackagePhotoUpload';
 import InspectionReviewModal from '../components/trade/InspectionReviewModal';
-import MockPaymentModal from '../components/trade/MockPaymentModal';
-import MockShippingLabel from '../components/trade/MockShippingLabel';
+import TradePaymentModal from '../components/trade/TradePaymentModal';
+import ShippingLabelModal from '../components/trade/ShippingLabelModal';
 import FinalAcceptanceModal from '../components/trade/FinalAcceptanceModal';
 import HubInspectionSimulator from '../components/trade/HubInspectionSimulator';
 import { useNotificationSound } from '../components/notifications/NotificationSound';
@@ -531,11 +531,11 @@ export default function MyListings() {
                                   <StatusIcon className="w-3 h-3" />
                                   {status.label}
                                 </span>
-                                {listing.category && (
-                                  <span className="text-xs text-slate-400">
-                                    {categoryLabels[listing.category] || listing.category.replace(/_/g, ' ')}
-                                  </span>
-                                )}
+                                  {listing.category && (
+                                    <span className="text-xs text-slate-400">
+                                      {t('cat_' + listing.category)}
+                                    </span>
+                                  )}
                               </div>
                               <p className="text-lg font-bold text-slate-100 mt-2">
                                 {listing.trade_only || !listing.price ? t('tradeOnly') : `${listing.price} zł`}
@@ -641,10 +641,10 @@ export default function MyListings() {
                                 {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
                                   <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg" />
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
-                                  <span className="text-xs text-slate-400 mt-1 block">{card.condition}</span>
-                                </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
+                                    <span className="text-xs text-slate-400 mt-1 block">{t('cond_' + card.condition)}</span>
+                                  </div>
                               </div>
                             ))}
                           </div>
@@ -884,10 +884,10 @@ export default function MyListings() {
                                 {((card.image_urls && card.image_urls.length > 0) || card.image_url) && (
                                   <img src={card.image_urls?.[0] || card.image_url} alt={card.title} className="w-14 h-20 object-cover rounded-lg" />
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
-                                  <span className="text-xs text-slate-400 mt-1 block">{card.condition}</span>
-                                </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-slate-200 text-sm truncate">{card.title}</p>
+                                    <span className="text-xs text-slate-400 mt-1 block">{t('cond_' + card.condition)}</span>
+                                  </div>
                               </div>
                             ))}
                           </div>
@@ -1160,7 +1160,7 @@ export default function MyListings() {
       )}
 
       {/* Mock Payment Modal */}
-      <MockPaymentModal
+      <TradePaymentModal
         open={!!paymentOffer}
         onClose={() => setPaymentOffer(null)}
         tradeOffer={paymentOffer}
@@ -1169,12 +1169,12 @@ export default function MyListings() {
 
       {/* Mock Shipping Label */}
       {shippingLabelOffer && (
-        <MockShippingLabel
-          open={!!shippingLabelOffer}
-          onClose={() => setShippingLabelOffer(null)}
-          tradeOffer={shippingLabelOffer.offer}
-          userRole={shippingLabelOffer.role}
-        />
+        <ShippingLabelModal
+        open={!!shippingLabelOffer}
+        onClose={() => setShippingLabelOffer(null)}
+        tradeOffer={shippingLabelOffer}
+        userRole={shippingLabelOffer?.userRole}
+      />
       )}
 
       {/* Final Acceptance Modal */}

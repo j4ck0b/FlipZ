@@ -8,6 +8,7 @@ import { createPageUrl } from '../../utils';
 import { flipzApi } from '@/api/apiClient';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../LanguageProvider';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -35,6 +36,7 @@ const categoryIcons = {
 };
 
 export default function CardItem({ listing, onClick }) {
+  const { t } = useLanguage();
   const [isLiked, setIsLiked] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
@@ -122,7 +124,7 @@ export default function CardItem({ listing, onClick }) {
             <div className="absolute top-3 right-3">
               <Badge className={`${rarityColors[listing.rarity]} border-0 shadow-lg`}>
                 {listing.rarity === 'legendary' && <Sparkles className="w-3 h-3 mr-1" />}
-                {listing.rarity?.replace('_', ' ')}
+                {t('rar_' + listing.rarity)}
               </Badge>
             </div>
           )}
@@ -139,10 +141,10 @@ export default function CardItem({ listing, onClick }) {
           
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className={`text-xs ${conditionColors[listing.condition]}`}>
-              {listing.condition?.replace('_', ' ')}
+              {t('cond_' + listing.condition)}
             </Badge>
             <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600 border-slate-200">
-              {listing.category?.replace('_', ' ')}
+              {t('cat_' + listing.category)}
             </Badge>
           </div>
           

@@ -11,8 +11,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRightLeft, Plus, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from '../LanguageProvider';
 
 export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }) {
+  const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
   const [valueNote, setValueNote] = useState('');
@@ -276,7 +278,7 @@ export default function TradeOfferModal({ open, onClose, targetCard, onSuccess }
                         </div>
                         <div className="p-2">
                           <p className="font-medium text-sm truncate">{card.title}</p>
-                          <Badge variant="outline" className="text-xs mt-1">{card.condition}</Badge>
+                          <Badge variant="outline" className="text-xs mt-1">{t('cond_' + card.condition)}</Badge>
                         </div>
                       </motion.div>
                     );

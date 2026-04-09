@@ -253,20 +253,20 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pokemon">Pokémon</SelectItem>
-                  <SelectItem value="magic_the_gathering">Magic: The Gathering</SelectItem>
-                  <SelectItem value="yugioh">Yu-Gi-Oh!</SelectItem>
-                  <SelectItem value="sports">Sports Cards</SelectItem>
-                  <SelectItem value="lego_minifigures">LEGO</SelectItem>
-                  <SelectItem value="funko_pop">Funko Pop</SelectItem>
-                  <SelectItem value="anime_figures">Anime Figures</SelectItem>
-                  <SelectItem value="figures">Figures</SelectItem>
-                  <SelectItem value="designer_toys">Designer Toys</SelectItem>
-                  <SelectItem value="hot_wheels">Hot Wheels</SelectItem>
-                  <SelectItem value="retro_games">Retro Games</SelectItem>
-                  <SelectItem value="vinyl_records">Vinyl Records</SelectItem>
-                  <SelectItem value="sneakers">Sneakers</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="pokemon">{t('cat_pokemon')}</SelectItem>
+                  <SelectItem value="magic_the_gathering">{t('cat_magic_the_gathering')}</SelectItem>
+                  <SelectItem value="yugioh">{t('cat_yugioh')}</SelectItem>
+                  <SelectItem value="sports">{t('cat_sports')}</SelectItem>
+                  <SelectItem value="lego_minifigures">{t('cat_lego_minifigures')}</SelectItem>
+                  <SelectItem value="funko_pop">{t('cat_funko_pop')}</SelectItem>
+                  <SelectItem value="anime_figures">{t('cat_anime_figures')}</SelectItem>
+                  <SelectItem value="figures">{t('cat_figures')}</SelectItem>
+                  <SelectItem value="designer_toys">{t('cat_designer_toys')}</SelectItem>
+                  <SelectItem value="hot_wheels">{t('cat_hot_wheels')}</SelectItem>
+                  <SelectItem value="retro_games">{t('cat_retro_games')}</SelectItem>
+                  <SelectItem value="vinyl_records">{t('cat_vinyl_records')}</SelectItem>
+                  <SelectItem value="sneakers">{t('cat_sneakers')}</SelectItem>
+                  <SelectItem value="other">{t('cat_other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -281,12 +281,12 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mint">Mint</SelectItem>
-                  <SelectItem value="near_mint">Near Mint</SelectItem>
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="poor">Poor</SelectItem>
+                  <SelectItem value="mint">{t('cond_mint')}</SelectItem>
+                  <SelectItem value="near_mint">{t('cond_near_mint')}</SelectItem>
+                  <SelectItem value="excellent">{t('cond_excellent')}</SelectItem>
+                  <SelectItem value="good">{t('cond_good')}</SelectItem>
+                  <SelectItem value="fair">{t('cond_fair')}</SelectItem>
+                  <SelectItem value="poor">{t('cond_poor')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -303,11 +303,11 @@ export default function ListingModal({ open, onClose, onSuccess, editListing = n
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="common">Common</SelectItem>
-                <SelectItem value="uncommon">Uncommon</SelectItem>
-                <SelectItem value="rare">Rare</SelectItem>
-                <SelectItem value="ultra_rare">Ultra Rare</SelectItem>
-                <SelectItem value="legendary">Legendary</SelectItem>
+                <SelectItem value="common">{t('rar_common')}</SelectItem>
+                <SelectItem value="uncommon">{t('rar_uncommon')}</SelectItem>
+                <SelectItem value="rare">{t('rar_rare')}</SelectItem>
+                <SelectItem value="ultra_rare">{t('rar_ultra_rare')}</SelectItem>
+                <SelectItem value="legendary">{t('rar_legendary')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

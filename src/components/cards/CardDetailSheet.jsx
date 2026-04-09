@@ -21,6 +21,7 @@ import TradeOfferModal from '../trade/TradeOfferModal';
 import { createPageUrl } from '../../utils';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../LanguageProvider';
 
 const conditionColors = {
   mint: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -39,23 +40,10 @@ const rarityColors = {
   legendary: "bg-gradient-to-r from-amber-200 to-yellow-300 text-amber-800"
 };
 
-const categoryLabels = {
-  pokemon: "Pokémon",
-  magic_the_gathering: "Magic: The Gathering",
-  yugioh: "Yu-Gi-Oh!",
-  sports: "Sports Cards",
-  hot_wheels: "Hot Wheels",
-  funko_pop: "Funko Pop",
-  lego_minifigures: "LEGO Minifigures",
-  anime_figures: "Anime Figures",
-  retro_games: "Retro Games",
-  vinyl_records: "Vinyl Records",
-  sneakers: "Sneakers",
-  designer_toys: "Designer Toys",
-  other: "Other"
-};
+// (Removed static categoryLabels)
 
 export default function CardDetailSheet({ listing, open, onClose }) {
+  const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -190,7 +178,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               {listing.rarity && (
                 <Badge className={`${rarityColors[listing.rarity]} border-0`}>
                   {listing.rarity === 'legendary' && <Sparkles className="w-3 h-3 mr-1" />}
-                  {listing.rarity?.replace('_', ' ')}
+                  {t('rar_' + listing.rarity)}
                 </Badge>
               )}
             </div>
@@ -203,10 +191,10 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               <div className="flex items-center gap-3 mt-3">
                 <Badge variant="outline" className={conditionColors[listing.condition]}>
                   <Shield className="w-3 h-3 mr-1" />
-                  {listing.condition?.replace('_', ' ')}
+                  {t('cond_' + listing.condition)}
                 </Badge>
                 <Badge variant="outline" className="bg-slate-50">
-                  {categoryLabels[listing.category]}
+                  {t('cat_' + listing.category)}
                 </Badge>
               </div>
             </div>
