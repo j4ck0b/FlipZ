@@ -127,8 +127,8 @@ Deno.serve(async (req) => {
           price_data: {
             currency: 'pln',
             product_data: {
-              name: `Escrow Protection - ${escrowMode} Mode`,
-              description: 'Secure trade verification and protection'
+              name: `Ochrona Escrow - Tryb ${escrowMode.toUpperCase()}`,
+              description: 'Zabezpieczona weryfikacja i ochrona transakcji'
             },
             unit_amount: Math.round(serverAmount * 100)
           },
@@ -140,11 +140,12 @@ Deno.serve(async (req) => {
       cancel_url: `${origin}/my-listings?payment=cancelled`,
       metadata: {
         supabase_user_id: user.id,
-        trade_offer_id: tradeOfferId,
+        trade_offer_id: String(tradeOfferId),
         escrow_mode: escrowMode,
         user_email: user.email
       }
     });
+    console.log('Session created:', session.id);
 
     return Response.json({ url: session.url }, { headers: corsHeaders });
   } catch (error) {

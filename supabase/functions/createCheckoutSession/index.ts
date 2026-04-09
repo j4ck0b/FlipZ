@@ -72,15 +72,19 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
-    const { tier, amount, planName } = body;
+    let { tier, amount, planName } = body;
 
     if (!tier) {
       return Response.json({ error: 'Missing tier' }, { status: 400, headers: corsHeaders });
     }
 
+    // Sanitize amount (handle strings with commas)
+    if (typeof amount === 'string') {
+      amount = amount.replace(',', '.');
+    }
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return Response.json({ error: 'Invalid amount' }, { status: 400, headers: corsHeaders });
+      return Response.json({ error: `Invalid amount: ${amount}` }, { status: 400, headers: corsHeaders });
     }
 
     // Pobierz profil użytkownika (stripe_customer_id może tam być)
@@ -114,14 +118,14 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ['card', 'blik'],
+      payment_method_types: ['card'], // Removed 'blik' for subscription stability
       line_items: [
         {
           price_data: {
             currency: 'pln',
             product_data: {
               name: planName || `Subscription - ${tier}`,
-              description: 'Monthly subscription plan'
+              description: 'Miesięczny plan subskrypcyjny'
             },
             recurring: {
               interval: 'month'
