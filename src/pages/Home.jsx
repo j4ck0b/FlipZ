@@ -30,49 +30,80 @@ export default function Home() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        try {
-          const email = user?.email;
-          const userId = user?.id;
-          const orFilter = [];
-          if (email) {
-            orFilter.push(`sender_email.eq.${email}`, `owner_email.eq.${email}`);
+        const email = user?.email;
+        const userId = user?.id;
+        
+        // Funkcja pomocnicza do bezpiecznego pobierania count
+        const getCount = async (table, filterColumn, value) => {
+          if (!value) return 0;
+          try {
+            const { count, error } = await supabase
+              .from(table)
+              .select('*', { count: 'exact', head: true })
+              .eq(filterColumn, value);
+            if (error) return 0;
+            return count || 0;
+          } catch (e) {
+            return 0;
           }
-          if (userId) {
-            orFilter.push(`sender_id.eq.${userId}`, `owner_id.eq.${userId}`);
-          }
+        };
 
-          const { data: offersData } = await supabase
-            .from('trade_offers')
-            .select('id')
-            .or(orFilter.join(','));
-          
-          const convOrFilter = [];
-          if (email) {
-            convOrFilter.push(`participant_1_email.eq.${email}`, `participant_2_email.eq.${email}`);
-          }
-          if (userId) {
-            convOrFilter.push(`participant_1_id.eq.${userId}`, `participant_2_id.eq.${userId}`);
-          }
+        // Pobieranie ofert (unikalne ID)
+        const fetchOffersCount = async () => {
+          const ids = new Set();
+          const queries = [
+            email ? supabase.from('trade_offers').select('id').eq('sender_email', email) : null,
+            email ? supabase.from('trade_offers').select('id').eq('owner_email', email) : null,
+            userId ? supabase.from('trade_offers').select('id').eq('sender_id', userId) : null,
+            userId ? supabase.from('trade_offers').select('id').eq('owner_id', userId) : null
+          ].filter(Boolean);
 
-          const { data: conversationsData } = await supabase
-            .from('trade_conversations')
-            .select('id')
-            .or(convOrFilter.length > 0 ? convOrFilter.join(',') : 'id.neq.0');
-          
-          const { data: completedOffersData } = await supabase
-            .from('trade_offers')
-            .select('id')
-            .or(orFilter.join(','))
-            .eq('status', 'completed');
-          
-          setStats({
-            totalOffers: offersData?.length || 0,
-            activeConversations: conversationsData?.length || 0,
-            completedTrades: completedOffersData?.length || 0
-          });
-        } catch (dbError) {
-          console.log('Brak tabel w bazie (to normalne na początku)');
-        }
+          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
+          results.flat().forEach(item => ids.add(item.id));
+          return ids.size;
+        };
+
+        // Pobieranie aktywnych konwersacji
+        const fetchConvsCount = async () => {
+          const ids = new Set();
+          const queries = [
+            email ? supabase.from('trade_conversations').select('id').eq('participant_1_email', email) : null,
+            email ? supabase.from('trade_conversations').select('id').eq('participant_2_email', email) : null,
+            userId ? supabase.from('trade_conversations').select('id').eq('participant_1_id', userId) : null,
+            userId ? supabase.from('trade_conversations').select('id').eq('participant_2_id', userId) : null
+          ].filter(Boolean);
+
+          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
+          results.flat().forEach(item => ids.add(item.id));
+          return ids.size;
+        };
+
+        // Pobieranie ukończonych wymian
+        const fetchCompletedCount = async () => {
+          const ids = new Set();
+          const queries = [
+            email ? supabase.from('trade_offers').select('id').eq('sender_email', email).eq('status', 'completed') : null,
+            email ? supabase.from('trade_offers').select('id').eq('owner_email', email).eq('status', 'completed') : null,
+            userId ? supabase.from('trade_offers').select('id').eq('sender_id', userId).eq('status', 'completed') : null,
+            userId ? supabase.from('trade_offers').select('id').eq('owner_id', userId).eq('status', 'completed') : null
+          ].filter(Boolean);
+
+          const results = await Promise.all(queries.map(q => q.then(r => r.data || []).catch(() => [])));
+          results.flat().forEach(item => ids.add(item.id));
+          return ids.size;
+        };
+
+        const [totalOffers, activeConversations, completedTrades] = await Promise.all([
+          fetchOffersCount(),
+          fetchConvsCount(),
+          fetchCompletedCount()
+        ]);
+
+        setStats({
+          totalOffers,
+          activeConversations,
+          completedTrades
+        });
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
