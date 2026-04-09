@@ -6,7 +6,7 @@ const buildCorsHeaders = (req: Request) => {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature, x-supabase-client-platform',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin'
   };

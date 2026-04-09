@@ -5,13 +5,31 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
  * Format: YYMMDDHHMMSS (Year-Month-Day-Hour-Minute-Second)
  * Example: 260115143027 = 2026-01-15 14:30:27
  */
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin'
+  };
+};
+
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     // Generate base ID from current timestamp
@@ -37,7 +55,7 @@ Deno.serve(async (req) => {
         return Response.json({ 
           tradeId,
           formatted: `${year}${month}${day}-${hour}${minute}${second}` // Optional formatted version
-        });
+        }, { headers: corsHeaders });
       }
 
       // Collision detected - add random digit at the end and adjust
@@ -52,10 +70,10 @@ Deno.serve(async (req) => {
     // If still no unique ID after max attempts, throw error
     return Response.json({ 
       error: 'Failed to generate unique trade ID after multiple attempts' 
-    }, { status: 500 });
+    }, { status: 500, headers: corsHeaders });
 
   } catch (error) {
     console.error('Error generating trade ID:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 });

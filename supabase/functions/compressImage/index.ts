@@ -1,25 +1,43 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { Image } from 'npm:imagescript@1.3.0';
 
+const buildCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin'
+  };
+};
+
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     const { imageUrl } = await req.json();
 
     if (!imageUrl) {
-      return Response.json({ error: 'Image URL is required' }, { status: 400 });
+      return Response.json({ error: 'Image URL is required' }, { status: 400, headers: corsHeaders });
     }
 
     // Fetch the original image
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
-      return Response.json({ error: 'Failed to fetch image' }, { status: 400 });
+      return Response.json({ error: 'Failed to fetch image' }, { status: 400, headers: corsHeaders });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -50,10 +68,10 @@ Deno.serve(async (req) => {
       originalSize: imageBuffer.byteLength,
       compressedSize: compressedBuffer.byteLength,
       reduction: Math.round((1 - compressedBuffer.byteLength / imageBuffer.byteLength) * 100)
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Compression error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 });
