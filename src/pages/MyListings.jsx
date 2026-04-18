@@ -248,7 +248,7 @@ export default function MyListings() {
   useEffect(() => {
     if (incomingOffers.length > prevOffersCount.current && prevOffersCount.current > 0) {
       playNotification();
-      toast.success('New trade offer received!', {
+      toast.success('Nowa oferta wymiany! 🎉', {
         duration: 5000,
       });
     }
@@ -258,14 +258,15 @@ export default function MyListings() {
   const handleDelete = async (listing) => {
     await flipzApi.entities.CardListing.delete(listing.id);
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success('Listing deleted');
+    toast.success('Ogłoszenie usunięte');
     setDeleteConfirm(null);
   };
 
   const handleStatusChange = async (listing, newStatus) => {
     await flipzApi.entities.CardListing.update(listing.id, { status: newStatus });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success(`Card marked as ${newStatus}`);
+    const statusLabel = newStatus === 'sold' ? 'sprzedana' : 'wymieniona';
+    toast.success(`Karta oznaczona jako ${statusLabel}`);
   };
 
   const handleOfferAction = async (offer, action) => {
@@ -277,7 +278,8 @@ export default function MyListings() {
     await flipzApi.entities.TradeOffer.update(offer.id, { status: action });
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success(`Offer ${action}`);
+    const actionLabel = action === 'rejected' ? 'odrzucona' : 'zaktualizowana';
+    toast.success(`Oferta ${actionLabel}`);
   };
 
   const handleCancelTrade = async (offer, reason) => {
@@ -291,7 +293,7 @@ export default function MyListings() {
         queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
         queryClient.invalidateQueries({ queryKey: ['myOffers'] });
         queryClient.invalidateQueries({ queryKey: ['myListings'] });
-        toast.success('Trade cancelled successfully');
+        toast.success('Wymiana anulowana pomylnie');
         return;
       }
     } catch (error) {
@@ -322,7 +324,7 @@ export default function MyListings() {
       queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
       queryClient.invalidateQueries({ queryKey: ['myOffers'] });
       queryClient.invalidateQueries({ queryKey: ['myListings'] });
-      toast.success('Trade cancelled successfully (fallback mode)');
+      toast.success('Wymiana anulowana (tryb awaryjny)');
     } catch (fallbackError) {
       toast.error('Nie udało się anulować wymiany. Spróbuj ponownie.');
     }
@@ -347,7 +349,7 @@ export default function MyListings() {
       const updatedOffer = { ...escrowModalOffer, escrow_mode: escrowMode };
       setPaymentOffer(updatedOffer);
     } catch (error) {
-      toast.error('Failed to accept trade');
+      toast.error('Nie udało się zaakceptować wymiany');
     }
   };
 
@@ -366,7 +368,7 @@ export default function MyListings() {
     await flipzApi.entities.TradeOffer.update(paymentOffer.id, updates);
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success(updates.progress_step ? 'Payment successful! Both parties paid.' : 'Payment successful! Waiting for other party.');
+    toast.success(updates.progress_step ? 'Płatność zakończona! Obie strony zapłaciły.' : 'Płatność zakończona! Oczekiwanie na drugą osobę.');
     setPaymentOffer(null);
   };
 
@@ -384,7 +386,7 @@ export default function MyListings() {
     await flipzApi.entities.TradeOffer.update(offer.id, updates);
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-    toast.success('Package marked as sent!');
+    toast.success('Paczka oznaczona jako wysłana!');
   };
 
   const handleFinalAccept = async () => {
@@ -408,7 +410,7 @@ export default function MyListings() {
     queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myOffers'] });
     queryClient.invalidateQueries({ queryKey: ['myListings'] });
-    toast.success('Trade completed! 🎉');
+    toast.success('Wymiana zakończona! 🎉');
     setFinalAcceptOffer(null);
   };
 
@@ -992,7 +994,7 @@ export default function MyListings() {
                                   await flipzApi.entities.TradeOffer.update(offer.id, updates);
                                   queryClient.invalidateQueries({ queryKey: ['incomingOffers'] });
                                   queryClient.invalidateQueries({ queryKey: ['myOffers'] });
-                                  toast.success('Inspection accepted!');
+                                  toast.success('Inspekcja zaakceptowana!');
                                 }}
                                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                               >

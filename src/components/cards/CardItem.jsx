@@ -68,7 +68,7 @@ export default function CardItem({ listing, onClick }) {
       if (likes.length > 0) {
         await flipzApi.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
-        toast.success('Removed from favorites');
+        toast.success('Usunięto z ulubionych');
         queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
         }
         } else {
@@ -77,7 +77,7 @@ export default function CardItem({ listing, onClick }) {
         listing_id: listing.id 
         });
         setIsLiked(true);
-        toast.success('Added to favorites!');
+        toast.success('Dodano do ulubionych!');
         queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
     }
   };
@@ -114,7 +114,7 @@ export default function CardItem({ listing, onClick }) {
             <div className="absolute top-3 left-3">
               <Badge className="bg-violet-600 text-white border-0 shadow-lg">
                 <ArrowRightLeft className="w-3 h-3 mr-1" />
-                Trade Only
+                Tylko wymiana
               </Badge>
             </div>
           )}
@@ -150,7 +150,7 @@ export default function CardItem({ listing, onClick }) {
           
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             {listing.trade_only || !listing.price ? (
-              <span className="text-sm font-medium text-violet-600">Open to offers</span>
+              <span className="text-sm font-medium text-violet-600">Otwarte na oferty</span>
             ) : (
               <span className="text-lg font-bold text-slate-900">{listing.price} zł</span>
             )}
@@ -161,7 +161,7 @@ export default function CardItem({ listing, onClick }) {
               }}
               className="text-xs text-slate-400 hover:text-slate-600 hover:underline transition-colors"
             >
-              by {listing.collector_name || 'Anonymous'}
+              od {listing.collector_name || 'Anonim'}
             </button>
           </div>
         </div>

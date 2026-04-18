@@ -83,7 +83,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
       if (likes.length > 0) {
         await flipzApi.entities.LikedListing.delete(likes[0].id);
         setIsLiked(false);
-        toast.success('Removed from favorites');
+        toast.success('Usunięto z ulubionych');
         queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
       }
     } else {
@@ -92,7 +92,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
         listing_id: listing.id 
       });
       setIsLiked(true);
-      toast.success('Added to favorites!');
+      toast.success('Dodano do ulubionych!');
       queryClient.invalidateQueries({ queryKey: ['likedListings', currentUser.email] });
     }
   };
@@ -201,15 +201,15 @@ export default function CardDetailSheet({ listing, open, onClose }) {
 
             {/* Estimated Value */}
             <div className="p-4 bg-slate-50 rounded-2xl">
-              <p className="text-sm text-slate-500 mb-1">Estimated Value</p>
-              <p className="text-lg font-semibold text-slate-700">{listing.estimated_value || 'Not specified'}</p>
-              <p className="text-xs text-slate-500 mt-1">For reference only - this item is for trade, not sale</p>
+              <p className="text-sm text-slate-500 mb-1">Szacowana wartość</p>
+              <p className="text-lg font-semibold text-slate-700">{listing.estimated_value || 'Nie podano'}</p>
+              <p className="text-xs text-slate-500 mt-1">Tylko orientacyjnie — ten przedmiot jest do wymiany</p>
             </div>
 
             {/* Collector Info */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
               <div>
-                <p className="text-sm text-slate-500">Collector</p>
+                <p className="text-sm text-slate-500">Kolekcjoner</p>
                 <button
                   onClick={() => {
                     onClose();
@@ -218,13 +218,13 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                   className="font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors group mt-1"
                 >
                   <User className="w-4 h-4" />
-                  {listing.collector_name || 'Anonymous'}
+                  {listing.collector_name || 'Anonim'}
                   <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
               {listing.trade_count > 0 && (
                 <div className="text-right">
-                  <p className="text-sm text-slate-500">Trades</p>
+                  <p className="text-sm text-slate-500">Wymiany</p>
                   <p className="text-xl font-bold text-violet-600">{listing.trade_count}</p>
                 </div>
               )}
@@ -233,7 +233,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
             {/* Description */}
             {listing.description && (
               <div>
-                <h3 className="font-semibold text-slate-900 mb-2">Description</h3>
+                <h3 className="font-semibold text-slate-900 mb-2">Opis</h3>
                 <p className="text-slate-600 leading-relaxed">{listing.description}</p>
               </div>
             )}
@@ -243,7 +243,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
               <div className="p-4 bg-violet-50 rounded-2xl border border-violet-100">
                 <h3 className="font-semibold text-violet-900 mb-1 flex items-center gap-2">
                   <ArrowRightLeft className="w-4 h-4" />
-                  Looking For
+                  Szukam w zamian
                 </h3>
                 <p className="text-violet-700">{listing.looking_for}</p>
               </div>
@@ -252,7 +252,7 @@ export default function CardDetailSheet({ listing, open, onClose }) {
             {/* Tags */}
             {listing.tags && listing.tags.length > 0 && (
               <div>
-                <h3 className="font-semibold text-slate-900 mb-2">Tags</h3>
+                <h3 className="font-semibold text-slate-900 mb-2">Tagi</h3>
                 <div className="flex flex-wrap gap-2">
                   {listing.tags.map((tag, idx) => (
                     <Badge key={idx} variant="outline" className="bg-slate-50">
@@ -275,20 +275,25 @@ export default function CardDetailSheet({ listing, open, onClose }) {
                   className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-lg"
                 >
                   <ArrowRightLeft className="w-5 h-5 mr-2" />
-                  Propose Trade
+                  Zaproponuj wymianę
                 </Button>
               </motion.div>
             )}
 
             {isOwnListing && (
               <div className="p-4 bg-amber-50 rounded-xl text-center">
-                <p className="text-amber-800">This is your listing</p>
+                <p className="text-amber-800">To jest Twoje ogłoszenie</p>
               </div>
             )}
 
             {listing.status !== 'available' && (
               <div className="p-4 bg-slate-100 rounded-xl text-center">
-                <p className="text-slate-600 capitalize">This item is {listing.status}</p>
+                <p className="text-slate-600">
+                  {listing.status === 'traded' ? 'Ten przedmiot został wymieniony' :
+                   listing.status === 'sold' ? 'Ten przedmiot został sprzedany' :
+                   listing.status === 'pending' ? 'Ten przedmiot oczekuje na wymianę' :
+                   `Ten przedmiot jest niedostępny`}
+                </p>
               </div>
             )}
           </div>

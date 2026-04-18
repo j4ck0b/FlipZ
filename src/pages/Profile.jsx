@@ -247,7 +247,10 @@ export default function Profile() {
                   {viewingProfile.subscription_tier !== 'free' && (
                     <Badge className="bg-yellow-500">
                       <Crown className="w-3 h-3 mr-1" />
-                      {viewingProfile.subscription_tier}
+                      {viewingProfile.subscription_tier === 'basic' ? 'Basic' :
+                       viewingProfile.subscription_tier === 'premium' ? 'Premium' :
+                       viewingProfile.subscription_tier === 'pro' ? 'Pro' :
+                       viewingProfile.subscription_tier}
                     </Badge>
                   )}
                 </div>

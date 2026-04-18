@@ -102,8 +102,8 @@ export default function CardExchange() {
               🃏
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">Card Exchange</h1>
-              <p className="text-lg text-slate-600">Trade Pokémon, MTG, Yu-Gi-Oh! and sports cards</p>
+              <h1 className="text-4xl font-bold text-slate-900">Wymiana kart</h1>
+              <p className="text-lg text-slate-600">Wymieniaj Pokémon, MTG, Yu-Gi-Oh! i karty sportowe</p>
             </div>
           </div>
           
@@ -113,7 +113,7 @@ export default function CardExchange() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Available</p>
+                    <p className="text-sm text-slate-600">Dostępne</p>
                     <p className="text-2xl font-bold text-slate-900">{filteredListings.length}</p>
                   </div>
                   <Package className="w-8 h-8 text-blue-600 opacity-50" />
@@ -124,7 +124,7 @@ export default function CardExchange() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Active</p>
+                    <p className="text-sm text-slate-600">Aktywne</p>
                     <p className="text-2xl font-bold text-slate-900">12</p>
                   </div>
                   <Sparkles className="w-8 h-8 text-violet-600 opacity-50" />
@@ -135,16 +135,16 @@ export default function CardExchange() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Your Plan</p>
+                    <p className="text-sm text-slate-600">Twój plan</p>
                     <p className="text-xl font-bold text-slate-900">
                       {profile?.subscription_tier === 'premium' ? 'Premium' :
-                       profile?.subscription_tier === 'basic' ? 'Basic' : 'Free'}
+                       profile?.subscription_tier === 'basic' ? 'Basic' : 'Darmowy'}
                     </p>
                   </div>
                   {profile?.subscription_tier !== 'free' && (
                     <Badge className="bg-gradient-to-r from-violet-600 to-purple-600">
                       <Sparkles className="w-3 h-3 mr-1" />
-                      Active
+                      Aktywny
                     </Badge>
                   )}
                 </div>
@@ -154,7 +154,7 @@ export default function CardExchange() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Trades Used</p>
+                    <p className="text-sm text-slate-600">Użyte wymiany</p>
                     <p className="text-2xl font-bold text-slate-900">
                       {profile?.trade_count_current_month || 0}/
                       {profile?.subscription_tier === 'premium' ? '∞' :
@@ -179,7 +179,7 @@ export default function CardExchange() {
             className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            {user ? 'List a Card' : 'Sign in to list a card'}
+            {user ? 'Dodaj ogłoszenie' : 'Zaloguj się aby dodać ogłoszenie'}
           </Button>
         </div>
 
@@ -188,17 +188,17 @@ export default function CardExchange() {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <Loader2 className="w-12 h-12 animate-spin text-violet-600 mx-auto mb-4" />
-              <p className="text-slate-600">Loading cards...</p>
+              <p className="text-slate-600">Ładowanie kart...</p>
             </div>
           </div>
         ) : filteredListings.length === 0 ? (
           <Card className="p-12 text-center">
             <div className="text-6xl mb-4">🃏</div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              No cards available
+              Brak dostępnych kart
             </h3>
             <p className="text-slate-600 mb-6">
-              {filters.search ? 'No cards match your search' : 'Be the first to list a card!'}
+              {filters.search ? 'Brak kart pasujących do wyszukiwania' : 'Bądź pierwszy i wystaw kartę!'}
             </p>
             <Button
               onClick={() => setShowListingModal(true)}
@@ -206,7 +206,7 @@ export default function CardExchange() {
               className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
-              {user ? 'List Your First Card' : 'Sign in to list a card'}
+              {user ? 'Wystaw swoją pierwszą kartę' : 'Zaloguj się aby dodać ogłoszenie'}
             </Button>
           </Card>
         ) : (
