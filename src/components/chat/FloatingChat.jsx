@@ -116,7 +116,7 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
           height: minimized ? 'auto' : '500px'
         }}
         exit={{ opacity: 0, y: 50, scale: 0.9 }}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-[calc(100vw-2rem)] sm:w-96 max-w-md shadow-2xl rounded-2xl bg-white border border-slate-200 z-50 flex flex-col overflow-hidden"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-[calc(100vw-2rem)] sm:w-96 max-w-md shadow-2xl rounded-2xl panel-elevated border border-white/10 z-50 flex flex-col overflow-hidden text-slate-100"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
@@ -136,7 +136,7 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
               size="icon"
               variant="ghost"
               onClick={() => setMinimized(!minimized)}
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
             >
               <Minus className="w-4 h-4" />
             </Button>
@@ -144,7 +144,7 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
               size="icon"
               variant="ghost"
               onClick={onClose}
-              className="h-8 w-8 text-white hover:bg-white/20"
+              className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -155,16 +155,16 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
           <>
             {/* Trade Info */}
             {tradeOffer && (
-              <div className="p-3 bg-slate-50 border-b flex items-center justify-between">
+              <div className="p-3 bg-white/5 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ArrowRightLeft className="w-4 h-4 text-violet-600" />
-                  <span className="text-sm text-slate-600">Trade Status:</span>
+                  <ArrowRightLeft className="w-4 h-4 text-violet-400" />
+                  <span className="text-sm text-slate-300">Status wymiany:</span>
                 </div>
                 <Badge className={
-                  tradeOffer.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                  tradeOffer.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                  tradeOffer.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                  'bg-slate-100 text-slate-700'
+                  tradeOffer.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                  tradeOffer.status === 'accepted' ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' :
+                  tradeOffer.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                  'bg-slate-500/20 text-slate-300 border border-slate-500/30'
                 }>
                   {tradeOffer.status}
                 </Badge>
@@ -181,7 +181,7 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
                   if (isSystem) {
                     return (
                       <div key={msg.id} className="flex justify-center">
-                        <Badge variant="outline" className="bg-slate-50 text-xs">
+                        <Badge variant="outline" className="bg-white/5 border-white/10 text-slate-300 text-xs">
                           {msg.content}
                         </Badge>
                       </div>
@@ -191,15 +191,15 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
                   return (
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[80%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                        <div className={`rounded-2xl px-3 py-2 ${
+                        <div className={`rounded-2xl px-3.5 py-2 shadow-md ${
                           isMe 
-                            ? 'bg-violet-600 text-white' 
-                            : 'bg-slate-100 text-slate-900'
+                            ? 'message-bubble-own' 
+                            : 'message-bubble-other'
                         }`}>
                           <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                         </div>
-                        <span className="text-xs text-slate-500">
-                          {format(new Date(msg.created_date), 'h:mm a')}
+                        <span className="text-[10px] text-slate-400">
+                          {format(new Date(msg.created_date), 'HH:mm')}
                         </span>
                       </div>
                     </div>
@@ -210,10 +210,10 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
             </ScrollArea>
 
             {/* Input */}
-            <div className="p-3 border-t bg-white">
+            <div className="p-3 border-t border-white/10 bg-black/20 backdrop-blur-md">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Type a message..."
+                  placeholder="Napisz wiadomość..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -223,13 +223,13 @@ export default function FloatingChat({ tradeOfferId, otherUserEmail, otherUserNa
                     }
                   }}
                   disabled={sending}
-                  className="flex-1"
+                  className="flex-1 dark-input rounded-xl"
                 />
                 <Button
                   onClick={handleSend}
                   disabled={sending || !newMessage.trim()}
                   size="icon"
-                  className="bg-violet-600 hover:bg-violet-700"
+                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-600/35 rounded-xl px-4"
                 >
                   {sending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

@@ -85,7 +85,26 @@ create policy "trade_conversations_update" on public.trade_conversations for upd
   participant_1_email = auth.jwt()->>'email' or participant_2_email = auth.jwt()->>'email'
 );
 
-create policy "messages_select" on public.messages for select using (true);
+create policy "messages_select" on public.messages for select using (
+  exists (
+    select 1 from public.trade_conversations tc
+    where tc.id = messages.conversation_id
+      and (
+        tc.participant_1_email = auth.jwt()->>'email'
+        or tc.participant_2_email = auth.jwt()->>'email'
+        or tc.participant_1_id = auth.uid()
+        or tc.participant_2_id = auth.uid()
+      )
+  )
+  or exists (
+    select 1 from public.conversations c
+    where c.id = messages.conversation_id
+      and (
+        c.participant1_email = auth.jwt()->>'email'
+        or c.participant2_email = auth.jwt()->>'email'
+      )
+  )
+);
 create policy "messages_insert" on public.messages for insert with check (
   sender_email = auth.jwt()->>'email'
 );
