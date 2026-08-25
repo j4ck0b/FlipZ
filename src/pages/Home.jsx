@@ -7,7 +7,10 @@ import {
   MessageSquare, 
   CheckCircle2, 
   ShieldCheck,
-  ArrowLeftRight
+  Package,
+  TrendingUp,
+  Clock,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth, supabase } from '../lib/AuthContext';
@@ -95,114 +98,129 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0D1117] text-slate-100 antialiased font-sans -m-6 p-6 sm:p-10 space-y-10">
-      <div className="max-w-5xl mx-auto space-y-10">
+    <div className="space-y-10 font-sans text-on-surface">
+      
+      {/* Top Bar: Profile & Plan Status */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/40 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-sm font-extrabold text-on-primary shadow-sm">
+            {initials}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-on-surface tracking-tight">{username}</h1>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 uppercase">
+                {currentTier}
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              {planLabel} • {statsData.activeListingsCount} z {maxSlots} aktywnych ogłoszeń
+            </p>
+          </div>
+        </div>
 
-        {/* Top Bar: Profil i Plan */}
-        <header className="flex items-center justify-between border-b border-slate-800 pb-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-rose-600 border border-rose-500/40 flex items-center justify-center text-sm font-bold text-white">
-              {initials}
+        <Link 
+          to="/subscription" 
+          className="text-xs font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 px-4 py-2 rounded-xl transition shadow-sm self-start sm:self-center"
+        >
+          Zarządzaj planem
+        </Link>
+      </header>
+
+      {/* Metrics Row */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div 
+              key={i} 
+              className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className={`text-3xl font-extrabold tracking-tight ${stat.highlight ? 'text-secondary' : 'text-on-surface'}`}>
+                  {stat.value}
+                </span>
+                <p className="text-xs text-on-surface-variant mt-1 font-medium">{stat.label}</p>
+              </div>
+              <div className="h-11 w-11 rounded-xl bg-surface-container flex items-center justify-center text-secondary">
+                <Icon className="w-5 h-5"/>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* Main Actions */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Link 
+          to="/my-listings" 
+          className="group bg-primary hover:bg-inverse-surface text-on-primary font-bold text-base p-6 rounded-2xl flex items-center justify-between transition shadow-md transform hover:-translate-y-0.5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-white/20 text-white flex items-center justify-center">
+              <Plus className="w-5 h-5"/>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-white tracking-tight">{username}</h1>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-600/10 text-rose-400 border border-rose-600/20 font-bold uppercase">
-                  {currentTier}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">{planLabel} • {statsData.activeListingsCount} z {maxSlots} ogłoszeń</p>
+              <div className="text-base font-bold">Wystaw przedmiot</div>
+              <div className="text-xs text-white/70 font-normal">Dodaj kartę do swojego inventory</div>
             </div>
           </div>
+          <ArrowUpRight className="w-5 h-5 text-white/70 group-hover:text-white transition"/>
+        </Link>
 
-          <Link className="text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-1.5 rounded-lg transition" to="/subscription">
-            Zarządzaj planem
-          </Link>
-        </header>
-
-        {/* Metryki */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div 
-                key={i} 
-                className="bg-slate-900/40 border border-slate-800 rounded-xl p-5 flex items-center justify-between"
-              >
-                <div>
-                  <span className={`text-2xl font-extrabold tracking-tight ${stat.highlight ? 'text-rose-500' : 'text-white'}`}>
-                    {stat.value}
-                  </span>
-                  <p className="text-xs text-slate-400 mt-1 font-medium">{stat.label}</p>
-                </div>
-                <div className="h-9 w-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400">
-                  <Icon className="w-4 h-4"/>
-                </div>
-              </div>
-            );
-          })}
-        </section>
-
-        {/* Główne Akcje */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link className="group bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm p-5 rounded-xl flex items-center justify-between transition shadow-lg shadow-rose-950/30" to="/my-listings">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-white text-slate-950 flex items-center justify-center">
-                <Plus className="w-4 h-4"/>
-              </div>
-              <span>Wystaw przedmiot do Trade-in</span>
+        <Link 
+          to="/card-exchange" 
+          className="group bg-surface-container-lowest hover:bg-surface-container border border-outline-variant/50 text-on-surface font-bold text-base p-6 rounded-2xl flex items-center justify-between transition shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+              <Search className="w-5 h-5"/>
             </div>
-            <ArrowUpRight className="w-4 h-4 text-white/70 group-hover:text-white transition"/>
-          </Link>
-
-          <Link className="group bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-100 font-semibold text-sm p-5 rounded-xl flex items-center justify-between transition" to="/card-exchange">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                <Search className="w-4 h-4"/>
-              </div>
-              <span>Przeglądaj giełdę</span>
+            <div>
+              <div className="text-base font-bold">Przeglądaj giełdę</div>
+              <div className="text-xs text-on-surface-variant font-normal">Wyszukuj dopasowania i oferty wymiany</div>
             </div>
-            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-slate-100 transition"/>
-          </Link>
-        </section>
+          </div>
+          <ArrowUpRight className="w-5 h-5 text-on-surface-variant group-hover:text-on-surface transition"/>
+        </Link>
+      </section>
 
-        {/* Katalog Giełdy */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Kategorie trade-in</h2>
-            <Link className="text-xs text-slate-400 hover:text-slate-200 transition" to="/card-exchange">
-              Wszystkie →
+      {/* Category Directory */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Kategorie Giełdy</h2>
+          <Link className="text-xs font-semibold text-secondary hover:text-on-secondary-fixed-variant transition" to="/card-exchange">
+            Wszystkie →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {categories.map((cat) => (
+            <Link 
+              key={cat.name} 
+              to={cat.path || "/card-exchange"}
+              className="bg-surface-container-lowest hover:bg-surface-container-low border border-outline-variant/40 hover:border-secondary/40 p-5 rounded-2xl flex items-center justify-between transition group shadow-sm"
+            >
+              <span className="text-sm font-bold text-on-surface group-hover:text-secondary transition">
+                {cat.name}
+              </span>
+              <span className="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-lg font-mono font-semibold">
+                {cat.count}
+              </span>
             </Link>
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {categories.map((cat) => (
-              <Link 
-                className="bg-slate-900/40 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex items-center justify-between transition group" 
-                key={cat.name} 
-                to={cat.path || "/card-exchange"}
-              >
-                <span className="text-sm font-medium text-slate-300 group-hover:text-white transition">
-                  {cat.name}
-                </span>
-                <span className="text-xs text-slate-400 bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded-md font-mono">
-                  {cat.count}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
+      {/* Institutional Guarantee Banner */}
+      <footer className="border-t border-outline-variant/30 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-on-surface-variant gap-2">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-secondary"/>
+          <span>Instytucjonalna weryfikacja laboratoryjna w centralnym Hubie Escrow</span>
+        </div>
+        <span className="font-semibold text-secondary">Protokół FlipCardZ Guaranteed</span>
+      </footer>
 
-        {/* Dyskretny banner gwarancji Swiss Safe */}
-        <footer className="border-t border-slate-800 pt-6 flex items-center justify-between text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-rose-500"/>
-            <span>Certyfikowana weryfikacja fizyczna w Hubie Escrow</span>
-          </div>
-          <span className="font-mono text-[11px] text-slate-500">STANDARD PSA & MPB TRADE-IN</span>
-        </footer>
-
-      </div>
     </div>
   );
 }
