@@ -4,11 +4,9 @@ import ExchangeView from '../components/exchange/ExchangeView';
 export default function BrickExchange() {
   return (
     <ExchangeView
-      title="Brick Exchange"
-      description="Trade LEGO sets and minifigures"
-      icon="🧱"
-      allowedCategories={['lego_minifigures']}
-      gradient="from-red-600 to-orange-600"
+      title="Giełda LEGO & Klocków"
+      description="Wymieniaj zestawy LEGO, unikatowe figurki i rzadkie sety z weryfikacją Hub"
+      allowedCategories={['lego', 'lego_bricks', 'lego_minifigures']}
     />
   );
 }

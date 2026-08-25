@@ -87,7 +87,10 @@ function AppRoutes() {
         {/* Public routes - BEZ Layout! */}
         <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
         <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
+        <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/explore" element={<Navigate to="/card-exchange" replace />} />
+        <Route path="/categories" element={<Navigate to="/card-exchange" replace />} />
         
         {/* Protected routes - Z Layout przez ProtectedRoute */}
         <Route 
