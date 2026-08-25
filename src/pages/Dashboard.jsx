@@ -11,7 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useAuth, supabase } from '../lib/AuthContext';
 
-export default function Home() {
+export default function Dashboard() {
   const { user, profile } = useAuth();
   const [statsData, setStatsData] = useState({
     offersCount: 0,
@@ -94,8 +94,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-zinc-100 antialiased font-sans -m-6 p-6 sm:p-10">
-      <div className="max-w-5xl mx-auto space-y-10">
+    <div className="min-h-screen bg-[#090A0F] text-zinc-100 antialiased font-sans">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
 
         {/* Top Bar: Profil i Plan */}
         <header className="flex items-center justify-between">

@@ -27,6 +27,7 @@ import Subscription from './pages/Subscription';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import AdminPanel from './pages/AdminPanel';
 import MyListings from './pages/MyListings';
+import Dashboard from './pages/Dashboard';
 
 import './App.css';
 
