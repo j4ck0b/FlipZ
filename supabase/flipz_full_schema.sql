@@ -109,6 +109,33 @@ create policy "messages_insert" on public.messages for insert with check (
   sender_email = auth.jwt()->>'email'
 );
 
+-- 5. Escrow Audit Trail & Swiss Safe
+create policy "escrow_audit_trail_select" on public.escrow_audit_trail
+  for select using (
+    exists (
+      select 1 from public.trade_offers t
+      where t.id = escrow_audit_trail.trade_offer_id
+        and (
+          t.sender_email = auth.jwt()->>'email'
+          or t.owner_email = auth.jwt()->>'email'
+          or t.sender_id = auth.uid()
+          or t.owner_id = auth.uid()
+        )
+    )
+    or exists (
+      select 1 from public.panel_access pa
+      where pa.user_id = auth.uid() and pa.role in ('admin', 'employee')
+    )
+  );
+
+create policy "escrow_audit_trail_insert" on public.escrow_audit_trail
+  for insert with check (
+    exists (
+      select 1 from public.panel_access pa
+      where pa.user_id = auth.uid() and pa.role in ('admin', 'employee')
+    )
+  );
+
 -- ==========================================
 -- INDEXES
 -- ==========================================
@@ -117,3 +144,5 @@ create index if not exists idx_trade_offers_sender_email on public.trade_offers(
 create index if not exists idx_card_listings_created_by on public.card_listings(created_by);
 create index if not exists idx_messages_conversation_id on public.messages(conversation_id);
 create index if not exists idx_trade_conversations_trade_offer_id on public.trade_conversations(trade_offer_id);
+create index if not exists idx_escrow_audit_trail_trade_id on public.escrow_audit_trail(trade_offer_id);
+

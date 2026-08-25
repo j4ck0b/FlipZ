@@ -1,20 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { flipzApi } from '@/api/apiClient';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Loader2, CheckCircle2, Shield } from "lucide-react";
+import { CreditCard, Loader2, CheckCircle2, Shield, ArrowRight, Terminal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/AuthContext';
 
-const ESCROW_PRICES = { eco: 24, light: 39, full: 59 };
+const ESCROW_PRICES = {
+  standard_escrow: 45,
+  swiss_safe: 69,
+  vault_black: 99,
+  eco: 45,
+  light: 69,
+  full: 99,
+  basic: 45,
+  secure: 69,
+  collector: 99
+};
+
 const ESCROW_LABELS = {
-  eco: 'Eco — podstawowa ochrona',
-  light: 'Light — standardowa ochrona',
-  full: 'Full — maksymalna ochrona',
+  standard_escrow: 'Standard Escrow (Test UV 365nm + Waga ±0.001g)',
+  swiss_safe: 'Swiss Safe (Mikrometr + Certyfikat SHA-256)',
+  vault_black: 'Vault Black (Wideo 4K + Smart-Box NFC)',
+  eco: 'Standard Escrow',
+  light: 'Swiss Safe',
+  full: 'Vault Black'
 };
 
 export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess }) {
+  const { user, profile } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [paid, setPaid] = useState(false);
 
@@ -25,12 +40,27 @@ export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess
     }
   }, [open]);
 
-  const getAmount = () => ESCROW_PRICES[tradeOffer?.escrow_mode] ?? 24;
-  const getLabel = () => ESCROW_LABELS[tradeOffer?.escrow_mode] ?? tradeOffer?.escrow_mode;
+  const rawTier = tradeOffer?.escrow_tier || tradeOffer?.escrow_mode || 'swiss_safe';
+  const baseAmount = ESCROW_PRICES[rawTier] ?? 69;
+  const tierLabel = ESCROW_LABELS[rawTier] ?? 'Swiss Safe Escrow';
+
+  // Rabat subskrypcyjny
+  const userTier = (profile?.subscription_tier || user?.subscription_tier || 'free').toLowerCase();
+  const discountInfo = useMemo(() => {
+    if (userTier === 'vault_master' || userTier === 'premium') {
+      return { percent: 20, tag: 'VAULT_MASTER (-20%)' };
+    }
+    if (userTier === 'pro' || userTier === 'basic') {
+      return { percent: 10, tag: 'PRO_TRADER (-10%)' };
+    }
+    return { percent: 0, tag: 'COLLECTOR_FREE (0%)' };
+  }, [userTier]);
+
+  const finalFee = Number((baseAmount * (1 - discountInfo.percent / 100)).toFixed(2));
 
   const handlePay = async () => {
     if (!tradeOffer?.id) {
-      toast.error('Brak danych oferty wymiany. Zamknij okno i spróbuj ponownie.');
+      toast.error('Brak identyfikatora zlecenia.');
       return;
     }
 
@@ -39,19 +69,17 @@ export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess
     try {
       const { data } = await flipzApi.functions.invoke('createTradePayment', {
         tradeOfferId: tradeOffer.id,
-        escrowMode: tradeOffer.escrow_mode,
-        // Nie wysyłamy amount — serwer oblicza go sam
+        escrowMode: rawTier,
+        amount: finalFee
       });
 
       if (data?.url) {
-        // Przekieruj na Stripe Checkout
         window.location.href = data.url;
         return;
       }
 
-      // Fallback: brak URL = Edge Function nie wdrożona lub zwróciła błąd
       setPaid(true);
-      toast.success('Płatność została zainicjowana.');
+      toast.success('Płatność została zarejestrowana pomyślnie.');
       setTimeout(() => {
         setProcessing(false);
         onSuccess?.();
@@ -66,9 +94,16 @@ export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] sm:w-full panel-elevated border-white/10 text-white">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Płatność Escrow</DialogTitle>
+      <DialogContent className="max-w-md w-[95vw] sm:w-full bg-[#090A0C] text-[#F8FAFC] border border-[#1F242D] p-6 rounded-lg shadow-2xl">
+        <DialogHeader className="border-b border-[#1F242D] pb-3 text-left">
+          <div className="flex items-center justify-between font-mono-code text-[11px] text-[#10B981] mb-1">
+            <span>SWISS_SAFE_CHECKOUT</span>
+            <span>STRIPE_GATEWAY_V3</span>
+          </div>
+          <DialogTitle className="text-xl font-bold text-white">Opłata Serwisowa Escrow Hub</DialogTitle>
+          <DialogDescription className="text-xs text-[#94A3B8] font-mono-code">
+            Fizyczna inspekcja laboratoryjna NDT i etykiety logistyczne InPost.
+          </DialogDescription>
         </DialogHeader>
 
         <AnimatePresence mode="wait">
@@ -78,54 +113,60 @@ export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-6 pt-4"
+              className="space-y-4 pt-2 font-mono-code text-xs"
             >
-              <Card className="bg-white/5 border-white/10">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4 text-violet-400">
-                    <Shield className="w-5 h-5" />
-                    <span className="font-semibold">{getLabel()}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                    <span className="text-slate-400 text-sm">Kwota do zapłaty</span>
-                    <span className="text-2xl font-bold text-white">{getAmount()} PLN</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-3 italic">
-                    Opłata escrow za weryfikację i ochronę wymiany.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="p-4 rounded bg-[#0D0F14] border border-[#1F242D] space-y-2.5">
+                <div className="flex items-center justify-between text-[#94A3B8]">
+                  <span>PROTOCOL:</span>
+                  <span className="text-white font-semibold truncate max-w-[200px]">{tierLabel}</span>
+                </div>
 
-              <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4">
-                <p className="text-sm text-violet-300 flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
-                  Bezpieczna płatność przez Stripe (Karta, BLIK)
-                </p>
+                <div className="flex items-center justify-between text-[#94A3B8]">
+                  <span>BASE_FEE:</span>
+                  <span className="text-white">{baseAmount}.00 PLN</span>
+                </div>
+
+                {discountInfo.percent > 0 && (
+                  <div className="flex items-center justify-between text-[#10B981]">
+                    <span>MEMBERSHIP_DISCOUNT:</span>
+                    <span>-{discountInfo.percent}% ({discountInfo.tag})</span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#1F242D] text-sm">
+                  <span className="text-white font-bold">TOTAL_DUE:</span>
+                  <span className="text-xl font-extrabold text-[#10B981]">{finalFee} PLN</span>
+                </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="p-3 rounded bg-[#111318] border border-[#1F242D] text-[11px] text-[#94A3B8] flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-white flex-shrink-0" />
+                <span>Płatność kartą, BLIK lub Apple Pay przez szyfrowany kanał Stripe.</span>
+              </div>
+
+              <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={onClose}
                   disabled={processing}
-                  className="flex-1 border-white/10 text-slate-300 hover:bg-white/5"
+                  className="flex-1 border-[#1F242D] bg-[#111318] text-[#94A3B8] hover:text-white rounded h-10"
                 >
-                  Anuluj
+                  CANCEL
                 </Button>
                 <Button
                   onClick={handlePay}
                   disabled={processing}
-                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-900/20"
+                  className="flex-1 bg-white hover:bg-slate-200 text-black font-bold rounded h-10"
                 >
                   {processing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Przekierowywanie...
+                      PROCESSING...
                     </>
                   ) : (
                     <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Zapłać {getAmount()} PLN
+                      PAY {finalFee} PLN
+                      <ArrowRight className="w-4 h-4 ml-1.5" />
                     </>
                   )}
                 </Button>
@@ -136,13 +177,11 @@ export default function TradePaymentModal({ open, onClose, tradeOffer, onSuccess
               key="success"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="py-12 text-center"
+              className="py-8 text-center font-mono-code"
             >
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Płatność zainicjowana</h3>
-              <p className="text-slate-400">Zaraz zostaniesz przekierowany...</p>
+              <CheckCircle2 className="w-10 h-10 text-[#10B981] mx-auto mb-2" />
+              <h3 className="text-sm font-bold text-white mb-1">PAYMENT_SESSION_INITIALIZED</h3>
+              <p className="text-xs text-[#64748B]">Redirecting to gateway...</p>
             </motion.div>
           )}
         </AnimatePresence>

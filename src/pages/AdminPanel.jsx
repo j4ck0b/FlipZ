@@ -18,9 +18,12 @@ import {
   Loader2,
   PackageCheck,
   Truck,
-  ClipboardCheck
+  ClipboardCheck,
+  Microscope
 } from "lucide-react";
 import { createPageUrl } from '../utils';
+import HubVerifier from '../components/admin/HubVerifier';
+
 
 const ORDER_STATUS_FLOW = ['payment', 'preparing_shipment', 'hub_verification', 'completed'];
 
@@ -269,11 +272,19 @@ export default function AdminPanel() {
           </Card>
         </div>
 
-        <Tabs defaultValue={defaultTab} className="space-y-4">
-          <TabsList>
-            {canManageUsers && <TabsTrigger value="admin">Zarządzanie użytkownikami</TabsTrigger>}
+        <Tabs defaultValue="verifier" className="space-y-4">
+          <TabsList className="bg-slate-200/80 p-1 rounded-xl">
+            <TabsTrigger value="verifier" className="flex items-center gap-1.5 font-bold data-[state=active]:bg-violet-600 data-[state=active]:text-white">
+              <Microscope className="w-4 h-4" />
+              Terminal Weryfikatora Hubu
+            </TabsTrigger>
             {canProcessOrders && <TabsTrigger value="warehouse">Magazyn i zamówienia</TabsTrigger>}
+            {canManageUsers && <TabsTrigger value="admin">Zarządzanie użytkownikami</TabsTrigger>}
           </TabsList>
+
+          <TabsContent value="verifier">
+            <HubVerifier />
+          </TabsContent>
 
           {canManageUsers && (
             <TabsContent value="admin">

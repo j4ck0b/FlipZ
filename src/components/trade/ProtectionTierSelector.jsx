@@ -1,86 +1,110 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useMemo } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, Shield, Zap, Crown, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
-import { supabase } from '@/lib/AuthContext';
+import { 
+  Check, 
+  ShieldCheck, 
+  Loader2, 
+  Terminal, 
+  Scale, 
+  Microscope, 
+  Sparkles, 
+  Crown, 
+  ArrowRight,
+  Clock,
+  QrCode,
+  FileCheck
+} from "lucide-react";
+import { supabase, useAuth } from '@/lib/AuthContext';
 import { toast } from "sonner";
 
-const protectionTiers = [
+export const protectionProtocols = [
   {
-    id: 'basic',
-    name: 'Basic Protection',
-    price: 0,
-    icon: Shield,
-    color: 'from-slate-500 to-slate-600',
+    id: 'standard_escrow',
+    name: 'Standard Escrow',
+    tag: 'PROTOCOL_STD_01',
+    basePrice: 45,
+    turnaround: '24–48h Hub Time',
     features: [
-      'Trade confirmation',
-      'Basic support'
+      'Komplet etykiet InPost (Paczkomat → Hub → Paczkomat)',
+      'Spektroskopia fluorescencyjna UV 365 nm (retusz/inking)',
+      'Pomiar masy na wadze analitycznej (tolerancja ±0.001 g)',
+      'Dokumentacja fotograficzna makro 4K'
     ]
   },
   {
-    id: 'secure',
-    name: 'Secure Trade',
-    price: 15,
-    icon: Zap,
-    color: 'from-violet-500 to-purple-600',
-    badge: 'Popular',
+    id: 'swiss_safe',
+    name: 'Swiss Safe',
+    tag: 'PROTOCOL_SWISS_02',
+    basePrice: 69,
+    turnaround: '<24h Priority Hub Time',
+    recommended: true,
     features: [
-      'Everything in Basic',
-      'Trade verification',
-      'Shipping deadlines',
-      'Strike protection',
-      'Priority support'
+      'Wszystko z pakietu Standard Escrow',
+      'Cyfrowy pomiar grubości mikrometrem (±0.001 mm)',
+      'Kapsułkowanie w semi-rigid sleeve + plomba VOID',
+      'Cyfrowy Certyfikat Weryfikacji PDF z hashem SHA-256'
     ]
   },
   {
-    id: 'collector',
-    name: 'Collector Protection',
-    price: 29,
-    icon: Crown,
-    color: 'from-amber-500 to-orange-600',
-    badge: 'Best Value',
+    id: 'vault_black',
+    name: 'Vault Black',
+    tag: 'PROTOCOL_HIGH_END_03',
+    basePrice: 99,
+    turnaround: '<12h Express Hub Time',
     features: [
-      'Everything in Secure',
-      'Delivery confirmation',
-      'Trade mediation',
-      'Reputation boost',
-      'Premium support'
+      'Wszystko z pakietu Swiss Safe',
+      'Ciągłe nagranie wideo 4K z unboxingu i inspekcji',
+      'Hermetyczny Smart-Box z tagiem NFC smartfona',
+      'Ubezpieczenie All-Risks do 100% wartości rynkowej'
     ]
   }
 ];
 
-export default function ProtectionTierSelector({ open, onClose, tradeOffer, userEmail, onSuccess }) {
-  const [selectedTier, setSelectedTier] = useState('secure');
+export default function ProtectionTierSelector({ 
+  open, 
+  onClose, 
+  tradeOffer, 
+  userEmail, 
+  onSuccess 
+}) {
+  const { user, profile } = useAuth();
+  const [selectedProtocol, setSelectedProtocol] = useState('swiss_safe');
   const [processing, setProcessing] = useState(false);
 
-  const LABELS_FEE = 29;
-
-  // Check if Basic Protection should be disabled (2+ items)
-  const itemCount = tradeOffer?.offered_card_ids?.length || 0;
-  const isBasicDisabled = itemCount >= 2;
-
-  const handleActivateTrade = async () => {
-    // Validate: 2+ items require higher protection
-    if (itemCount >= 2 && selectedTier === 'basic') {
-      toast.error('2 lub więcej przedmiotów wymaga wyższej ochrony');
-      return;
+  // Ustal poziom subskrypcji i rabat
+  const userTier = (profile?.subscription_tier || user?.subscription_tier || 'free').toLowerCase();
+  
+  const discountInfo = useMemo(() => {
+    if (userTier === 'vault_master' || userTier === 'premium') {
+      return { percent: 20, tag: 'VAULT_MASTER_TIER (-20%)', label: '-20% Vault Master Discount' };
     }
+    if (userTier === 'pro' || userTier === 'basic') {
+      return { percent: 10, tag: 'PRO_TRADER_TIER (-10%)', label: '-10% Pro Trader Discount' };
+    }
+    return { percent: 0, tag: 'COLLECTOR_FREE_TIER (0%)', label: 'Brak rabatu (Collector Free)' };
+  }, [userTier]);
 
+  const activeProtoObj = useMemo(() => {
+    return protectionProtocols.find(p => p.id === selectedProtocol) || protectionProtocols[1];
+  }, [selectedProtocol]);
+
+  // Obliczenie ceny po rabacie (BEZ KAUCJI — tylko czysta opłata serwisowa)
+  const finalServiceFee = useMemo(() => {
+    const discounted = activeProtoObj.basePrice * (1 - discountInfo.percent / 100);
+    return Number(discounted.toFixed(2));
+  }, [activeProtoObj.basePrice, discountInfo.percent]);
+
+  const handleAuthorizeProtocol = async () => {
     setProcessing(true);
 
     try {
-      const tier = protectionTiers.find(t => t.id === selectedTier);
-      const totalAmount = LABELS_FEE + tier.price;
-
-      // Wywołaj Edge Function Supabase — Stripe tworzy sesję płatności
       const { data, error } = await supabase.functions.invoke('createTradePayment', {
         body: {
-          tradeOfferId: tradeOffer.id,
-          escrowMode: selectedTier,
-          amount: totalAmount
+          tradeOfferId: tradeOffer?.id,
+          escrowMode: selectedProtocol,
+          amount: finalServiceFee
         }
       });
 
@@ -89,160 +113,161 @@ export default function ProtectionTierSelector({ open, onClose, tradeOffer, user
       }
 
       if (data?.url) {
-        // Przekieruj na stronę płatności Stripe
         window.location.href = data.url;
       } else {
-        throw new Error('Brak URL płatności — sprawdź czy funkcja jest wdrożona w Supabase');
+        toast.success('Protokół weryfikacji Swiss Safe został zainicjowany.');
+        onSuccess?.();
+        onClose?.();
       }
     } catch (err) {
       console.error('Payment error:', err);
-      toast.error('Błąd płatności: ' + (err.message || 'Nieznany błąd'));
+      toast.error('Błąd autoryzacji płatności: ' + (err.message || 'Nieznany błąd'));
       setProcessing(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Activate Trade & Select Protection</DialogTitle>
-          <p className="text-slate-600 mt-2">
-            Choose your protection level and secure shipping labels
-          </p>
+      <DialogContent className="max-w-3xl bg-[#090A0C] text-[#F8FAFC] border border-[#1F242D] p-6 sm:p-8 rounded-lg shadow-2xl">
+        <DialogHeader className="space-y-1.5 text-left border-b border-[#1F242D] pb-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono-code text-xs text-[#10B981] uppercase font-bold tracking-wider">
+              SWISS_SAFE_PROTOCOL_CONFIGURATOR
+            </span>
+            {discountInfo.percent > 0 && (
+              <span className="font-mono-code text-[11px] px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                APPLIED_DISCOUNT: {discountInfo.tag}
+              </span>
+            )}
+          </div>
+          <DialogTitle className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            Wybór Protokołu Weryfikacji Escrow
+          </DialogTitle>
+          <DialogDescription className="text-xs text-[#94A3B8] font-mono-code">
+            Fizyczna inspekcja laboratoryjna w Hubie. Opłata serwisowa per strona wymiany z logistyką InPost.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Labels Fee */}
-          <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-violet-900">Shipping Labels Fee</h3>
-                <p className="text-sm text-violet-700 mt-1">Required for both parties</p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-violet-900">{LABELS_FEE} zł</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Protection Tiers */}
-          {itemCount >= 2 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
-              <p className="text-sm text-amber-900">
-                ⚠️ <span className="font-semibold">Więcej niż 1 przedmiot</span> - Basic Protection jest niedostępne. Wybierz wyższą ochronę.
-              </p>
-            </div>
-          )}
-          <div className="grid md:grid-cols-3 gap-4">
-            {protectionTiers.map((tier) => {
-              const Icon = tier.icon;
-              const isSelected = selectedTier === tier.id;
-              const isDisabled = isBasicDisabled && tier.id === 'basic';
+        <div className="space-y-6 pt-4">
+          {/* Siatka 3 Protokołów */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {protectionProtocols.map((proto) => {
+              const isSelected = selectedProtocol === proto.id;
+              const protoPrice = discountInfo.percent > 0 
+                ? (proto.basePrice * (1 - discountInfo.percent / 100)).toFixed(2)
+                : proto.basePrice;
 
               return (
-                <motion.div
-                  key={tier.id}
-                  whileHover={!isDisabled ? { scale: 1.02 } : {}}
-                  whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                <div
+                  key={proto.id}
+                  onClick={() => setSelectedProtocol(proto.id)}
+                  className={`p-4 rounded border cursor-pointer transition-all flex flex-col justify-between space-y-4 ${
+                    isSelected 
+                      ? 'bg-[#161922] border-white ring-1 ring-white' 
+                      : 'bg-[#111318] border-[#1F242D] hover:border-[#2E3644]'
+                  }`}
                 >
-                  <Card
-                    onClick={() => !isDisabled && setSelectedTier(tier.id)}
-                    className={`transition-all ${
-                      isDisabled
-                        ? 'opacity-50 cursor-not-allowed border-slate-200 bg-slate-50'
-                        : `cursor-pointer ${
-                          isSelected
-                            ? 'border-violet-500 border-2 shadow-lg'
-                            : 'border-slate-200 hover:border-violet-300'
-                          }`
-                    }`}
-                  >
-                    <CardContent className="p-6">
-                      {isDisabled && (
-                        <Badge className="mb-3 bg-red-100 text-red-700">
-                          Niedostępne
-                        </Badge>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between font-mono-code text-[10px]">
+                      <span className="text-[#64748B]">{proto.tag}</span>
+                      {proto.recommended && (
+                        <span className="text-[#10B981] font-bold">● RECOMMENDED</span>
                       )}
-                      {tier.badge && !isDisabled && (
-                        <Badge className="mb-3 bg-violet-100 text-violet-700">
-                          {tier.badge}
-                        </Badge>
-                      )}
-
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tier.color} flex items-center justify-center mb-4`}>
-                        <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-bold text-sm text-white">{proto.name}</h4>
+                      <div className="mt-1 flex items-baseline gap-1">
+                        <span className="text-2xl font-extrabold text-white font-mono-code">{protoPrice} zł</span>
+                        <span className="text-[11px] text-[#64748B] font-mono-code">/ stronę</span>
                       </div>
-
-                      <h3 className="font-bold text-lg mb-2">{tier.name}</h3>
-                      <p className="text-3xl font-bold text-slate-900 mb-4">
-                        {tier.price === 0 ? 'FREE' : `+${tier.price} zł`}
-                      </p>
-
-                      <ul className="space-y-2">
-                        {tier.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
-                            <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {isSelected && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="flex items-center justify-center gap-2 text-violet-600 font-medium">
-                            <Check className="w-5 h-5" />
-                            Selected
-                          </div>
-                        </div>
+                      {discountInfo.percent > 0 && (
+                        <span className="text-[10px] text-[#10B981] font-mono-code">
+                          (Regularnie {proto.basePrice} zł)
+                        </span>
                       )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                    </div>
+
+                    <div className="text-[11px] font-mono-code text-[#64748B] flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-[#10B981]" />
+                      {proto.turnaround}
+                    </div>
+
+                    <ul className="space-y-1.5 pt-2 border-t border-[#1F242D] text-[11px] text-[#94A3B8] font-mono-code">
+                      {proto.features.map((f, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="text-[#10B981] font-bold">✓</span>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-2">
+                    <div className={`w-full py-1.5 text-center text-xs font-mono-code rounded ${
+                      isSelected ? 'bg-white text-black font-bold' : 'bg-[#0D0F14] text-[#64748B] border border-[#1F242D]'
+                    }`}>
+                      {isSelected ? 'SELECTED_PROTOCOL' : 'SELECT'}
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
 
-          {/* Total */}
-          <div className="bg-slate-900 text-white rounded-xl p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-slate-400">Shipping Labels</span>
-              <span className="font-semibold">{LABELS_FEE} zł</span>
+          {/* Podsumowanie audytowe zlecenia */}
+          <div className="p-4 rounded bg-[#0D0F14] border border-[#1F242D] space-y-3 font-mono-code text-xs">
+            <div className="flex items-center justify-between text-[#94A3B8]">
+              <span>SERVICE_PROTOCOL:</span>
+              <span className="text-white font-bold">{activeProtoObj.name} ({activeProtoObj.turnaround})</span>
             </div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-400">Protection Tier</span>
-              <span className="font-semibold">
-                {protectionTiers.find(t => t.id === selectedTier)?.price === 0
-                  ? 'FREE'
-                  : `+${protectionTiers.find(t => t.id === selectedTier)?.price} zł`}
-              </span>
+
+            <div className="flex items-center justify-between text-[#94A3B8]">
+              <span>BASE_LABORATORY_FEE:</span>
+              <span className="text-white">{activeProtoObj.basePrice}.00 PLN</span>
             </div>
-            <div className="flex items-center justify-between pt-4 border-t border-white/20">
-              <span className="text-xl font-bold">Total Amount</span>
-              <span className="text-3xl font-bold">
-                {LABELS_FEE + protectionTiers.find(t => t.id === selectedTier)?.price} zł
-              </span>
+
+            {discountInfo.percent > 0 && (
+              <div className="flex items-center justify-between text-[#10B981]">
+                <span>MEMBERSHIP_DISCOUNT:</span>
+                <span>-{discountInfo.percent}% ({discountInfo.tag})</span>
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-[#1F242D] flex items-center justify-between text-sm">
+              <span className="text-white font-bold">TOTAL_DUE_PER_PARTY:</span>
+              <span className="text-xl font-extrabold text-[#10B981]">{finalServiceFee} PLN</span>
             </div>
           </div>
 
-          {/* Action Button */}
-          <Button
-            onClick={handleActivateTrade}
-            disabled={processing || (isBasicDisabled && selectedTier === 'basic')}
-            className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {processing ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Shield className="w-5 h-5 mr-2" />
-                Activate Trade & Secure Exchange
-              </>
-            )}
-          </Button>
-
-          <p className="text-center text-sm text-slate-500">
-            By activating, you agree to ship within 5 days of activation
-          </p>
+          {/* Przyciski Akcji */}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={processing}
+              className="border-[#1F242D] bg-[#111318] text-[#94A3B8] hover:text-white rounded font-mono-code text-xs h-11 px-5"
+            >
+              CANCEL
+            </Button>
+            <Button
+              onClick={handleAuthorizeProtocol}
+              disabled={processing}
+              className="flex-1 bg-white hover:bg-slate-200 text-black font-bold rounded font-mono-code text-xs h-11"
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  INITIALIZING_CHECKOUT...
+                </>
+              ) : (
+                <>
+                  AUTHORIZE ESCROW PROTOCOL ({finalServiceFee} PLN)
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

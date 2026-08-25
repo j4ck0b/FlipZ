@@ -1,351 +1,152 @@
+/* =========================================================================
+   FLIPZ - SWISS CLEANROOM & VAULT DESIGN SYSTEM
+   Inspired by Linear, Raycast, Stripe Press & Leica/Mettler Toledo Interfaces
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-vault: #090A0C;
+  --bg-panel: #111318;
+  --bg-panel-elevated: #161922;
+  --bg-panel-subtle: #0D0F14;
+  --border-vault: #1F242D;
+  --border-vault-hover: #2E3644;
+  --border-vault-active: #3D4759;
+  
+  --swiss-red: #E53935;
+  --swiss-red-muted: rgba(229, 57, 53, 0.15);
+  --lab-emerald: #10B981;
+  --lab-emerald-muted: rgba(16, 185, 129, 0.15);
+  --lab-cyan: #06B6D4;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-mono: #CBD5E1;
+}
+
 /* ===================================
-   App Shell & Layout
-=================================== */
+   Base Vault App Shell
+   =================================== */
 .app-shell {
-  background: linear-gradient(135deg, #0f0c29 0%, #1a1035 35%, #23216a 60%, #1e1b4b 100%);
+  background-color: var(--bg-vault);
+  color: var(--text-primary);
   min-height: 100vh;
   position: relative;
-  overflow-x: hidden;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.app-shell__glow {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
+/* Subtle Technical Grid Background */
+.vault-grid-bg {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
 
-.app-shell__glow--primary {
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  right: -200px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
-  animation: glow-pulse 8s ease-in-out infinite alternate;
-}
-
-.app-shell__glow--secondary {
-  width: 500px;
-  height: 500px;
-  bottom: -150px;
-  left: -150px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, transparent 70%);
-  animation: glow-pulse 10s ease-in-out infinite alternate-reverse;
-}
-
-/* ===================================
-   Navigation Header
-=================================== */
+/* Header */
 .app-header {
-  background: rgba(15, 12, 41, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-.logo-orb {
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+  background: rgba(9, 10, 12, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-vault);
 }
 
 /* ===================================
-   Glass Panel Components
-=================================== */
+   Vault Technical Panels
+   =================================== */
+.panel-vault {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-vault);
+  border-radius: 6px;
+}
+
+.panel-vault-elevated {
+  background-color: var(--bg-panel-elevated);
+  border: 1px solid var(--border-vault);
+  border-radius: 6px;
+}
+
+.panel-vault-subtle {
+  background-color: var(--bg-panel-subtle);
+  border: 1px solid var(--border-vault);
+  border-radius: 4px;
+}
+
+/* Backward compatibility classes with de-slopped styling */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-vault);
+  border-radius: 6px;
 }
 
 .panel-elevated {
-  background: rgba(30, 20, 70, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  background-color: var(--bg-panel-elevated);
+  border: 1px solid var(--border-vault);
+  border-radius: 6px;
 }
 
 .panel-muted {
-  background: rgba(20, 15, 55, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-vault);
+  border-radius: 6px;
 }
 
 /* ===================================
-   Page Content Surface
-=================================== */
-.page-surface {
-  position: relative;
-  z-index: 1;
+   Technical Monospace Typography
+   =================================== */
+.font-mono-code {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ===================================
-   Typography
-=================================== */
 .section-heading {
-  background: linear-gradient(135deg, #e2e8f0 0%, #c4b5fd 50%, #f9a8d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+  font-weight: 700;
 }
 
-/* ===================================
-   Accent / Glow Effects
-=================================== */
-.accent-glow {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+/* Technical Status Badges */
+.badge-swiss-verified {
+  background-color: var(--lab-emerald-muted);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34D399;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.card-hover-glow {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.badge-swiss-alert {
+  background-color: var(--swiss-red-muted);
+  border: 1px solid rgba(229, 57, 53, 0.4);
+  color: #F87171;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.card-hover-glow:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.25), 0 4px 16px rgba(0, 0, 0, 0.3);
-  border-color: rgba(139, 92, 246, 0.4);
+.badge-swiss-neutral {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-vault);
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* ===================================
-   Page Transitions
-=================================== */
-.page-transition {
-  animation: page-fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+/* Measurement Gauge / Terminal Scanline */
+.terminal-cursor::after {
+  content: '▋';
+  display: inline-block;
+  vertical-align: baseline;
+  color: var(--lab-emerald);
+  animation: blink 1s step-start infinite;
 }
 
-/* ===================================
-   Status Badges (semantic)
-=================================== */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 10px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-}
-
-.status-available  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-.status-pending    { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-.status-accepted   { background: rgba(99,102,241,0.15); color: #a78bfa; border: 1px solid rgba(99,102,241,0.3); }
-.status-completed  { background: rgba(34,197,94,0.15);  color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
-.status-rejected   { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-.status-cancelled  { background: rgba(107,114,128,0.15);color: #9ca3af; border: 1px solid rgba(107,114,128,0.3); }
-.status-sold       { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-.status-traded     { background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
-
-/* ===================================
-   Form Inputs (dark mode adaption)
-=================================== */
-.dark-input {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e2e8f0;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.dark-input:focus {
-  border-color: rgba(139, 92, 246, 0.6);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-  outline: none;
-}
-
-.dark-input::placeholder {
-  color: rgba(148, 163, 184, 0.5);
-}
-
-/* ===================================
-   Animated Gradient Text
-=================================== */
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.animated-gradient-text {
-  background: linear-gradient(270deg, #a78bfa, #f472b6, #60a5fa, #a78bfa);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease infinite;
-}
-
-/* ===================================
-   Scroll to top smooth
-=================================== */
-html {
-  scroll-behavior: smooth;
-}
-
-/* ===================================
-   Keyframes
-=================================== */
-@keyframes glow-pulse {
-  0%   { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1;   transform: scale(1.15); }
-}
-
-@keyframes page-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.4s ease forwards;
-}
-
-/* ===================================
-   Shimmer Loading Skeleton
-=================================== */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.skeleton {
-  background: linear-gradient(90deg,
-    rgba(255,255,255,0.04) 25%,
-    rgba(255,255,255,0.08) 50%,
-    rgba(255,255,255,0.04) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
-}
-
-/* ===================================
-   Messages / Chat UI
-=================================== */
-.messages-sidebar {
-  background: rgba(15, 12, 41, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 16px;
-}
-
-.messages-panel {
-  background: rgba(20, 15, 55, 0.75);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 16px;
-}
-
-.message-bubble-own {
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
-  color: white;
-  border-radius: 18px 18px 4px 18px;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.message-bubble-other {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-  border-radius: 18px 18px 18px 4px;
-}
-
-.conv-item-active {
-  background: rgba(139, 92, 246, 0.15);
-  border-left: 3px solid #7c3aed;
-}
-
-.conv-item {
-  transition: background 0.2s, border-left 0.2s;
-}
-
-.conv-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-/* ===================================
-   My Listings Card
-=================================== */
-.listing-card {
-  background: rgba(25, 18, 65, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.15);
-  border-radius: 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.listing-card:hover {
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  transform: translateY(-1px);
-}
-
-.offer-card {
-  background: rgba(25, 18, 65, 0.8);
-  border-left: 3px solid #7c3aed;
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
-  border-right: 1px solid rgba(139, 92, 246, 0.15);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
-  border-radius: 16px;
-}
-
-/* ===================================
-   Tabs Styling (dark)
-=================================== */
-.dark-tabs [data-state="active"] {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(147, 51, 234, 0.2));
-  color: #c4b5fd;
-  border-bottom: 2px solid #7c3aed;
-}
-
-/* ===================================
-   Scrollbar Styling
-=================================== */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
-}
-
-/* ===================================
-   Toast overrides
-=================================== */
-[data-sonner-toast] {
-  background: rgba(30, 20, 70, 0.95) !important;
-  border: 1px solid rgba(139, 92, 246, 0.3) !important;
-  backdrop-filter: blur(20px) !important;
-  color: #e2e8f0 !important;
+@keyframes blink {
+  50% { opacity: 0; }
 }

@@ -1,61 +1,54 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, CheckCircle2, Package, Eye } from "lucide-react";
-import { motion } from "framer-motion";
+import { CheckCircle2, Clock } from "lucide-react";
 
-const escrowModes = [
+export const escrowModes = [
   {
-    id: 'eco',
-    name: 'Escrow Eco',
-    price: '24 PLN',
-    icon: Package,
-    color: 'from-green-500 to-emerald-600',
+    id: 'standard_escrow',
+    name: 'Standard Escrow',
+    tag: 'PROTOCOL_01',
+    price: '45 zł / stronę',
+    turnaround: '24–48h Hub Time',
     features: [
-      'Package presence verification',
-      'Basic item count check',
-      'Photo documentation',
-      'Standard return if issues'
-    ],
-    description: 'Hub confirms items are physically present in packages'
+      'Komplet etykiet InPost (Paczkomat → Hub → Paczkomat)',
+      'Spektroskopia UV 365 nm (retusz/inking)',
+      'Pomiar wagi analitycznej (tolerancja ±0.001 g)',
+      'Dokumentacja fotograficzna makro 4K'
+    ]
   },
   {
-    id: 'light',
-    name: 'Escrow Light',
-    price: '39 PLN',
-    icon: Eye,
-    color: 'from-blue-500 to-cyan-600',
+    id: 'swiss_safe',
+    name: 'Swiss Safe',
+    tag: 'PROTOCOL_02',
+    price: '69 zł / stronę',
+    turnaround: '<24h Priority Hub Time',
+    recommended: true,
     features: [
-      'Item presence verification',
-      'Description match check',
-      'Completeness verification',
-      'Full photo documentation',
-      'Priority return handling'
-    ],
-    description: 'Hub verifies items match descriptions and are complete'
+      'Wszystko ze Standard Escrow',
+      'Cyfrowy pomiar grubości mikrometrem (±0.001 mm)',
+      'Semi-rigid sleeve + plomba destrukcyjna VOID',
+      'Cyfrowy Certyfikat Weryfikacji SHA-256 PDF'
+    ]
   },
   {
-    id: 'full',
-    name: 'Escrow Full',
-    price: '59 PLN',
-    icon: Shield,
-    color: 'from-violet-500 to-purple-600',
+    id: 'vault_black',
+    name: 'Vault Black',
+    tag: 'PROTOCOL_03',
+    price: '99 zł / stronę',
+    turnaround: '<12h Express Hub Time',
     features: [
-      'Complete authenticity check',
-      'Condition grading',
-      'Financial escrow protection',
-      'Comprehensive photos',
-      'Full refund guarantee',
-      'Priority handling'
-    ],
-    description: 'Full verification with financial protection and authenticity checks'
+      'Wszystko ze Swiss Safe',
+      'Ciągłe nagranie wideo 4K z unboxingu i inspekcji',
+      'Smart-Box z tagiem NFC smartfona',
+      'Ubezpieczenie All-Risks do 100% wartości'
+    ]
   }
 ];
 
 export default function EscrowModeSelector({ open, onClose, tradeOffer, onSelect }) {
-  const [selected, setSelected] = useState('light');
+  const [selected, setSelected] = useState(tradeOffer?.escrow_tier || tradeOffer?.escrow_mode || 'swiss_safe');
 
   const handleConfirm = () => {
     onSelect(selected);
@@ -63,74 +56,89 @@ export default function EscrowModeSelector({ open, onClose, tradeOffer, onSelect
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Select Escrow Protection Level</DialogTitle>
-          <p className="text-slate-600 mt-2">
-            Choose the verification level for your trade. Both packages will go through Flipz hub for inspection.
-          </p>
+      <DialogContent className="max-w-3xl bg-[#090A0C] text-[#F8FAFC] border border-[#1F242D] p-6 sm:p-8 rounded-lg shadow-2xl">
+        <DialogHeader className="border-b border-[#1F242D] pb-3 text-left">
+          <div className="flex items-center justify-between font-mono-code text-xs text-[#10B981] mb-1">
+            <span>SWISS_SAFE_ESCROW_SELECTOR</span>
+            <span>CENTRAL_LAB_PROTOCOL</span>
+          </div>
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+            Wybór Protokołu Badania Escrow
+          </DialogTitle>
+          <DialogDescription className="text-xs text-[#94A3B8] font-mono-code">
+            Fizyczna weryfikacja laboratoryjna NDT. Obie przesyłki przechodzą przez centralny Hub.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
           {escrowModes.map((mode) => {
-            const Icon = mode.icon;
             const isSelected = selected === mode.id;
             
             return (
-              <motion.div
+              <div
                 key={mode.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelected(mode.id)}
+                className={`p-4 rounded border cursor-pointer transition-all flex flex-col justify-between space-y-4 ${
+                  isSelected 
+                    ? 'bg-[#161922] border-white ring-1 ring-white' 
+                    : 'bg-[#111318] border-[#1F242D] hover:border-[#2E3644]'
+                }`}
               >
-                <Card
-                  onClick={() => setSelected(mode.id)}
-                  className={`cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'border-2 border-violet-600 shadow-lg' 
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${mode.color} flex items-center justify-center mb-4`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">{mode.name}</h3>
-                    <Badge variant="outline" className="mb-3">{mode.price}</Badge>
-                    
-                    <p className="text-sm text-slate-600 mb-4">{mode.description}</p>
-                    
-                    <ul className="space-y-2">
-                      {mode.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                          <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-4 p-2 bg-violet-50 rounded-lg text-center"
-                      >
-                        <p className="text-sm font-medium text-violet-700">Selected</p>
-                      </motion.div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between font-mono-code text-[10px]">
+                    <span className="text-[#64748B]">{mode.tag}</span>
+                    {mode.recommended && (
+                      <span className="text-[#10B981] font-bold">● RECOMMENDED</span>
                     )}
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-sm text-white">{mode.name}</h4>
+                    <div className="mt-1 font-mono-code text-lg font-extrabold text-white">
+                      {mode.price}
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] font-mono-code text-[#64748B] flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-[#10B981]" />
+                    {mode.turnaround}
+                  </div>
+
+                  <ul className="space-y-1.5 pt-2 border-t border-[#1F242D] text-[11px] text-[#94A3B8] font-mono-code">
+                    {mode.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] flex-shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-2">
+                  <div className={`w-full py-1.5 text-center text-xs font-mono-code rounded ${
+                    isSelected ? 'bg-white text-black font-bold' : 'bg-[#0D0F14] text-[#64748B] border border-[#1F242D]'
+                  }`}>
+                    {isSelected ? 'SELECTED' : 'CHOOSE'}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
 
         <div className="flex gap-3 mt-6">
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            Cancel
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="flex-1 border-[#1F242D] bg-[#111318] text-[#94A3B8] hover:text-white rounded font-mono-code text-xs h-10"
+          >
+            CANCEL
           </Button>
-          <Button onClick={handleConfirm} className="flex-1 bg-violet-600 hover:bg-violet-700">
-            Confirm Selection
+          <Button 
+            onClick={handleConfirm} 
+            className="flex-1 bg-white hover:bg-slate-200 text-black font-bold rounded font-mono-code text-xs h-10"
+          >
+            CONFIRM PROTOCOL
           </Button>
         </div>
       </DialogContent>

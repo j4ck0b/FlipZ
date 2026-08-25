@@ -71,31 +71,53 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { tradeOfferId, escrowMode } = await req.json();
+    const { tradeOfferId, escrowMode, declaredValue = 0 } = await req.json();
 
     if (!tradeOfferId || !escrowMode) {
       return Response.json({ error: 'Missing required fields: tradeOfferId, escrowMode' }, { status: 400, headers: corsHeaders });
     }
 
-    // Ceny escrow walidowane po stronie serwera — klient nie może manipulować kwotą
-    const ESCROW_PRICES: Record<string, number> = {
-      eco: 24,
-      light: 39,
-      full: 59
-    };
-
-    const serverAmount = ESCROW_PRICES[escrowMode];
-    if (serverAmount === undefined) {
-      return Response.json({ error: `Invalid escrow mode: ${escrowMode}. Allowed: eco, light, full` }, { status: 400, headers: corsHeaders });
-    }
-
-
-    // Pobierz profil użytkownika
+    // Pobierz profil użytkownika i subskrypcję
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('stripe_customer_id, full_name')
+      .select('stripe_customer_id, full_name, subscription_tier')
       .eq('id', user.id)
       .single();
+
+    // Mapowanie cennika Swiss Safe Hub
+    // 1. Standard Escrow: 45 zł
+    // 2. Swiss Safe: 69 zł
+    // 3. Vault Black: 99 zł (lub 3% powyżej 3000 zł)
+    const normalizedMode = (escrowMode || '').toLowerCase();
+    let baseAmount = 45;
+    let tierName = 'Standard Escrow';
+
+    if (normalizedMode === 'swiss_safe' || normalizedMode === 'secure' || normalizedMode === 'light') {
+      baseAmount = 69;
+      tierName = 'Swiss Safe';
+    } else if (normalizedMode === 'vault_black' || normalizedMode === 'collector' || normalizedMode === 'full') {
+      const numericDeclaredValue = Number(declaredValue) || 0;
+      if (numericDeclaredValue > 3000) {
+        baseAmount = Math.max(99, Math.round(numericDeclaredValue * 0.03));
+      } else {
+        baseAmount = 99;
+      }
+      tierName = 'Vault Black (High-End)';
+    } else {
+      baseAmount = 45;
+      tierName = 'Standard Escrow';
+    }
+
+    // Naliczanie zniżki subskrypcyjnej
+    const userTier = profile?.subscription_tier || 'free';
+    let discountPercent = 0;
+    if (userTier === 'vault_master' || userTier === 'premium') {
+      discountPercent = 20; // -20%
+    } else if (userTier === 'pro' || userTier === 'basic') {
+      discountPercent = 10; // -10%
+    }
+
+    const discountedEscrowFee = Number((baseAmount * (1 - discountPercent / 100)).toFixed(2));
 
     let customerId = profile?.stripe_customer_id;
 
@@ -119,29 +141,34 @@ Deno.serve(async (req) => {
 
     const origin = getAppOrigin(req);
 
+    const lineItems: any[] = [
+      {
+        price_data: {
+          currency: 'pln',
+          product_data: {
+            name: `FlipZ Swiss Safe Hub: ${tierName}`,
+            description: discountPercent > 0 
+              ? `Opłata weryfikacyjna Escrow z rabatem subskrypcyjnym ${discountPercent}% (${userTier})` 
+              : 'Laboratoryjna inspekcja NDT, etykiety InPost, łańcuch dowodowy SHA-256'
+          },
+          unit_amount: Math.round(discountedEscrowFee * 100)
+        },
+        quantity: 1
+      }
+    ];
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card', 'blik'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'pln',
-            product_data: {
-              name: `Ochrona Escrow - Tryb ${escrowMode.toUpperCase()}`,
-              description: 'Zabezpieczona weryfikacja i ochrona transakcji'
-            },
-            unit_amount: Math.round(serverAmount * 100)
-          },
-          quantity: 1
-        }
-      ],
+      line_items: lineItems,
       mode: 'payment',
       success_url: `${origin}/my-listings?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/my-listings?payment=cancelled`,
       metadata: {
         supabase_user_id: user.id,
         trade_offer_id: String(tradeOfferId),
-        escrow_mode: escrowMode,
+        escrow_mode: normalizedMode,
+        escrow_fee: String(discountedEscrowFee),
         user_email: user.email
       }
     });

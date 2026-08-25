@@ -116,16 +116,25 @@ Deno.serve(async (req) => {
 
     const origin = getAppOrigin(req);
 
+    const planNames: Record<string, string> = {
+      pro: 'Pro Trader (30 kart, -10% escrow)',
+      vault_master: 'Vault Master (∞ kart, -20% escrow)',
+      basic: 'Pro Trader (30 kart)',
+      premium: 'Vault Master (∞ kart)'
+    };
+
+    const resolvedPlanName = planName || planNames[tier] || `FlipZ Plan - ${tier.toUpperCase()}`;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ['card'], // Removed 'blik' for subscription stability
+      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'pln',
             product_data: {
-              name: planName || `Subscription - ${tier}`,
-              description: 'Miesięczny plan subskrypcyjny'
+              name: resolvedPlanName,
+              description: 'Miesięczny plan subskrypcyjny FlipZ z benefitami escrow'
             },
             recurring: {
               interval: 'month'

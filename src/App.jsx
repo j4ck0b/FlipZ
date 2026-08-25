@@ -203,9 +203,17 @@ function AppRoutes() {
           } 
         />
 
-        {/* Admin routes */}
+        {/* Admin & Verifier routes */}
         <Route 
           path="/admin" 
+          element={
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/verifier" 
           element={
             <AdminRoute>
               <AdminPanel />
