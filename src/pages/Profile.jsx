@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, supabase } from '../lib/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,11 +16,14 @@ import {
   Mail,
   Heart,
   TrendingUp,
-  Crown,
   Shield,
   CheckCircle,
   X,
-  Save
+  Save,
+  Terminal,
+  Activity,
+  Award,
+  Layers
 } from "lucide-react";
 import CardItem from '../components/cards/CardItem';
 import CardDetailSheet from '../components/cards/CardDetailSheet';
@@ -50,7 +51,6 @@ export default function Profile() {
   });
   const [profileError, setProfileError] = useState('');
 
-  // Sprawdź czy to własny profil
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
@@ -60,11 +60,9 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-
       setProfileError('');
 
       if (isOwnProfile) {
-        // Własny profil wymaga aktywnej sesji i załadowanego currentUserProfile
         if (!user) {
           navigate('/login');
           return;
@@ -87,7 +85,6 @@ export default function Profile() {
         return;
       }
 
-      // Profil innego użytkownika - dostępny również bez aktywnej sesji
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -95,380 +92,234 @@ export default function Profile() {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
         setViewingProfile(null);
-        setProfileError('Nie udało się otworzyć tego profilu. Sprawdź polityki RLS w Supabase (odczyt publicznych profili).');
-        return;
+        setProfileError('Nie udało się załadować profilu.');
+      } else {
+        setViewingProfile(data);
+        await fetchStats(userId, data.email);
       }
-
-      setViewingProfile(data);
-      await fetchStats(userId, data?.email);
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
+    } catch (err) {
+      console.error('Error fetching profile:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchStats = async (profileUserId, profileEmail = null) => {
+  const fetchStats = async (uid, email) => {
     try {
-      console.log('Fetching stats for:', { profileUserId, profileEmail });
-      
-      // 1. Fetch active listings
-      // Use .or to cover both old (email/created_by as string) and new (created_by_id as UUID) columns
-      let query = supabase
+      const { data: listings } = await supabase
         .from('card_listings')
         .select('*')
-        .eq('status', 'available');
-      
-      if (profileEmail) {
-        query = query.or(`created_by_id.eq.${profileUserId},created_by.eq.${profileUserId},owner_email.eq.${profileEmail}`);
-      } else {
-        query = query.or(`created_by_id.eq.${profileUserId},created_by.eq.${profileUserId}`);
-      }
+        .or(`created_by.eq.${uid},created_by_id.eq.${uid},user_email.eq.${email}`);
 
-      // Try ordering by created_date first (observed in CardExchange.jsx)
-      const { data: listingsData, error: listingsError } = await query
-        .order('created_date', { ascending: false });
+      const validListings = listings || [];
+      setUserListings(validListings);
 
-      if (listingsError) {
-        console.error('Error fetching user listings, trying without order:', listingsError);
-        // Fallback: try without order if created_date fails
-        const { data: retryData } = await query;
-        setUserListings(retryData || []);
-      } else {
-        setUserListings(listingsData || []);
-      }
-
-      // 2. Fetch completed trades count
-      const { count: tradesCount, error: tradesError } = await supabase
+      const { count: completedCount } = await supabase
         .from('trade_offers')
-        .select('*', { count: 'exact', head: true })
-        .or(`sender_id.eq.${profileUserId},owner_id.eq.${profileUserId}${profileEmail ? `,sender_email.eq.${profileEmail},owner_email.eq.${profileEmail}` : ''}`)
+        .select('id', { count: 'exact', head: true })
+        .or(`sender_email.eq.${email},owner_email.eq.${email}`)
         .eq('status', 'completed');
 
+      const totalVal = validListings.reduce((sum, item) => sum + (parseFloat(item.price || item.estimated_value) || 0), 0);
+
       setStats({
-        activeListings: listingsData?.length || 0,
-        completedTrades: tradesCount || 0,
-        totalValue: listingsData?.reduce((sum, item) => sum + (Number(item.price) || 0), 0) || 0
+        activeListings: validListings.length,
+        completedTrades: completedCount || 0,
+        totalValue: totalVal
       });
-
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch (e) {
+      console.error('Stats error:', e);
     }
   };
 
-  const handleEditSubmit = async () => {
+  const handleSaveProfile = async () => {
     try {
-      const { error } = await updateProfile(editForm);
-      if (error) {
-        console.error('Error updating profile:', error);
-        return;
-      }
-      setViewingProfile({ ...viewingProfile, ...editForm });
+      setLoading(true);
+      await updateProfile(editForm);
       setEditMode(false);
-    } catch (error) {
-      console.error('Error in handleEditSubmit:', error);
+      await fetchProfile();
+    } catch (err) {
+      console.error('Save profile error:', err);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const getInitials = (name, email) => {
-    if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    }
-    if (email) {
-      return email.substring(0, 2).toUpperCase();
-    }
-    return 'U';
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-violet-600 mx-auto mb-4" />
-          <p className="text-slate-600">Ładowanie profilu...</p>
-        </div>
+      <div className="p-16 text-center font-mono-code text-xs text-[#64748B]">
+        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#10B981]" />
+        SYNCHRONIZING_PROFILE_DATA...
       </div>
     );
   }
 
-  if (profileError) {
-    return (
-      <div className="max-w-3xl mx-auto py-10">
-        <Alert variant="destructive">
-          <AlertDescription>{profileError}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (!viewingProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-8 text-center max-w-md">
-          <div className="text-6xl mb-4">😕</div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Profil nie znaleziony</h2>
-          <p className="text-slate-600 mb-6">Nie można znaleźć tego profilu</p>
-          <Button onClick={() => navigate('/home')}>
-            Wróć do strony głównej
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  const profileTier = (viewingProfile?.subscription_tier || 'free').toLowerCase();
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Header */}
-      <div className="panel-elevated text-white rounded-2xl p-8 mb-8 border border-white/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
-          {/* Avatar */}
-          <Avatar className="w-32 h-32 border-4 border-white/20 shadow-2xl">
-            <AvatarImage src={viewingProfile.avatar_url} />
-            <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white text-4xl font-bold">
-              {getInitials(viewingProfile.full_name || viewingProfile.username, viewingProfile.email)}
-            </AvatarFallback>
-          </Avatar>
-          {/* Info */}
-          <div className="flex-1 w-full">
-            <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
-              <div>
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold">
-                    {viewingProfile.full_name || viewingProfile.username || 'Użytkownik'}
-                  </h1>
-                  {viewingProfile.role === 'admin' && (
-                    <Badge className="bg-violet-600/80 hover:bg-violet-600 text-white border-0">
-                      <Shield className="w-3 h-3 mr-1" />
-                      Admin
-                    </Badge>
-                  )}
-                  {viewingProfile.subscription_tier !== 'free' && (
-                    <Badge className="bg-yellow-500/80 hover:bg-yellow-500 text-white border-0">
-                      <Crown className="w-3 h-3 mr-1" />
-                      {viewingProfile.subscription_tier === 'basic' ? 'Basic' :
-                       viewingProfile.subscription_tier === 'premium' ? 'Premium' :
-                       viewingProfile.subscription_tier === 'pro' ? 'Pro' :
-                       viewingProfile.subscription_tier}
-                    </Badge>
-                  )}
-                </div>
-                {isOwnProfile && (
-                  <p className="text-slate-300 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-violet-400" />
-                    {viewingProfile.email}
-                  </p>
-                )}
+    <div className="space-y-6 font-mono-code text-xs text-[#94A3B8]">
+      {/* Profile Header Card */}
+      <div className="p-6 rounded border border-[#1F242D] bg-[#111318] space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="w-16 h-16 rounded border border-[#1F242D]">
+              <AvatarImage src={viewingProfile?.avatar_url} />
+              <AvatarFallback className="bg-[#0D0F14] text-white font-bold text-base">
+                {viewingProfile?.username?.substring(0, 2).toUpperCase() || 'FZ'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white tracking-tight">
+                  {viewingProfile?.username || viewingProfile?.full_name || 'Kolekcjoner'}
+                </h1>
+                <Badge variant="outline" className="border-[#10B981]/40 text-[#10B981] text-[10px] bg-[#10B981]/10">
+                  ● {profileTier.toUpperCase()}
+                </Badge>
               </div>
-              {isOwnProfile && (
+              <p className="text-xs text-[#64748B] mt-0.5">{viewingProfile?.email}</p>
+              {viewingProfile?.location && (
+                <div className="flex items-center gap-1 text-[11px] text-[#64748B] mt-1">
+                  <MapPin className="w-3 h-3 text-[#10B981]" />
+                  <span>{viewingProfile.location}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isOwnProfile && (
+            <div>
+              {editMode ? (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditMode(false)}
+                    className="border-[#1F242D] bg-[#161922] text-[#94A3B8] hover:text-white rounded h-9 text-xs"
+                  >
+                    Anuluj
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveProfile}
+                    className="bg-white hover:bg-slate-200 text-black font-bold rounded h-9 text-xs"
+                  >
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    Zapisz
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  onClick={() => setEditMode(!editMode)}
+                  size="sm"
                   variant="outline"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                  onClick={() => setEditMode(true)}
+                  className="border-[#1F242D] bg-[#161922] text-white hover:border-[#2E3644] rounded h-9 text-xs"
                 >
-                  {editMode ? (
-                    <>
-                      <X className="w-4 h-4 mr-2" />
-                      Anuluj
-                    </>
-                  ) : (
-                    <>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edytuj profil
-                    </>
-                  )}
+                  <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                  Edytuj Profil
                 </Button>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300 mb-4">
-              {viewingProfile.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-violet-400" />
-                  {viewingProfile.location}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4 text-violet-400" />
-                Dołączył {new Date(viewingProfile.created_at).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}
-              </span>
+          )}
+        </div>
+
+        {/* Bio / Edit form */}
+        {editMode ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-[#1F242D]">
+            <div>
+              <label className="text-[11px] text-[#64748B] block mb-1">Nazwa użytkownika</label>
+              <Input
+                value={editForm.username}
+                onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                className="bg-[#0D0F14] border-[#1F242D] text-white text-xs h-9 rounded"
+              />
             </div>
-            {viewingProfile.bio && !editMode && (
-              <p className="text-slate-200 leading-relaxed max-w-2xl bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
-                {viewingProfile.bio}
-              </p>
-            )}
+            <div>
+              <label className="text-[11px] text-[#64748B] block mb-1">Lokalizacja</label>
+              <Input
+                value={editForm.location}
+                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                className="bg-[#0D0F14] border-[#1F242D] text-white text-xs h-9 rounded"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-[11px] text-[#64748B] block mb-1">Bio / Specjalizacja TCG</label>
+              <Textarea
+                value={editForm.bio}
+                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                className="bg-[#0D0F14] border-[#1F242D] text-white text-xs h-16 rounded resize-none"
+              />
+            </div>
+          </div>
+        ) : (
+          viewingProfile?.bio && (
+            <p className="text-xs text-[#CBD5E1] pt-3 border-t border-[#1F242D]">
+              {viewingProfile.bio}
+            </p>
+          )
+        )}
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="p-3.5 rounded bg-[#0D0F14] border border-[#1F242D] space-y-1">
+            <span className="text-[10px] text-[#64748B]">INVENTORY_COUNT</span>
+            <div className="text-xl font-bold text-white">{stats.activeListings}</div>
+          </div>
+          <div className="p-3.5 rounded bg-[#0D0F14] border border-[#1F242D] space-y-1">
+            <span className="text-[10px] text-[#64748B]">VERIFIED_ESCROW_TRADES</span>
+            <div className="text-xl font-bold text-[#10B981]">{stats.completedTrades}</div>
+          </div>
+          <div className="p-3.5 rounded bg-[#0D0F14] border border-[#1F242D] space-y-1">
+            <span className="text-[10px] text-[#64748B]">PORTFOLIO_ESTIMATED_VALUE</span>
+            <div className="text-xl font-bold text-white">{stats.totalValue.toFixed(2)} PLN</div>
           </div>
         </div>
       </div>
 
-      {/* Edit Form */}
-      {editMode && (
-        <Card className="mb-8 panel-elevated border-0 ring-1 ring-white/10 text-white">
-          <CardHeader>
-            <CardTitle className="text-slate-100">Edytuj profil</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Nazwa użytkownika
-              </label>
-              <Input
-                value={editForm.username}
-                onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                placeholder="Twoja nazwa użytkownika"
-                className="dark-input rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Pełna nazwa
-              </label>
-              <Input
-                value={editForm.full_name}
-                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                placeholder="Jan Kowalski"
-                className="dark-input rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Lokalizacja
-              </label>
-              <Input
-                value={editForm.location}
-                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                placeholder="Warszawa, Polska"
-                className="dark-input rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Bio
-              </label>
-              <Textarea
-                value={editForm.bio}
-                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                placeholder="Opowiedz coś o sobie..."
-                rows={4}
-                className="dark-input rounded-xl resize-none"
-              />
-            </div>
-            <Button onClick={handleEditSubmit} className="w-full gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/20 rounded-xl py-5">
-              <Save className="w-4 h-4" />
-              Zapisz zmiany
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* User Listings Catalog */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-[#1F242D]">
+          <span className="font-bold text-white text-sm">Aktywne Przedmioty w Portfolio ({userListings.length})</span>
+          <span className="text-[#64748B] text-[11px]">VERIFIED_SPECIMENS</span>
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="panel-elevated border-0 ring-1 ring-white/10 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Aktywne ogłoszenia</p>
-                <p className="text-3xl font-bold text-white">{stats.activeListings}</p>
+        {userListings.length === 0 ? (
+          <div className="p-12 text-center border border-[#1F242D] rounded bg-[#111318] text-[#64748B]">
+            Brak wystawionych kart w profilu
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {userListings.map(card => (
+              <div 
+                key={card.id} 
+                onClick={() => { setSelectedCard(card); setIsDetailOpen(true); }}
+                className="p-4 rounded border border-[#1F242D] bg-[#111318] hover:border-[#2E3644] transition-all cursor-pointer space-y-3"
+              >
+                <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+                  <span>#{card.id?.substring(0, 8)}</span>
+                  <Badge variant="outline" className="border-[#1F242D] text-[#10B981] text-[9px]">
+                    {card.condition || 'NEAR_MINT'}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white truncate">{card.card_name || card.title}</h4>
+                  <p className="text-[11px] text-[#64748B] truncate">{card.set_name || card.category}</p>
+                </div>
+                <div className="pt-2 border-t border-[#1F242D] flex items-center justify-between text-xs">
+                  <span className="text-[#64748B]">Wycena:</span>
+                  <span className="font-bold text-white">{card.price || card.estimated_value || 'Wymiana'} PLN</span>
+                </div>
               </div>
-              <Package className="w-12 h-12 text-cyan-400 opacity-30" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="panel-elevated border-0 ring-1 ring-white/10 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Ukończone wymiany</p>
-                <p className="text-3xl font-bold text-white">{stats.completedTrades}</p>
-              </div>
-              <CheckCircle className="w-12 h-12 text-emerald-400 opacity-30" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="panel-elevated border-0 ring-1 ring-white/10 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400 mb-1">Wartość kolekcji</p>
-                <p className="text-3xl font-bold text-white">{stats.totalValue} zł</p>
-              </div>
-              <TrendingUp className="w-12 h-12 text-violet-400 opacity-30" />
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="listings" className="space-y-6 dark-tabs">
-        <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10 p-1 rounded-xl">
-          <TabsTrigger value="listings" className="rounded-lg text-slate-300 data-[state=active]:text-white">Ogłoszenia</TabsTrigger>
-          <TabsTrigger value="reviews" className="rounded-lg text-slate-300 data-[state=active]:text-white">Opinie</TabsTrigger>
-          <TabsTrigger value="favorites" className="rounded-lg text-slate-300 data-[state=active]:text-white">Ulubione</TabsTrigger>
-        </TabsList>
-        <TabsContent value="listings" className="space-y-6">
-          {userListings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userListings.map((listing) => (
-                <CardItem 
-                  key={listing.id} 
-                  listing={listing} 
-                  onClick={() => {
-                    setSelectedCard(listing);
-                    setIsDetailOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card className="p-12 text-center border-dashed border-2 border-white/10 bg-white/5 text-slate-300 rounded-2xl">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-semibold text-slate-200 mb-2">
-                {isOwnProfile ? 'Nie masz jeszcze ogłoszeń' : 'Brak ogłoszeń'}
-              </h3>
-              <p className="text-slate-400 mb-6">
-                {isOwnProfile ? 'Wystaw swój pierwszy przedmiot!' : 'Ten użytkownik nie ma jeszcze ogłoszeń'}
-              </p>
-              {isOwnProfile && (
-                <Button 
-                  onClick={() => navigate('/home')} // Or where you list new cards
-                  className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/20 rounded-xl"
-                >
-                  <Package className="w-4 h-4" />
-                  Wystaw ogłoszenie
-                </Button>
-              )}
-            </Card>
-          )}
-        </TabsContent>
-        <TabsContent value="reviews">
-          <Card className="p-12 text-center border border-white/10 bg-white/5 text-slate-300 rounded-2xl">
-            <div className="text-6xl mb-4">⭐</div>
-            <h3 className="text-xl font-semibold text-slate-200 mb-2">Brak opinii</h3>
-            <p className="text-slate-400">
-              {isOwnProfile ? 'Dokończ pierwszą wymianę aby otrzymać opinię' : 'Ten użytkownik nie ma jeszcze opinii'}
-            </p>
-          </Card>
-        </TabsContent>
-        <TabsContent value="favorites">
-          <Card className="p-12 text-center border border-white/10 bg-white/5 text-slate-300 rounded-2xl">
-            <div className="text-6xl mb-4">💖</div>
-            <h3 className="text-xl font-semibold text-slate-200 mb-2">Brak ulubionych</h3>
-            <p className="text-slate-400">
-              {isOwnProfile ? 'Polub przedmioty które Cię interesują' : 'Ten użytkownik nie ma publicznych ulubionych'}
-            </p>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <CardDetailSheet 
+      <CardDetailSheet
         card={selectedCard}
         isOpen={isDetailOpen}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setSelectedCard(null);
-        }}
+        onClose={() => setIsDetailOpen(false)}
       />
     </div>
   );

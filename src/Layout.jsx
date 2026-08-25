@@ -20,26 +20,23 @@ import {
   Heart,
   User,
   LogOut,
-  Crown,
   Shield,
   CreditCard,
   ArrowRightLeft,
-  X
+  X,
+  Terminal,
+  Activity,
+  Layers
 } from 'lucide-react';
 import FloatingChat from './components/chat/FloatingChat';
 import NotificationPanel from './components/notifications/NotificationPanel';
 
-const tierLabels = {
-  free: 'Free',
-  basic: 'Basic',
-  premium: 'Premium',
-  pro: 'Pro',
-};
-
-const tierBadgeColor = {
-  basic:   'bg-gradient-to-r from-blue-500 to-indigo-500',
-  premium: 'bg-gradient-to-r from-violet-500 to-pink-500',
-  pro:     'bg-gradient-to-r from-amber-500 to-orange-500',
+const tierBadges = {
+  free: { label: 'FREE', color: 'border-[#1F242D] text-[#94A3B8] bg-[#111318]' },
+  basic: { label: 'PRO_TRADER', color: 'border-[#10B981]/40 text-[#10B981] bg-[#10B981]/10' },
+  pro: { label: 'PRO_TRADER', color: 'border-[#10B981]/40 text-[#10B981] bg-[#10B981]/10' },
+  premium: { label: 'VAULT_MASTER', color: 'border-white text-white bg-white/10' },
+  vault_master: { label: 'VAULT_MASTER', color: 'border-white text-white bg-white/10' },
 };
 
 export default function Layout({ children }) {
@@ -48,7 +45,6 @@ export default function Layout({ children }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Jeśli nie ma usera, nie pokazuj nawigacji (nie powinno się zdarzyć bo ProtectedRoute to pilnuje)
   if (!user) {
     return <div>{children}</div>;
   }
@@ -59,55 +55,57 @@ export default function Layout({ children }) {
   };
 
   const navItems = [
-    { name: 'Home', path: '/home', icon: Home },
-    { name: 'Moje Wymiany', path: '/my-listings', icon: ArrowRightLeft },
+    { name: 'Dashboard', path: '/home', icon: Home },
+    { name: 'Wymiany & Inventory', path: '/my-listings', icon: ArrowRightLeft },
     { name: 'Wiadomości', path: '/messages', icon: MessageSquare },
-    { name: 'Ulubione', path: '/favorites', icon: Heart },
+    { name: 'Obserwowane', path: '/favorites', icon: Heart },
     { name: 'Profil', path: `/profile/${user?.id}`, icon: User },
-    ...(canAccessAdminPanel ? [{ name: canManageUsers ? 'Panel Admina' : 'Panel Magazynu', path: '/admin', icon: Shield, isAdmin: true }] : []),
+    ...(canAccessAdminPanel ? [{ name: canManageUsers ? 'Panel Admina' : 'Terminal Weryfikatora', path: '/admin', icon: Shield, isAdmin: true }] : []),
   ];
 
   const isActivePath = (path) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const currentTier = (profile?.subscription_tier || user?.subscription_tier || 'free').toLowerCase();
+  const badgeConfig = tierBadges[currentTier] || tierBadges.free;
+
   return (
-    <div className="app-shell min-h-screen">
-      <div className="app-shell__glow app-shell__glow--primary" aria-hidden="true" />
-      <div className="app-shell__glow app-shell__glow--secondary" aria-hidden="true" />
-      {/* Header */}
-      <header className="app-header glass-panel sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+    <div className="app-shell vault-grid-bg min-h-screen text-[#F8FAFC]">
+      {/* Top Navigation Bar */}
+      <header className="app-header border-b border-[#1F242D] sticky top-0 z-50 bg-[#090A0C]/95 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-14">
             {/* Logo */}
-            <Link to="/home" className="flex items-center gap-3 group">
-              <div className="logo-orb w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <img src="/logo.svg" alt="FlipCardZ" className="w-7 h-7 drop-shadow" />
+            <Link to="/home" className="flex items-center gap-2.5 group">
+              <div className="w-7 h-7 rounded bg-[#111318] border border-[#1F242D] flex items-center justify-center font-mono-code font-bold text-white text-xs">
+                FZ
               </div>
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-300 to-pink-300 bg-clip-text text-transparent hidden sm:inline">
-                FlipCardZ
+              <span className="font-bold text-white tracking-tight text-sm">
+                FLIPZ <span className="font-mono-code text-[11px] text-[#64748B] font-normal uppercase hidden sm:inline">VAULT</span>
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1 font-mono-code text-xs">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActivePath(item.path);
                 return (
                   <Link key={item.path} to={item.path}>
                     <Button
-                      variant={active ? "default" : "ghost"}
-                      className={`gap-2 ${
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 px-3 rounded transition-all text-xs font-medium ${
                         active
-                          ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
+                          ? 'bg-[#161922] text-white border border-[#2E3644] font-semibold'
                           : item.isAdmin
-                            ? 'text-violet-700 hover:text-violet-800 border border-violet-200'
-                            : 'text-slate-700 hover:text-violet-600'
+                          ? 'text-[#10B981] hover:bg-[#111318] hover:text-white border border-[#1F242D]'
+                          : 'text-[#94A3B8] hover:text-white hover:bg-[#111318]'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="hidden lg:inline">{item.name}</span>
+                      <Icon className="w-3.5 h-3.5 mr-1.5 opacity-80" />
+                      <span>{item.name}</span>
                     </Button>
                   </Link>
                 );
@@ -116,91 +114,87 @@ export default function Layout({ children }) {
 
             {/* Right section */}
             <div className="flex items-center gap-2">
-              {/* Notifications */}
               <NotificationPanel />
 
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10 border-2 border-violet-200">
+                  <Button variant="ghost" className="relative h-8 w-8 rounded p-0 border border-[#1F242D] hover:border-[#2E3644]">
+                    <Avatar className="h-full w-full rounded">
                       <AvatarImage src={profile?.avatar_url} alt={profile?.username} />
-                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                        {profile?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U'}
+                      <AvatarFallback className="bg-[#161922] text-white font-mono-code text-xs font-bold">
+                        {profile?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'FZ'}
                       </AvatarFallback>
                     </Avatar>
-                    {profile?.subscription_tier !== 'free' && (
-                      <Crown className="absolute -top-1 -right-1 w-5 h-5 text-yellow-500 fill-yellow-500" />
-                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuLabel>
+                <DropdownMenuContent className="w-60 bg-[#090A0C] border-[#1F242D] text-[#F8FAFC] p-2 font-mono-code text-xs rounded-lg shadow-2xl" align="end">
+                  <DropdownMenuLabel className="p-2 pb-1">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{profile?.username || 'Użytkownik'}</p>
-                      <p className="text-xs text-slate-500">{user?.email}</p>
-                      {profile?.subscription_tier && profile?.subscription_tier !== 'free' && (
-                        <Badge className={`w-fit ${tierBadgeColor[profile.subscription_tier] || 'bg-gradient-to-r from-violet-500 to-pink-500'}`}>
-                          <Crown className="w-3 h-3 mr-1" />
-                          {tierLabels[profile.subscription_tier] || profile.subscription_tier}
+                      <p className="font-bold text-white text-xs truncate">{profile?.username || 'Użytkownik'}</p>
+                      <p className="text-[10px] text-[#64748B] truncate">{user?.email}</p>
+                      <div className="pt-1">
+                        <Badge variant="outline" className={`text-[9px] font-bold ${badgeConfig.color}`}>
+                          ● {badgeConfig.label}
                         </Badge>
-                      )}
+                      </div>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-[#1F242D]" />
                   
-                  <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profil
+                  <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)} className="cursor-pointer hover:bg-[#161922] focus:bg-[#161922] text-xs">
+                    <User className="mr-2 h-3.5 w-3.5 text-[#94A3B8]" />
+                    Profil i Reputacja
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem onClick={() => navigate('/subscription')}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Subskrypcja
+                  <DropdownMenuItem onClick={() => navigate('/subscription')} className="cursor-pointer hover:bg-[#161922] focus:bg-[#161922] text-xs">
+                    <CreditCard className="mr-2 h-3.5 w-3.5 text-[#94A3B8]" />
+                    Plan i Limity Portfela
                   </DropdownMenuItem>
 
                   {canAccessAdminPanel && (
                     <>
-                      <DropdownMenuSeparator />
+                      <DropdownMenuSeparator className="bg-[#1F242D]" />
                       <DropdownMenuItem 
                         onClick={() => navigate('/admin')}
-                        className="text-violet-600 font-medium"
+                        className="cursor-pointer hover:bg-[#161922] focus:bg-[#161922] text-xs text-[#10B981] font-bold"
                       >
-                        <Shield className="mr-2 h-4 w-4" />
-                        {canManageUsers ? 'Panel Admina' : 'Panel Magazynu'}
+                        <Shield className="mr-2 h-3.5 w-3.5" />
+                        {canManageUsers ? 'Panel Administracyjny' : 'Terminal Weryfikatora'}
                       </DropdownMenuItem>
                     </>
                   )}
                   
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuSeparator className="bg-[#1F242D]" />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer hover:bg-[#E53935]/15 focus:bg-[#E53935]/15 text-[#F87171] text-xs">
+                    <LogOut className="mr-2 h-3.5 w-3.5" />
                     Wyloguj się
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Mobile Menu Trigger */}
+              {/* Mobile Menu */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild className="md:hidden">
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94A3B8] border border-[#1F242D]">
+                    <Menu className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[280px] sm:w-[350px]">
+                <SheetContent side="right" className="w-[280px] bg-[#090A0C] border-l border-[#1F242D] text-[#F8FAFC] p-4 font-mono-code">
                   <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-lg font-semibold">Menu</h2>
+                    <div className="flex items-center justify-between pb-4 border-b border-[#1F242D] mb-4">
+                      <span className="text-xs font-bold text-white">FLIPZ_NAVIGATION</span>
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-6 w-6 text-[#94A3B8]"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <X className="h-5 w-5" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
 
-                    <nav className="flex flex-col gap-2 flex-1">
+                    <nav className="flex flex-col gap-1.5 flex-1 text-xs">
                       {navItems.map((item) => {
                         const Icon = item.icon;
                         const active = isActivePath(item.path);
@@ -211,46 +205,28 @@ export default function Layout({ children }) {
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             <Button
-                              variant={active ? "default" : "ghost"}
-                              className={`w-full justify-start gap-3 ${
+                              variant="ghost"
+                              className={`w-full justify-start gap-2 h-9 text-xs font-mono-code ${
                                 active
-                                  ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white accent-glow'
-                                  : 'text-slate-700'
+                                  ? 'bg-[#161922] text-white border border-[#2E3644] font-bold'
+                                  : 'text-[#94A3B8] hover:bg-[#111318] hover:text-white'
                               }`}
                             >
-                              <Icon className="w-5 h-5" />
+                              <Icon className="w-3.5 h-3.5" />
                               {item.name}
                             </Button>
                           </Link>
                         );
                       })}
-
-                      {canAccessAdminPanel && (
-                        <>
-                          <div className="my-2 border-t border-slate-200" />
-                          <Link
-                            to="/admin"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-3 text-violet-600 border-violet-200"
-                            >
-                              <Shield className="w-5 h-5" />
-                              {canManageUsers ? 'Panel Admina' : 'Panel Magazynu'}
-                            </Button>
-                          </Link>
-                        </>
-                      )}
                     </nav>
 
-                    <div className="border-t border-slate-200 pt-4">
+                    <div className="border-t border-[#1F242D] pt-3">
                       <Button
                         variant="ghost"
                         onClick={handleSignOut}
-                        className="w-full justify-start gap-3 text-red-600"
+                        className="w-full justify-start gap-2 text-[#F87171] hover:bg-[#E53935]/15 h-9 text-xs font-mono-code"
                       >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-3.5 h-3.5" />
                         Wyloguj się
                       </Button>
                     </div>
@@ -262,8 +238,8 @@ export default function Layout({ children }) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="page-surface">
           {children}
         </div>

@@ -1,14 +1,20 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Loader2, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
+import { 
+  Mail, 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle, 
+  ArrowLeft, 
+  Terminal, 
+  ShieldCheck, 
+  Lock, 
+  ArrowRight 
+} from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -17,7 +23,6 @@ export default function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // 👇 NOWA ZMIENNA DLA BŁĘDÓW Z URL (unikamy konfliktu z istniejącym 'error')
   const urlParams = new URLSearchParams(window.location.search);
   const urlError = urlParams.get('error');
   
@@ -30,9 +35,8 @@ export default function Login() {
     setSuccess('');
     try {
       await signInWithGoogle();
-      // Google redirect will handle the rest
-    } catch (error) {
-      setError(error.message || 'Błąd podczas logowania przez Google');
+    } catch (err) {
+      setError(err.message || 'Błąd podczas logowania przez Google');
       setLoading(false);
     }
   };
@@ -44,7 +48,6 @@ export default function Login() {
       return;
     }
 
-    // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Wprowadź poprawny adres email');
@@ -57,15 +60,14 @@ export default function Login() {
 
     try {
       const result = await signInWithMagicLink(email);
-      
       if (result.error) {
         setError(result.error.message || 'Błąd podczas wysyłania linku');
       } else {
         setMagicLinkSent(true);
-        setSuccess('Link logowania został wysłany na Twój email!');
+        setSuccess('Link logowania został wysłany na Twój email.');
       }
-    } catch (error) {
-      setError(error.message || 'Błąd podczas wysyłania linku');
+    } catch (err) {
+      setError(err.message || 'Błąd podczas wysyłania linku');
     } finally {
       setLoading(false);
     }
@@ -73,201 +75,128 @@ export default function Login() {
 
   if (magicLinkSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md panel-elevated shadow-xl border border-violet-500/20">
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-12 h-12 text-white" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-slate-100">
-                Sprawdź swoją skrzynkę!
-              </h2>
-              <p className="text-slate-300">
-                Wysłaliśmy link do logowania na adres:
-              </p>
-              <p className="font-semibold text-violet-400">
-                {email}
-              </p>
-            </div>
-            <div className="panel-muted rounded-lg p-4 text-sm text-slate-200">
-              <p className="mb-2">
-                ✨ Kliknij w link w emailu aby się zalogować
-              </p>
-              <p className="text-slate-400">
-                Link jest ważny przez 60 minut
-              </p>
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="w-4 h-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            {success && (
-              <Alert className="bg-emerald-500/10 border-emerald-500/30">
-                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                <AlertDescription className="text-emerald-200">{success}</AlertDescription>
-              </Alert>
-            )}
-            <Button
-              onClick={() => {
-                setMagicLinkSent(false);
-                setEmail('');
-              }}
-              variant="outline"
-              className="w-full border-slate-600/60 text-slate-200 hover:bg-slate-800/60"
-            >
-              Wyślij ponownie
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full text-slate-300 hover:text-white"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Wróć na stronę główną
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="app-shell vault-grid-bg min-h-screen flex items-center justify-center p-4 font-mono-code text-xs">
+        <div className="w-full max-w-md p-8 rounded border border-[#1F242D] bg-[#111318] space-y-6 text-center">
+          <div className="w-12 h-12 rounded bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center mx-auto text-[#10B981]">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          
+          <div className="space-y-1">
+            <span className="text-[10px] text-[#10B981] font-bold">DISPATCH_STATUS: DELIVERED</span>
+            <h2 className="text-lg font-bold text-white">Sprawdź skrzynkę pocztową</h2>
+            <p className="text-xs text-[#94A3B8]">Wysłaliśmy bezpieczny link logowania na adres:</p>
+            <p className="text-xs font-bold text-white bg-[#0D0F14] p-2 rounded border border-[#1F242D] mt-2 select-all">
+              {email}
+            </p>
+          </div>
+
+          <div className="p-3 rounded bg-[#0D0F14] border border-[#1F242D] text-[11px] text-[#64748B] text-left space-y-1">
+            <div>● Link jednorazowy aktywny przez 60 minut.</div>
+            <div>● Bezhasłowe uwierzytelnianie kryptograficzne.</div>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => { setMagicLinkSent(false); setEmail(''); }}
+            className="w-full border-[#1F242D] bg-[#161922] text-[#94A3B8] hover:text-white rounded h-10 font-mono-code text-xs"
+          >
+            Wróć do logowania
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md panel-elevated shadow-xl border border-violet-500/20">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-[0_18px_40px_rgba(124,58,237,0.45)]">
-              <span className="text-3xl">🃏</span>
-            </div>
-          </div>
-          <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
-              FlipCardZ
-            </CardTitle>
-            <CardDescription className="text-base mt-2 text-slate-300">
-              Zaloguj się aby rozpocząć wymianę kart
-            </CardDescription>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            className="mx-auto text-slate-300 hover:text-white"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Wróć na stronę główną
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* 👇 NOWY KOD Z BŁĘDAMI Z URL 👇 */}
-          {urlError && (
-            <div className="bg-red-500/10 border-l-4 border-red-500/70 p-4 mb-6">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm text-red-200">
-                    {urlError === 'google_auth_failed' && 'Anulowano logowanie przez Google'}
-                    {urlError === 'session_failed' && 'Błąd sesji. Spróbuj ponownie.'}
-                    {urlError === 'no_code' && 'Nie otrzymano kodu autoryzacji'}
-                    {urlError === 'critical_error' && 'Błąd systemu. Skontaktuj się z administratorem.'}
-                  </p>
-                </div>
+    <div className="app-shell vault-grid-bg min-h-screen flex items-center justify-center p-4 font-mono-code text-xs">
+      <div className="w-full max-w-md p-8 rounded border border-[#1F242D] bg-[#111318] space-y-6 shadow-2xl">
+        {/* Top Header */}
+        <div className="space-y-1.5 border-b border-[#1F242D] pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-[#0D0F14] border border-[#1F242D] flex items-center justify-center font-bold text-white text-[10px]">
+                FZ
               </div>
+              <span className="font-bold text-white text-sm tracking-tight">FLIPZ VAULT</span>
             </div>
+            <span className="text-[10px] text-[#10B981] font-bold">AUTH_GATEWAY</span>
+          </div>
+          <p className="text-xs text-[#64748B]">Bezpieczne uwierzytelnianie konta kolekcjonerskiego.</p>
+        </div>
+
+        {/* Error Banners */}
+        {(error || urlError) && (
+          <div className="p-3 rounded bg-[#E53935]/10 border border-[#E53935]/30 text-[#F87171] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error || 'Wystąpił błąd autoryzacji. Spróbuj ponownie.'}</span>
+          </div>
+        )}
+
+        {/* Google OAuth Button */}
+        <Button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+          className="w-full bg-white hover:bg-slate-200 text-black font-bold h-11 rounded font-mono-code text-xs flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              Kontynuuj przez Google
+            </>
           )}
-          {/* 👆 KONIEC NOWEGO KODU 👆 */}
-          
+        </Button>
+
+        <div className="flex items-center gap-3 text-[10px] text-[#64748B]">
+          <div className="flex-1 h-px bg-[#1F242D]" />
+          <span>LUB EMAIL MAGIC-LINK</span>
+          <div className="flex-1 h-px bg-[#1F242D]" />
+        </div>
+
+        {/* Email Magic Link Form */}
+        <form onSubmit={handleMagicLink} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="login-email" className="text-xs text-[#94A3B8]">
+              Adres Email
+            </Label>
+            <Input
+              id="login-email"
+              type="email"
+              placeholder="kolekcjoner@domena.pl"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-[#0D0F14] border-[#1F242D] text-white text-xs font-mono-code h-10 rounded focus:border-white"
+            />
+          </div>
+
           <Button
-            onClick={handleGoogleSignIn}
+            type="submit"
             disabled={loading}
-            className="w-full bg-slate-900/80 hover:bg-slate-900 text-slate-100 border border-slate-600/60 shadow-sm h-12"
-            variant="outline"
+            className="w-full bg-[#161922] hover:bg-[#1F242D] text-white border border-[#1F242D] font-bold h-10 rounded text-xs font-mono-code flex items-center justify-center gap-2"
           >
             {loading ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
+              <>
+                <Mail className="w-3.5 h-3.5" />
+                Wyślij Magic Link
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </>
             )}
-            Zaloguj przez Google
           </Button>
-          
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-950 px-2 text-slate-400">
-                Lub
-              </span>
-            </div>
-          </div>
-          
-          <form onSubmit={handleMagicLink} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="twoj@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 input-contrast"
-                  disabled={loading}
-                  required
-                />
-              </div>
-            </div>
-            
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="w-4 h-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            {success && (
-              <Alert className="bg-emerald-500/10 border-emerald-500/30">
-                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                <AlertDescription className="text-emerald-200">{success}</AlertDescription>
-              </Alert>
-            )}
-            
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:opacity-90 h-12"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Wysyłanie...
-                </>
-              ) : (
-                <>
-                  <Mail className="w-5 h-5 mr-2" />
-                  Wyślij link logowania
-                </>
-              )}
-            </Button>
-          </form>
-          
-          <div className="panel-muted rounded-lg p-4">
-            <p className="text-sm text-slate-200 text-center">
-              🔒 <strong>Bez hasła!</strong> Wyślemy Ci bezpieczny link do logowania na email
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        </form>
+
+        <div className="pt-2 border-t border-[#1F242D] text-center text-[10px] text-[#64748B]">
+          Logując się akceptujesz Regulamin Szwajcarskiego Hubu Escrow.
+        </div>
+      </div>
     </div>
   );
 }

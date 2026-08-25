@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, supabase } from '../lib/AuthContext';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
 import {
   Package,
   Boxes,
@@ -13,15 +12,25 @@ import {
   ArrowRight,
   TrendingUp,
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  Terminal,
+  Activity,
+  Layers,
+  Shield,
+  Clock,
+  ArrowRightLeft,
+  ChevronRight,
+  Search
 } from 'lucide-react';
 
 export default function Home() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalOffers: 0,
     activeConversations: 0,
-    completedTrades: 0
+    completedTrades: 0,
+    activeListings: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -33,67 +42,40 @@ export default function Home() {
         const email = user?.email;
         const userId = user?.id;
 
-        const getOffersCount = async () => {
-          if (!email && !userId) return 0;
-          const queries = [
-            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_email', email).eq('status', 'pending') : null,
-            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_email', email).eq('status', 'pending') : null,
-            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'pending') : null,
-            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'pending') : null
-          ].filter(Boolean);
+        // Liczba aktywnych ogłoszeń użytkownika
+        const { count: listingsCount } = await supabase
+          .from('card_listings')
+          .select('id', { count: 'exact', head: true })
+          .or(`created_by.eq.${userId},created_by_id.eq.${userId},user_email.eq.${email}`);
 
-          const results = await Promise.all(queries.map(q => q.catch((err) => {
-            console.error('DEBUG - Offers query error details:', err);
-            return { count: 0 };
-          })));
-          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
-        };
+        // Liczba ofert oczekujących
+        const { count: offersCount } = await supabase
+          .from('trade_offers')
+          .select('id', { count: 'exact', head: true })
+          .or(`sender_email.eq.${email},owner_email.eq.${email}`)
+          .eq('status', 'pending');
 
-        const getConvsCount = async () => {
-          if (!email && !userId) return 0;
-          const queries = [
-            email ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_1_email', email) : null,
-            email ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_2_email', email) : null,
-            userId ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_1_id', userId) : null,
-            userId ? supabase.from('trade_conversations').select('id', { count: 'exact', head: true }).eq('participant_2_id', userId) : null
-          ].filter(Boolean);
+        // Liczba konwersacji
+        const { count: convsCount } = await supabase
+          .from('trade_conversations')
+          .select('id', { count: 'exact', head: true })
+          .or(`participant_1_email.eq.${email},participant_2_email.eq.${email}`);
 
-          const results = await Promise.all(queries.map(q => q.catch((err) => {
-            console.error('DEBUG - Convs query error details:', err);
-            return { count: 0 };
-          })));
-          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
-        };
-
-        const getCompletedCount = async () => {
-          if (!email && !userId) return 0;
-          const queries = [
-            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_email', email).eq('status', 'completed') : null,
-            email ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_email', email).eq('status', 'completed') : null,
-            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'completed') : null,
-            userId ? supabase.from('trade_offers').select('id', { count: 'exact', head: true }).eq('owner_id', userId).eq('status', 'completed') : null
-          ].filter(Boolean);
-
-          const results = await Promise.all(queries.map(q => q.catch((err) => {
-            console.error('DEBUG - Completed query error details:', err);
-            return { count: 0 };
-          })));
-          return results.reduce((acc, curr) => acc + (curr?.count || 0), 0);
-        };
-
-        const [totalOffers, activeConversations, completedTrades] = await Promise.all([
-          getOffersCount(),
-          getConvsCount(),
-          getCompletedCount()
-        ]);
+        // Liczba zrealizowanych
+        const { count: completedCount } = await supabase
+          .from('trade_offers')
+          .select('id', { count: 'exact', head: true })
+          .or(`sender_email.eq.${email},owner_email.eq.${email}`)
+          .eq('status', 'completed');
 
         setStats({
-          totalOffers,
-          activeConversations,
-          completedTrades
+          totalOffers: offersCount || 0,
+          activeConversations: convsCount || 0,
+          completedTrades: completedCount || 0,
+          activeListings: listingsCount || 0
         });
       } catch (error) {
-        console.error('DEBUG - Global stats error:', error);
+        console.error('Home stats error:', error);
       } finally {
         setLoading(false);
       }
@@ -101,252 +83,203 @@ export default function Home() {
     fetchStats();
   }, [user]);
 
+  const currentTier = (profile?.subscription_tier || user?.subscription_tier || 'free').toLowerCase();
+  const slotLimit = currentTier === 'vault_master' || currentTier === 'premium' ? 999999 : currentTier === 'pro' || currentTier === 'basic' ? 30 : 5;
+  const isUnlimited = slotLimit > 1000;
+
   const categories = [
     {
-      name: 'Karty Pokémon',
+      name: 'Karty Pokémon TCG',
+      code: 'POKEMON_TCG',
       path: '/card-exchange',
       icon: Package,
-      description: 'Wymieniaj karty kolekcjonerskie',
-      color: 'from-blue-500/20 to-cyan-500/20',
-      iconColor: 'text-cyan-400'
+      description: 'Vintage Base Set, Ultra Rare, Graded PSA/CGC',
+      activeCount: '4,500+'
     },
     {
-      name: 'Klocki LEGO',
+      name: 'Magic: The Gathering',
+      code: 'MTG_COLLECTIBLE',
+      path: '/card-exchange',
+      icon: Sparkles,
+      description: 'Alpha, Reserved List, Commander Staples',
+      activeCount: '2,800+'
+    },
+    {
+      name: 'Sports Cards',
+      code: 'SPORTS_MEMORABILIA',
+      path: '/card-exchange',
+      icon: Trophy,
+      description: 'NBA, Panini Prizm, Topps Chrome RC',
+      activeCount: '1,900+'
+    },
+    {
+      name: 'Klocki & Zestawy LEGO',
+      code: 'LEGO_SETS',
       path: '/brick-exchange',
       icon: Boxes,
-      description: 'LEGO i inne zestawy',
-      color: 'from-red-500/20 to-orange-500/20',
-      iconColor: 'text-orange-400'
+      description: 'Unikaty, Star Wars UCS, Modular Buildings',
+      activeCount: '1,400+'
     },
     {
-      name: 'Figurki',
+      name: 'Figurki & Statuy',
+      code: 'FIGURES_COLLECTIBLE',
       path: '/figure-exchange',
       icon: Trophy,
-      description: 'Funko Pop, action figures',
-      color: 'from-purple-500/20 to-pink-500/20',
-      iconColor: 'text-pink-400'
+      description: 'Hot Toys, Prime 1, Funko Grail Series',
+      activeCount: '1,100+'
     },
     {
-      name: 'Modele Aut',
+      name: 'Diecast & Modele',
+      code: 'DIECAST_MODELS',
       path: '/diecast-exchange',
       icon: Car,
-      description: 'Hot Wheels, modele kolekcjonerskie',
-      color: 'from-green-500/20 to-emerald-500/20',
-      iconColor: 'text-emerald-400'
-    },
-    {
-      name: 'Kolekcje',
-      path: '/collectible-exchange',
-      icon: Sparkles,
-      description: 'Inne przedmioty kolekcjonerskie',
-      color: 'from-violet-500/20 to-purple-500/20',
-      iconColor: 'text-violet-400'
+      description: 'Hot Wheels RLC, 1:18 AutoArt, BBR Models',
+      activeCount: '850+'
     }
   ];
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-  };
-
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen py-8"
-    >
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Welcome Section */}
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold section-heading mb-4">
-            Witaj, {profile?.username || user?.email?.split('@')[0] || 'Kolekcjonerze'}! 👋
-          </h1>
-          <p className="text-lg text-slate-300">
-            Zarządzaj swoimi wymianami i poszerzaj swoją kolekcję
-          </p>
-        </motion.div>
-        
-        {/* Stats Cards */}
-        {!loading && (
-          <motion.div 
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
-          >
-            <motion.div variants={item}>
-              <Card className="panel-elevated relative overflow-hidden group border-0 ring-1 ring-white/10">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <TrendingUp className="w-12 h-12" />
-                </div>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-400">Twoje ogłoszenia</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-white mb-1">{stats.totalOffers}</div>
-                  <div className="flex items-center text-xs text-violet-400">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Aktywnych ofert
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={item}>
-              <Card className="panel-elevated relative overflow-hidden group border-0 ring-1 ring-white/10">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <MessageSquare className="w-12 h-12" />
-                </div>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-400">Konwersacje</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-white mb-1">{stats.activeConversations}</div>
-                  <div className="flex items-center text-xs text-blue-400">
-                    <MessageSquare className="w-3 h-3 mr-1" />
-                    Czeka na odpowiedź
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={item}>
-              <Card className="panel-elevated relative overflow-hidden group border-0 ring-1 ring-white/10">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <CheckCircle2 className="w-12 h-12" />
-                </div>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-400">Zrealizowane</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-white mb-1">{stats.completedTrades}</div>
-                  <div className="flex items-center text-xs text-emerald-400">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Udanych wymian
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-        )}
-        
-        {/* Categories */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6 px-1">
-            <h2 className="text-2xl font-bold section-heading">Kategorie</h2>
-            <Button variant="ghost" className="gap-2 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-              Zobacz wszystkie <ArrowRight className="w-4 h-4" />
-            </Button>
+    <div className="space-y-8 font-mono-code text-xs text-[#94A3B8]">
+      {/* Top Welcome & Capacity Status Banner */}
+      <div className="p-6 rounded border border-[#1F242D] bg-[#111318] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-mono-code">
+        <div>
+          <div className="flex items-center gap-2 text-[11px] text-[#10B981] mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+            <span>ACCOUNT_AUTHENTICATED: {user?.email}</span>
           </div>
-          <motion.div 
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {categories.map((category) => {
-              const Icon = category.icon;
-              return (
-                <motion.div key={category.path} variants={item}>
-                  <Link to={category.path}>
-                    <Card className="panel-muted hover:panel-elevated transition-all duration-300 cursor-pointer group border-0 ring-1 ring-white/10 hover:ring-violet-500/50">
-                      <CardHeader>
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                          <Icon className={`w-6 h-6 ${category.iconColor}`} />
-                        </div>
-                        <CardTitle className="text-white group-hover:text-violet-400 transition-colors">
-                          {category.name}
-                        </CardTitle>
-                        <CardDescription className="text-slate-400 group-hover:text-slate-300 transition-colors">
-                          {category.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button variant="ghost" className="w-full gap-2 group-hover:bg-violet-500/10 text-slate-300 group-hover:text-white border-white/5">
-                          Przeglądaj <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Terminal Kolekcjonera: {profile?.username || user?.email?.split('@')[0]}
+          </h1>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Zarządzaj ofertami wymiany, śledź przesyłki w Hubie i monitoruj łańcuch dowodowy SHA-256.
+          </p>
         </div>
-        
-        {/* Quick Actions */}
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-3xl p-8 text-white shadow-2xl shadow-violet-900/20 relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-            <div>
-              <h3 className="text-2xl font-bold mb-2">Gotowy na wymianę?</h3>
-              <p className="text-violet-100">
-                Wystaw swoje przedmioty i znajdź coś dla siebie w sekundy.
-              </p>
-            </div>
-            <Link to="/my-listings">
-              <Button size="lg" variant="secondary" className="gap-2 px-8 py-6 rounded-xl bg-white text-violet-700 hover:bg-violet-50 shadow-xl shadow-black/20 hover:scale-105 transition-all">
-                <TrendingUp className="w-5 h-5" />
-                Wystaw ogłoszenie
-              </Button>
+
+        {/* Slot capacity meter */}
+        <div className="p-3.5 rounded bg-[#0D0F14] border border-[#1F242D] space-y-1.5 w-full md:w-64">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-[#64748B]">PORTFOLIO_CAPACITY:</span>
+            <span className="text-white font-bold">
+              {isUnlimited ? `${stats.activeListings} / ∞` : `${stats.activeListings} / ${slotLimit}`}
+            </span>
+          </div>
+          <div className="w-full h-1.5 bg-[#1F242D] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-[#10B981] rounded-full" 
+              style={{ width: isUnlimited ? '15%' : `${Math.min(100, (stats.activeListings / slotLimit) * 100)}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+            <span>TIER: {currentTier.toUpperCase()}</span>
+            <Link to="/subscription" className="text-[#10B981] hover:underline font-bold">
+              UPGRADE →
             </Link>
           </div>
-        </motion.div>
-        
-        {/* Tips Section */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-          <Card className="panel-muted ring-1 ring-blue-500/20 bg-blue-500/5">
-            <CardHeader>
-              <CardTitle className="text-blue-300 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                Wskazówka
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Dodaj więcej zdjęć do swoich ogłoszeń - przedmioty ze zdjęciami są wymieniane <span className="text-blue-300 font-bold">3x częściej</span>!
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="panel-muted ring-1 ring-emerald-500/20 bg-emerald-500/5">
-            <CardHeader>
-              <CardTitle className="text-emerald-300 flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
-                Subskrypcja
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Masz tylko <strong className="text-emerald-300">{profile?.trade_count_current_month || 0}</strong> z <strong className="text-emerald-300">3</strong> darmowych wymian w tym miesiącu.
-              </p>
-              <Link to="/subscription">
-                <Button variant="ghost" className="w-full border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
-                  Zdobądź nielimitowane wymiany
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
         </div>
       </div>
-    </motion.div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded border border-[#1F242D] bg-[#111318] space-y-1">
+          <div className="flex items-center justify-between text-[#64748B] text-[11px]">
+            <span>PENDING_OFFERS</span>
+            <ArrowRightLeft className="w-4 h-4 text-white opacity-40" />
+          </div>
+          <div className="text-3xl font-extrabold text-white font-mono-code pt-1">
+            {stats.totalOffers}
+          </div>
+          <p className="text-[10px] text-[#64748B]">Oczekujące propozycje wymiany</p>
+        </div>
+
+        <div className="p-4 rounded border border-[#1F242D] bg-[#111318] space-y-1">
+          <div className="flex items-center justify-between text-[#64748B] text-[11px]">
+            <span>ACTIVE_CONVERSATIONS</span>
+            <MessageSquare className="w-4 h-4 text-white opacity-40" />
+          </div>
+          <div className="text-3xl font-extrabold text-white font-mono-code pt-1">
+            {stats.activeConversations}
+          </div>
+          <p className="text-[10px] text-[#64748B]">Otwarte wątki negocjacji</p>
+        </div>
+
+        <div className="p-4 rounded border border-[#1F242D] bg-[#111318] space-y-1">
+          <div className="flex items-center justify-between text-[#64748B] text-[11px]">
+            <span>VERIFIED_TRADES</span>
+            <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+          </div>
+          <div className="text-3xl font-extrabold text-[#10B981] font-mono-code pt-1">
+            {stats.completedTrades}
+          </div>
+          <p className="text-[10px] text-[#64748B]">Pomyślnie zrealizowane w Hubie</p>
+        </div>
+      </div>
+
+      {/* Quick Action Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div 
+          onClick={() => navigate('/my-listings')}
+          className="p-5 rounded border border-[#1F242D] bg-[#111318] hover:border-white transition-all cursor-pointer flex items-center justify-between group"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] text-[#10B981] font-bold uppercase">ACTION_01</span>
+            <h3 className="text-sm font-bold text-white">Wystaw przedmioty do wymiany</h3>
+            <p className="text-xs text-[#64748B]">Dodaj karty do swojego inventory lub stwórz listę poszukiwanych.</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#64748B] group-hover:text-white group-hover:translate-x-1 transition-all" />
+        </div>
+
+        <div 
+          onClick={() => navigate('/card-exchange')}
+          className="p-5 rounded border border-[#1F242D] bg-[#111318] hover:border-white transition-all cursor-pointer flex items-center justify-between group"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] text-[#10B981] font-bold uppercase">ACTION_02</span>
+            <h3 className="text-sm font-bold text-white">Przeglądaj giełdę i oferty matchingu</h3>
+            <p className="text-xs text-[#64748B]">Automatyczny silnik 2-cykli łączy Twoje ogłoszenia z innymi.</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#64748B] group-hover:text-white group-hover:translate-x-1 transition-all" />
+        </div>
+      </div>
+
+      {/* Category Directory (Raycast-Style Grid) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#1F242D]">
+          <span className="font-bold text-white text-sm uppercase tracking-wider">Katalog Giełdy Escrow</span>
+          <span className="text-[#64748B] text-[11px]">6 KATEGORII AKTYWNYCH</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {categories.map((cat, idx) => {
+            const Icon = cat.icon;
+            return (
+              <Link
+                key={idx}
+                to={cat.path}
+                className="p-4 rounded border border-[#1F242D] bg-[#111318] hover:border-[#2E3644] hover:bg-[#161922] transition-all flex flex-col justify-between space-y-3 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+                    <span>{cat.code}</span>
+                    <span className="text-[#10B981] font-bold">{cat.activeCount}</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-[#10B981] transition-colors flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5 text-[#94A3B8]" />
+                    {cat.name}
+                  </h4>
+                  <p className="text-xs text-[#64748B] leading-relaxed">
+                    {cat.description}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-[#1F242D] flex items-center justify-between text-[10px] text-[#64748B]">
+                  <span>OPEN_DIRECTORY</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
