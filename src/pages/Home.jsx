@@ -6,7 +6,8 @@ import {
   Layers, 
   MessageSquare, 
   CheckCircle2, 
-  ShieldCheck 
+  ShieldCheck,
+  ArrowLeftRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth, supabase } from '../lib/AuthContext';
@@ -94,22 +95,27 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-zinc-100 antialiased font-sans -m-6 p-6 sm:p-10">
+    <div className="min-h-screen bg-[#0D1117] text-slate-100 antialiased font-sans -m-6 p-6 sm:p-10 space-y-10">
       <div className="max-w-5xl mx-auto space-y-10">
 
         {/* Top Bar: Profil i Plan */}
-        <header className="flex items-center justify-between">
+        <header className="flex items-center justify-between border-b border-slate-800 pb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-sm font-semibold text-white">
+            <div className="h-10 w-10 rounded-lg bg-rose-600 border border-rose-500/40 flex items-center justify-center text-sm font-bold text-white">
               {initials}
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-white tracking-tight">{username}</h1>
-              <p className="text-xs text-zinc-500">{planLabel} • {statsData.activeListingsCount} z {maxSlots} ogłoszeń</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-white tracking-tight">{username}</h1>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-600/10 text-rose-400 border border-rose-600/20 font-bold uppercase">
+                  {currentTier}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">{planLabel} • {statsData.activeListingsCount} z {maxSlots} ogłoszeń</p>
             </div>
           </div>
 
-          <Link className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3.5 py-1.5 rounded-lg transition" to="/subscription">
+          <Link className="text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-1.5 rounded-lg transition" to="/subscription">
             Zarządzaj planem
           </Link>
         </header>
@@ -121,15 +127,15 @@ export default function Home() {
             return (
               <div 
                 key={i} 
-                className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-5 flex items-center justify-between"
+                className="bg-slate-900/40 border border-slate-800 rounded-xl p-5 flex items-center justify-between"
               >
                 <div>
-                  <span className={`text-2xl font-bold tracking-tight ${stat.highlight ? 'text-emerald-400' : 'text-white'}`}>
+                  <span className={`text-2xl font-extrabold tracking-tight ${stat.highlight ? 'text-rose-500' : 'text-white'}`}>
                     {stat.value}
                   </span>
-                  <p className="text-xs text-zinc-400 mt-1 font-medium">{stat.label}</p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">{stat.label}</p>
                 </div>
-                <div className="h-9 w-9 rounded-lg bg-zinc-800/50 border border-zinc-700/40 flex items-center justify-center text-zinc-400">
+                <div className="h-9 w-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400">
                   <Icon className="w-4 h-4"/>
                 </div>
               </div>
@@ -139,32 +145,32 @@ export default function Home() {
 
         {/* Główne Akcje */}
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link className="group bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-sm p-5 rounded-xl flex items-center justify-between transition" to="/my-listings">
+          <Link className="group bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm p-5 rounded-xl flex items-center justify-between transition shadow-lg shadow-rose-950/30" to="/my-listings">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-zinc-950 text-white flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-white text-slate-950 flex items-center justify-center">
                 <Plus className="w-4 h-4"/>
               </div>
-              <span>Wystaw przedmiot</span>
+              <span>Wystaw przedmiot do Trade-in</span>
             </div>
-            <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-zinc-950 transition"/>
+            <ArrowUpRight className="w-4 h-4 text-white/70 group-hover:text-white transition"/>
           </Link>
 
-          <Link className="group bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-100 font-semibold text-sm p-5 rounded-xl flex items-center justify-between transition" to="/card-exchange">
+          <Link className="group bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-100 font-semibold text-sm p-5 rounded-xl flex items-center justify-between transition" to="/card-exchange">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
+              <div className="h-8 w-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
                 <Search className="w-4 h-4"/>
               </div>
               <span>Przeglądaj giełdę</span>
             </div>
-            <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-zinc-100 transition"/>
+            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-slate-100 transition"/>
           </Link>
         </section>
 
         {/* Katalog Giełdy */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Kategorie giełdy</h2>
-            <Link className="text-xs text-zinc-400 hover:text-zinc-200 transition" to="/card-exchange">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Kategorie trade-in</h2>
+            <Link className="text-xs text-slate-400 hover:text-slate-200 transition" to="/card-exchange">
               Wszystkie →
             </Link>
           </div>
@@ -172,14 +178,14 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {categories.map((cat) => (
               <Link 
-                className="bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 p-4 rounded-xl flex items-center justify-between transition group" 
+                className="bg-slate-900/40 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex items-center justify-between transition group" 
                 key={cat.name} 
                 to={cat.path || "/card-exchange"}
               >
-                <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition">
+                <span className="text-sm font-medium text-slate-300 group-hover:text-white transition">
                   {cat.name}
                 </span>
-                <span className="text-xs text-zinc-400 bg-zinc-800/60 border border-zinc-800 px-2 py-0.5 rounded-md font-mono">
+                <span className="text-xs text-slate-400 bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded-md font-mono">
                   {cat.count}
                 </span>
               </Link>
@@ -188,12 +194,12 @@ export default function Home() {
         </section>
 
         {/* Dyskretny banner gwarancji Swiss Safe */}
-        <footer className="border-t border-zinc-800/80 pt-6 flex items-center justify-between text-xs text-zinc-400">
+        <footer className="border-t border-slate-800 pt-6 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400"/>
-            <span>Fizyczna weryfikacja laboratoryjna w Hubie Escrow</span>
+            <ShieldCheck className="w-4 h-4 text-rose-500"/>
+            <span>Certyfikowana weryfikacja fizyczna w Hubie Escrow</span>
           </div>
-          <span>Standard Swiss Safe</span>
+          <span className="font-mono text-[11px] text-slate-500">STANDARD PSA & MPB TRADE-IN</span>
         </footer>
 
       </div>
