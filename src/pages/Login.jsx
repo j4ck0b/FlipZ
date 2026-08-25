@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,7 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ArrowLeft, 
-  Terminal, 
   ShieldCheck, 
-  Lock, 
   ArrowRight 
 } from "lucide-react";
 
@@ -44,7 +42,7 @@ export default function Login() {
   const handleMagicLink = async (e) => {
     e.preventDefault();
     if (!email) {
-      setError('Wprowadź adres email');
+      setError('Wprowadź poprawny adres email');
       return;
     }
 
@@ -75,32 +73,48 @@ export default function Login() {
 
   if (magicLinkSent) {
     return (
-      <div className="app-shell vault-grid-bg min-h-screen flex items-center justify-center p-4 font-mono-code text-xs">
-        <div className="w-full max-w-md p-8 rounded border border-[#1F242D] bg-[#111318] space-y-6 text-center">
-          <div className="w-12 h-12 rounded bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center mx-auto text-[#10B981]">
-            <CheckCircle2 className="w-6 h-6" />
+      <div className="bg-surface font-sans text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Ambient Background Effect */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed/20 rounded-full blur-[120px] mix-blend-multiply opacity-50"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-secondary-fixed/20 rounded-full blur-[150px] mix-blend-multiply opacity-40"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md p-8 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-xl space-y-6 text-center">
+          <div className="w-14 h-14 rounded-full bg-secondary/15 border border-secondary/30 flex items-center justify-center mx-auto text-secondary shadow-sm">
+            <CheckCircle2 className="w-7 h-7" />
           </div>
           
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#10B981] font-bold">DISPATCH_STATUS: DELIVERED</span>
-            <h2 className="text-lg font-bold text-white">Sprawdź skrzynkę pocztową</h2>
-            <p className="text-xs text-[#94A3B8]">Wysłaliśmy bezpieczny link logowania na adres:</p>
-            <p className="text-xs font-bold text-white bg-[#0D0F14] p-2 rounded border border-[#1F242D] mt-2 select-all">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-bold uppercase tracking-wider">
+              Link Wysłany
+            </div>
+            <h2 className="text-2xl font-extrabold text-on-surface tracking-tight">Sprawdź swoją skrzynkę</h2>
+            <p className="text-sm text-on-surface-variant leading-relaxed">
+              Wysłaliśmy bezpieczny, bezhasłowy link logowania na adres:
+            </p>
+            <p className="text-sm font-bold text-on-surface bg-surface-container p-3 rounded-xl border border-outline-variant/30 select-all font-mono">
               {email}
             </p>
           </div>
 
-          <div className="p-3 rounded bg-[#0D0F14] border border-[#1F242D] text-[11px] text-[#64748B] text-left space-y-1">
-            <div>● Link jednorazowy aktywny przez 60 minut.</div>
-            <div>● Bezhasłowe uwierzytelnianie kryptograficzne.</div>
+          <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface-variant text-left space-y-2">
+            <div className="flex items-center gap-2 font-medium">
+              <span className="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+              <span>Link jest ważny przez 60 minut.</span>
+            </div>
+            <div className="flex items-center gap-2 font-medium">
+              <span className="material-symbols-outlined text-secondary text-[18px]">lock</span>
+              <span>Kryptograficzne uwierzytelnianie konta.</span>
+            </div>
           </div>
 
           <Button
             variant="outline"
             onClick={() => { setMagicLinkSent(false); setEmail(''); }}
-            className="w-full border-[#1F242D] bg-[#161922] text-[#94A3B8] hover:text-white rounded h-10 font-mono-code text-xs"
+            className="w-full border-outline-variant/60 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold rounded-xl h-11 text-sm shadow-sm"
           >
-            Wróć do logowania
+            Wróć do formularza
           </Button>
         </div>
       </div>
@@ -108,42 +122,53 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell vault-grid-bg min-h-screen flex items-center justify-center p-4 font-mono-code text-xs">
-      <div className="w-full max-w-md p-8 rounded border border-[#1F242D] bg-[#111318] space-y-6 shadow-2xl">
-        {/* Top Header */}
-        <div className="space-y-1.5 border-b border-[#1F242D] pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-[#0D0F14] border border-[#1F242D] flex items-center justify-center font-bold text-white text-[10px]">
-                FZ
-              </div>
-              <span className="font-bold text-white text-sm tracking-tight">FLIPZ VAULT</span>
+    <div className="bg-surface font-sans text-on-surface min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+      
+      {/* Ambient Background Effect */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed/20 rounded-full blur-[120px] mix-blend-multiply opacity-50"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-secondary-fixed/20 rounded-full blur-[150px] mix-blend-multiply opacity-40"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-md p-8 sm:p-10 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-xl space-y-6">
+        
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <Link to="/" className="inline-flex items-center gap-2.5 justify-center mb-1 group">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-extrabold text-lg shadow-sm group-hover:scale-105 transition-transform">
+              FZ
             </div>
-            <span className="text-[10px] text-[#10B981] font-bold">AUTH_GATEWAY</span>
+            <span className="font-extrabold text-2xl text-on-surface tracking-tight">FlipCardZ</span>
+          </Link>
+
+          <div>
+            <h1 className="text-2xl font-extrabold text-on-surface tracking-tight">Logowanie do Konta</h1>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Bezpieczny dostęp do portfela kolekcjonera i wymian Escrow.
+            </p>
           </div>
-          <p className="text-xs text-[#64748B]">Bezpieczne uwierzytelnianie konta kolekcjonerskiego.</p>
         </div>
 
-        {/* Error Banners */}
+        {/* Error Notification */}
         {(error || urlError) && (
-          <div className="p-3 rounded bg-[#E53935]/10 border border-[#E53935]/30 text-[#F87171] text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-xl bg-error-container/60 border border-error/30 text-error text-xs flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error || 'Wystąpił błąd autoryzacji. Spróbuj ponownie.'}</span>
+            <span className="font-medium">{error || 'Wystąpił błąd autoryzacji. Spróbuj ponownie.'}</span>
           </div>
         )}
 
         {/* Google OAuth Button */}
-        <Button
+        <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full bg-white hover:bg-slate-200 text-black font-bold h-11 rounded font-mono-code text-xs flex items-center justify-center gap-2"
+          className="w-full bg-surface hover:bg-surface-container border border-outline-variant/60 text-on-surface font-semibold h-12 rounded-xl text-sm flex items-center justify-center gap-3 transition-colors shadow-sm"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin text-secondary" />
           ) : (
             <>
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -152,49 +177,52 @@ export default function Login() {
               Kontynuuj przez Google
             </>
           )}
-        </Button>
+        </button>
 
-        <div className="flex items-center gap-3 text-[10px] text-[#64748B]">
-          <div className="flex-1 h-px bg-[#1F242D]" />
-          <span>LUB EMAIL MAGIC-LINK</span>
-          <div className="flex-1 h-px bg-[#1F242D]" />
+        {/* Divider */}
+        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+          <div className="flex-1 h-px bg-outline-variant/40" />
+          <span className="font-semibold uppercase tracking-wider text-[11px]">lub email magic link</span>
+          <div className="flex-1 h-px bg-outline-variant/40" />
         </div>
 
         {/* Email Magic Link Form */}
         <form onSubmit={handleMagicLink} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="login-email" className="text-xs text-[#94A3B8]">
+            <Label htmlFor="login-email" className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
               Adres Email
             </Label>
             <Input
               id="login-email"
               type="email"
-              placeholder="kolekcjoner@domena.pl"
+              placeholder="twoj-email@domena.pl"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-[#0D0F14] border-[#1F242D] text-white text-xs font-mono-code h-10 rounded focus:border-white"
+              className="bg-surface border-outline-variant/60 text-on-surface text-sm h-11 rounded-xl focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
             />
           </div>
 
-          <Button
+          <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#161922] hover:bg-[#1F242D] text-white border border-[#1F242D] font-bold h-10 rounded text-xs font-mono-code flex items-center justify-center gap-2"
+            className="w-full bg-secondary hover:bg-on-secondary-fixed-variant text-on-secondary font-bold h-11 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors shadow-md shadow-secondary/20"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                <Mail className="w-3.5 h-3.5" />
-                Wyślij Magic Link
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                <Mail className="w-4 h-4" />
+                <span>Wyślij Magic Link</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
               </>
             )}
-          </Button>
+          </button>
         </form>
 
-        <div className="pt-2 border-t border-[#1F242D] text-center text-[10px] text-[#64748B]">
-          Logując się akceptujesz Regulamin Szwajcarskiego Hubu Escrow.
+        {/* Footer info */}
+        <div className="pt-2 text-center text-xs text-on-surface-variant flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-secondary flex-shrink-0" />
+          <span>Chronione przez Protokół FlipCardZ Escrow</span>
         </div>
       </div>
     </div>
