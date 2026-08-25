@@ -132,6 +132,17 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md p-8 sm:p-10 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-xl space-y-6">
         
+        {/* Back Link to Home */}
+        <div className="flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant hover:text-secondary transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Wróć do strony głównej</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center space-y-3">
           <Link to="/" className="inline-flex items-center gap-2.5 justify-center mb-1 group">
